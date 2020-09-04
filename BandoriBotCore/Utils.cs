@@ -141,12 +141,12 @@ public static string FixImage(string origin)
             return string.Concat(chain.Select(msg => GetCQMessage(msg)));
         }
 
-        private static string Encode(this string str)
+        public static string Encode(this string str)
         {
             return str.Replace("&", "&amp;").Replace("[", "&#91;").Replace("]", "&#93;");
         }
 
-        private static string Decode(this string str)
+        public static string Decode(this string str)
         {
             return str.Replace("&#91;", "[").Replace("&#93;", "]").Replace("&amp;", "&");
         }

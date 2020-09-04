@@ -22,7 +22,7 @@ namespace BandoriBot.Commands
             string[] splits = args.Arg.Trim().Split(' ');
             if (string.IsNullOrWhiteSpace(args.Arg.Trim()))
             {
-                args.Callback("/reply <add/del/list>[123] ...\n1 is string comparision\n2 is regex match\n3 is regex match without at(requires admin).\n");
+                args.Callback("/reply <add/del/list>[1234] ...\n1 is string comparision\n2 is regex match\n3 is regex match without at(requires admin).\n4 is c# code");
                 return;
             }
 
@@ -41,13 +41,20 @@ namespace BandoriBot.Commands
                 case "add1":
                 case "add2":
                 case "add3":
+                case "add4":
                     {
                         if (splits.Length < 3)
                         {
                             args.Callback("Invalid argument count.");
                             return;
                         }
-                        if (splits[0] != "add1")
+                        switch (splits[0])
+                        {
+                            case "add1":
+
+                                break;
+                        }
+                        if (splits[0] == "add1" || splits[0] == "add2")
                         {
                             try
                             {
@@ -59,6 +66,7 @@ namespace BandoriBot.Commands
                                 return;
                             }
                         }
+
                         var reply = new Reply
                         {
                             qq = qq,
@@ -67,7 +75,7 @@ namespace BandoriBot.Commands
 
                         var data = config[int.Parse(splits[0].Substring(3))];
 
-                        if (splits[0] == "add3" && !args.IsAdmin)
+                        if ((splits[0] == "add3" || splits[0] == "add4" ) && !args.IsAdmin)
                         {
                             args.Callback("Access denied!");
                             return;
@@ -88,6 +96,27 @@ namespace BandoriBot.Commands
                         else
                             data.Add(splits[1], new List<Reply> { reply });
 
+                        if (splits[0] == "add4")
+                        {
+                            try
+                            {
+                                config.ReloadAssembly();
+                            }
+                            catch (Exception e)
+                            {
+                                args.Callback(e.ToString());
+                                try
+                                {
+                                    config.Load();
+                                }
+                                catch
+                                {
+                                    config.LoadDefault();
+                                }
+                                break;
+                            }
+                        }
+
                         config.Save();
                         args.Callback($"successfully added {(splits[0] == "add" ? "" : "regular expression")}`{splits[1]}` => `{reply.reply}`");
 
@@ -96,6 +125,7 @@ namespace BandoriBot.Commands
                 case "del1":
                 case "del2":
                 case "del3":
+                case "del4":
                     {
                         if (splits.Length < 3)
                         {
@@ -134,6 +164,7 @@ namespace BandoriBot.Commands
                 case "list1":
                 case "list2":
                 case "list3":
+                case "list4":
                     {
                         var data = config[int.Parse(splits[0].Substring(4))];
                         if (splits.Length == 1)

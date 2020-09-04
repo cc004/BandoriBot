@@ -1,4 +1,5 @@
 using BandoriBot.Config;
+using BandoriBot.Models;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -36,6 +37,8 @@ namespace BandoriBot.Commands
 
     public class SetuCommand : Command
     {
+        private readonly Random rand = new Random();
+
         private class SearchResult
         {
             public string uri;
@@ -134,13 +137,33 @@ namespace BandoriBot.Commands
 
         protected override void Run(CommandArgs args)
         {
-            if (!Configuration.GetConfig<NormalAllowed>().hash.Contains(args.Source.FromGroup)) return;
+            var flag = Configuration.GetConfig<NormalAllowed>().hash.Contains(args.Source.FromGroup);
+            var flag2 = Configuration.GetConfig<R18Allowed>().hash.Contains(args.Source.FromGroup);
+
+            if (string.IsNullOrWhiteSpace(args.Arg))
+            {
+                var pics = Configuration.GetConfig<SetuConfig>().t.Where(pic => pic.r18 ? flag2 : flag).ToArray();
+                if (pics.Length == 0)
+                {
+                    args.Callback("图片库为空或者你所在的群没有权限！");
+                    return;
+                }
+                var pic = pics[rand.Next(pics.Length)];
+                var client = new HttpClient();
+                var imgres = Image.FromStream(client.GetStreamAsync(pic.url
+                    .Replace("img-original", "c/540x540_70/img-master")
+                    .Split("_p0.").First() + "_p0_master1200.jpg").Result);
+
+                args.Callback($"作品id: {pic.pid}\n" +
+                    $"画师id: {pic.uid}\n" +
+                    $"神秘链接: {pic.url}\n" +
+                    Utils.GetImageCode(imgres));
+                return;
+            }
 
             var result = SearchAll(args.Arg.Trim()).Result;
 
-            var flag = Configuration.GetConfig<R18Allowed>().hash.Contains(args.Source.FromGroup);
-            
-            result = result.Where(t => t.sanity == 2 ^ flag).ToList();
+            result = result.Where(t => t.sanity == 2 && flag || t.sanity != 2 && flag2).ToList();
 
             if (result.Count == 0)
             {

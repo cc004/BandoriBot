@@ -32,6 +32,8 @@ namespace BandoriBot
             Configuration.Register(new TimeConfiguration());
             Configuration.Register(new GlobalConfiguration());
             Configuration.Register(new Antirevoke());
+            Configuration.Register(new SetuConfig());
+            Configuration.Register(new Save());
             //Configuration.Register(new PeriodRank());
             Configuration.LoadAll();
 

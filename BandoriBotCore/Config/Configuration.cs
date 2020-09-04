@@ -45,6 +45,12 @@ namespace BandoriBot.Config
                 config.Save();
             }
         }
+
+        public static void Save<T>() where T : Configuration
+        {
+            GetConfig<T>().Save();
+        }
+
         public static void LoadAll()
         {
             foreach (Configuration config in instances)

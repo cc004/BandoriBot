@@ -14,7 +14,7 @@ namespace PCRClientTest
         public static PCRManager Instance = new PCRManager();
         public PCRClient.PCRClient client;
 
-        private void Do_Login()
+        public void Do_Login()
         {
             client = new PCRClient.PCRClient(new PCRClient.EnvironmentInfo());
             client.Login("432399396", "5e09f022e619c1c9e0c34fc742ff98da_sh");
@@ -62,7 +62,7 @@ namespace PCRClientTest
                 obj = client.Callapi("clan_battle/period_ranking", new JObject
                 {
                     ["clan_id"] = 614747,
-                    ["clan_battle_id"] = 1004,
+                    ["clan_battle_id"] = 1005,
                     ["period"] = 1,
                     ["month"] = 0,
                     ["page"] = (rank - 1) / 10,

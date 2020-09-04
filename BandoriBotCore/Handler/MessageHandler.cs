@@ -4,6 +4,7 @@ using BandoriBot.Models;
 using Mirai_CSharp;
 using Mirai_CSharp.Models;
 using Mirai_CSharp.Plugin.Interfaces;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,17 @@ namespace BandoriBot.Handler
     {
         public long FromGroup, FromQQ;
         public MiraiHttpSession Session;
+
+        public JObject GetSave()
+        {
+            var result = Configuration.GetConfig<Save>()[FromQQ];
+            if (result == null)
+            {
+                result = new JObject();
+                Configuration.GetConfig<Save>()[FromQQ] = result;
+            }
+            return result;
+        }
     }
 
     public delegate void ResponseCallback(string message);

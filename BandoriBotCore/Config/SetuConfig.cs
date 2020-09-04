@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,5 +14,25 @@ namespace BandoriBot.Config
     public class NormalAllowed : HashConfiguration
     {
         public override string Name => "normalallowed.json";
+    }
+
+    [JsonObject]
+    public class Picture
+    {
+        public int pid, uid, p;
+        public string title, author, url;
+        public bool r18;
+        public int width, height;
+        public string[] tags;
+    }
+
+    public class SetuConfig : SerializableConfiguration<Picture[]>
+    {
+        public override string Name => "setu.json";
+
+        public override void LoadDefault()
+        {
+            t = Array.Empty<Picture>();
+        }
     }
 }

@@ -174,6 +174,7 @@ namespace BandoriBot.Commands
             catch (ApiException e)
             {
                 args.Callback(e.Message);
+                PCRManager.Instance.Do_Login();
             }
         }
     }
@@ -301,7 +302,7 @@ namespace BandoriBot.Commands
 
         protected override void Run(CommandArgs args)
         {
-            args.Callback(PCRClientTest.PCRManager.Instance.GetRankStatistic(int.Parse(args.Arg.Trim())));
+            args.Callback(PCRManager.Instance.GetRankStatistic(int.Parse(args.Arg.Trim())));
         }
     }
 }
