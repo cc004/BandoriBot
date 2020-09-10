@@ -122,8 +122,6 @@ namespace BandoriBot
 
             var options = new MiraiHttpSessionOptions("127.0.0.1", 8080, "1234567890");
 
-            //var options = new MiraiHttpSessionOptions("139.9.234.121", 8080, "1234567890");
-            //args = new string[] { "2025551588" };
             await using var session = new MiraiHttpSession();
 
             session.AddPlugin(new MessageHandler());

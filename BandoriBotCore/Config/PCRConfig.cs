@@ -73,10 +73,29 @@ namespace BandoriBot.Config
             }
         }
 
+        private void LoadBossInfo()
+        {
+            try
+            {
+                bossInfo = JsonConvert.DeserializeObject<List<Boss>>(File.ReadAllText("bossinfo.json"));
+            }
+            catch
+            {
+                bossInfo = new List<Boss>
+                {
+                    new Boss
+                    {
+                        multiplier = new float[]{1f},
+                        name = "null",
+                        value = int.MaxValue
+                    }
+                };
+            }
+        }
+
         public override void LoadDefault()
         {
             data = new JsonConfig();
-            bossInfo = JsonConvert.DeserializeObject<List<Boss>>(File.ReadAllText("bossinfo.json"));
             Update();
         }
 
