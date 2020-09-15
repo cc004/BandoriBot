@@ -219,11 +219,13 @@ namespace BandoriBot.Commands
             for (i = 0; i < 21; ++i)
             {
                 var date = now.AddDays(i);
-                var data = json.Single(token =>
+                var data = json.SingleOrDefault(token =>
                     int.Parse(token.Value<string>("year")) == date.Year &&
                     int.Parse(token.Value<string>("month")) == date.Month)
-                    .Value<JObject>("day")
-                    .Value<JObject>(date.Day.ToString());
+                    ?.Value<JObject>("day")
+                    ?.Value<JObject>(date.Day.ToString());
+
+                if (data == null) break;
 
                 var set = new HashSet<int>();
                 foreach (var prop in data.Properties())

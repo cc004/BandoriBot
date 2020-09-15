@@ -16,6 +16,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace BandoriBot.Handler
 {
@@ -53,6 +54,8 @@ namespace BandoriBot.Handler
             data2 = t[1];
             data3 = t[2];
             data4 = t[3];
+
+            ReloadAssembly();
         }
 
         public override void SaveTo(BinaryWriter bw)
@@ -171,8 +174,15 @@ namespace BandoriBot.Handler
             return functions[code];
         }
 
+        private void ResolveAssemblies()
+        {
+            typeof(HttpUtility).GetType();
+        }
+
         public void ReloadAssembly()
         {
+            ResolveAssemblies();
+            var functions = new Dictionary<string, Function>();
             var options = new CSharpCompilationOptions(
                 OutputKind.DynamicallyLinkedLibrary,
                 false,
@@ -268,6 +278,8 @@ namespace BandoriBot.Handler
 
             foreach (var pair in dict)
                 functions.Add(pair.Key, (Function)holder.GetMethod($"Function{pair.Value}").CreateDelegate(typeof(Function), null));
+
+            this.functions = functions;
         }
     }
 }
