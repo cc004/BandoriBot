@@ -4,13 +4,13 @@ using System.Collections.Generic;
 
 namespace BandoriBot.Commands
 {
-    public class DelayCommand : Command
+    public class DelayCommand : ICommand
     {
-        protected override List<string> Alias => new List<string>
+        public List<string> Alias => new List<string>
         {
             "/delay"
         };
-        protected override void Run(CommandArgs args)
+        public void Run(CommandArgs args)
         {
             try
             {

@@ -7,9 +7,10 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
-    public abstract class HashCommand<T> : Command where T : HashConfiguration
+    public abstract class HashCommand<T> : ICommand where T : HashConfiguration
     {
-        protected override void Run(CommandArgs args)
+        public abstract List<string> Alias { get; }
+        public virtual void Run(CommandArgs args)
         {
             var splits = args.Arg.Trim().Split(' ');
             var config = Configuration.GetConfig<T>();

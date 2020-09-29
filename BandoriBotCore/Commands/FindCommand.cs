@@ -9,16 +9,16 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
-    public class FindCommand : Command
+    public class FindCommand : ICommand
     {
         private List<GroupMemberInfo> infos = new List<GroupMemberInfo>();
         private List<GroupInfo> groups = new List<GroupInfo>();
-        protected override List<string> Alias => new List<string>
+        public List<string> Alias => new List<string>
         {
             "/find"
         };
 
-        protected override void Run(CommandArgs args)
+        public void Run(CommandArgs args)
         {
             string[] splits = args.Arg.Trim().Split(' ');
             if (splits.Length < 1)

@@ -369,7 +369,7 @@ namespace BandoriBot.Commands
                     Configuration.GetConfig<Blacklist>().hash.Add((long)Configuration.GetConfig<AccountBinding>().list.Where((o) => (string)o["username"] == name && (int)o["group"] == Configuration.GetConfig<ServerManager>().GetServer(args).group).FirstOrDefault()["qq"]);
                     Configuration.GetConfig<Blacklist>().Save();
                 }
-                catch (NullReferenceException e)
+                catch (NullReferenceException)
                 {
                     throw new CommandException("该用户未绑定qq");
                 }
@@ -391,7 +391,7 @@ namespace BandoriBot.Commands
                     Configuration.GetConfig<Blacklist>().hash.Remove((long)Configuration.GetConfig<AccountBinding>().list.Where((o) => (string)o["username"] == name && (int)o["group"] == Configuration.GetConfig<ServerManager>().GetServer(args).group).FirstOrDefault()["qq"]);
                     Configuration.GetConfig<Blacklist>().Save();
                 }
-                catch (NullReferenceException e)
+                catch (NullReferenceException)
                 {
                     throw new CommandException("该用户未绑定qq");
                 }

@@ -6,6 +6,7 @@ using Mirai_CSharp;
 using Mirai_CSharp.Models;
 using Native.Csharp.App.Terraria;
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;

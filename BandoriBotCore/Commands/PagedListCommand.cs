@@ -7,12 +7,13 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
-    public abstract class PagedListCommand : Command
+    public abstract class PagedListCommand : ICommand
     {
         protected string[] ItemList;
         protected int PiecePerPage;
 
-        protected sealed override void Run(CommandArgs args)
+        public abstract List<string> Alias { get; }
+        public void Run(CommandArgs args)
         {
             int page = 1;
             int maxPage = (int)Math.Floor((float)ItemList.Length / PiecePerPage);

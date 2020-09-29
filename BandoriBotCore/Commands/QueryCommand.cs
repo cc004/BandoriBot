@@ -8,14 +8,14 @@ using BandoriBot.Handler;
 
 namespace BandoriBot.Commands
 {
-    public class QueryCommand : Command
+    public class QueryCommand : ICommand
     {
-        protected override List<string> Alias => new List<string>
+        public List<string> Alias => new List<string>
         {
             "/query"
         };
 
-        protected override void Run(CommandArgs args)
+        public void Run(CommandArgs args)
         {
             MessageStatistic data = Configuration.GetConfig<MessageStatistic>();
 

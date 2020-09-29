@@ -9,11 +9,11 @@ namespace BandoriBot.Commands
 {
     public class AdminCommand : HashCommand<Admin>
     {
-        protected override List<string> Alias => new List<string>
+        public override List<string> Alias => new List<string>
         {
             "/admin"
         };
-        protected override void Run(CommandArgs args)
+        public override void Run(CommandArgs args)
         {
             if (!args.IsAdmin) return;
             base.Run(args);

@@ -10,14 +10,14 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
-    public class ReplyCommand : Command
+    public class ReplyCommand : ICommand
     {
-        protected override List<string> Alias => new List<string>
+        public List<string> Alias => new List<string>
         {
             "/reply"
         };
 
-        protected override void Run(CommandArgs args)
+        public void Run(CommandArgs args)
         {
             string[] splits = args.Arg.Trim().Split(' ');
             if (string.IsNullOrWhiteSpace(args.Arg.Trim()))
@@ -38,7 +38,6 @@ namespace BandoriBot.Commands
                         args.Callback("configuration has been saved successfully.");
                     }
                     break;
-                case "add1":
                 case "add2":
                 case "add3":
                 case "add4":
@@ -48,23 +47,15 @@ namespace BandoriBot.Commands
                             args.Callback("Invalid argument count.");
                             return;
                         }
-                        switch (splits[0])
-                        {
-                            case "add1":
 
-                                break;
-                        }
-                        if (splits[0] == "add1" || splits[0] == "add2")
+                        try
                         {
-                            try
-                            {
-                                new Regex($"^{Utils.FixRegex(splits[1])}$");
-                            }
-                            catch
-                            {
-                                args.Callback("Invalid regular expression format.");
-                                return;
-                            }
+                            new Regex($"^{Utils.FixRegex(splits[1])}$");
+                        }
+                        catch
+                        {
+                            args.Callback("Invalid regular expression format.");
+                            return;
                         }
 
                         var reply = new Reply
@@ -75,26 +66,25 @@ namespace BandoriBot.Commands
 
                         var data = config[int.Parse(splits[0].Substring(3))];
 
-                        if ((splits[0] == "add3" || splits[0] == "add4" ) && !args.IsAdmin)
+                        if (splits[0] == "add4" && !args.IsAdmin)
                         {
                             args.Callback("Access denied!");
                             return;
                         }
 
-                        if (data.TryGetValue(splits[1], out var list))
+                        var t = data.SingleOrDefault(data => data.Item1.ToString() == splits[1]);
+
+                        if (t != null)
                         {
-                            foreach (var rep in list)
+                            if (t.Item2.Any(r => r.reply == reply.reply))
                             {
-                                if (rep.reply == reply.reply)
-                                {
-                                    args.Callback($"`{splits[1]}` => `{reply.reply}` already exists!");
-                                    return;
-                                }
+                                args.Callback($"`{splits[1]}` => `{reply.reply}` already exists!");
+                                return;
                             }
-                            list.Add(reply);
+                            t.Item2.Add(reply);
                         }
                         else
-                            data.Add(splits[1], new List<Reply> { reply });
+                            data.Add(ReplyHandler.D2T(new KeyValuePair<string, List<Reply>>(splits[1], new List<Reply> { reply })));
 
                         if (splits[0] == "add4")
                         {
@@ -122,7 +112,6 @@ namespace BandoriBot.Commands
 
                         break;
                     }
-                case "del1":
                 case "del2":
                 case "del3":
                 case "del4":
@@ -134,21 +123,22 @@ namespace BandoriBot.Commands
                         }
 
                         var data = config[int.Parse(splits[0].Substring(3))];
-                        var result = Utils.TryGetValueStart(data, (pair) => pair.Key, splits[1], out var list);
+                        var result = Utils.TryGetValueStart(data, (pair) => pair.Item1.ToString(), splits[1], out var list);
                         var replystart = string.Concat(splits.Skip(2).Select((s) => s + ' ')).Trim();
 
                         if (string.IsNullOrEmpty(result))
                         {
-                            var result2 = Utils.TryGetValueStart(list.Value, (reply) => reply.reply, replystart, out var reply);
+                            var result2 = Utils.TryGetValueStart(list.Item2, (reply) => reply.reply, replystart, out var reply);
+
                             if (string.IsNullOrEmpty(result2))
                             {
                                 if (reply.qq == qq || args.IsAdmin)
                                 {
-                                    list.Value.Remove(reply);
-                                    if (list.Value.Count == 0)
-                                        data.Remove(list.Key);
+                                    list.Item2.Remove(reply);
+                                    if (list.Item2.Count == 0)
+                                        data.Remove(list);
                                     config.Save();
-                                    args.Callback($"successfully removed `{list.Key}` => `{reply.reply}`");
+                                    args.Callback($"successfully removed `{list.Item1.ToString()}` => `{reply.reply}`");
                                 }
                                 else
                                     args.Callback("Access denied.");
@@ -161,7 +151,6 @@ namespace BandoriBot.Commands
 
                         break;
                     }
-                case "list1":
                 case "list2":
                 case "list3":
                 case "list4":
@@ -174,20 +163,32 @@ namespace BandoriBot.Commands
                                 args.Callback("Access denied.");
                                 return;
                             }
-                            args.Callback("All valid replies:\n" + string.Concat(data.Select((pair) => pair.Key + "\n")));
+                            args.Callback("All valid replies:\n" + string.Concat(data.Select((pair) => pair.Item1.ToString() + "\n")));
                         }
                         else if (splits.Length == 2)
                         {
-                            var result = Utils.TryGetValueStart(data, (pair) => pair.Key, splits[1], out var list);
+                            var result = Utils.TryGetValueStart(data, (pair) => pair.Item1.ToString(), splits[1], out var list);
 
                             if (string.IsNullOrEmpty(result))
-                                args.Callback($"All valid replies for `{list.Key}`:\n{string.Concat(list.Value.Select((reply) => $"`{reply.reply}` (by {reply.qq})\n"))}");
+                                args.Callback($"All valid replies for `{list.Item1.ToString()[1..^1]}`:\n{string.Concat(list.Item2.Select((reply) => $"`{reply.reply}` (by {reply.qq})\n"))}");
                             else
                                 args.Callback(result);
 
                         }
                         else
                             args.Callback("Invalid argument count.");
+                        break;
+                    }
+                case "search2":
+                case "search3":
+                case "search4":
+                    {
+                        var data = config[int.Parse(splits[0].Substring(6))];
+
+                        if (splits.Length == 1) return;
+
+                        var result = ReplyHandler.FitRegex(data, splits[1]);
+                        args.Callback($"All regex that match `{splits[1]}`:\n{string.Join('\n', data.Where(tuple => tuple.Item1.Match(splits[1]).Success).Select(tuple => tuple.Item1.ToString()).Select(str => str[1..^1]))}");
                         break;
                     }
             }

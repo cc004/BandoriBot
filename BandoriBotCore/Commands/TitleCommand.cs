@@ -9,7 +9,7 @@ namespace BandoriBot.Commands
 {
     class TitleCommand : CooldownCommand<TitleCooldown>
     {
-        protected override List<string> Alias => new List<string>
+        public override List<string> Alias => new List<string>
         {
             "/title"
         };

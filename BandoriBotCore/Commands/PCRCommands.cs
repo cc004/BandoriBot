@@ -15,11 +15,11 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
-    public class CCDCommand : Command
+    public class CCDCommand : ICommand
     {
-        protected override List<string> Alias => new List<string> { "查出刀" };
+        public List<string> Alias => new List<string> { "查出刀" };
 
-        protected override void Run(CommandArgs args)
+        public void Run(CommandArgs args)
         {
             string[] splits = args.Arg.Trim().Split('-');
             DateTime start = DateTime.ParseExact(splits[0], "MMddHH", CultureInfo.CurrentCulture);
@@ -28,11 +28,11 @@ namespace BandoriBot.Commands
         }
     }
 
-    public class SCCommand : Command
+    public class SCCommand : ICommand
     {
-        protected override List<string> Alias => new List<string> { "生成csv" };
+        public List<string> Alias => new List<string> { "生成csv" };
 
-        protected override void Run(CommandArgs args)
+        public void Run(CommandArgs args)
         {
             string[] splits = args.Arg.Trim().Split('-');
             DateTime start = DateTime.ParseExact(splits[0], "MMddHH", CultureInfo.CurrentCulture);
@@ -44,11 +44,11 @@ namespace BandoriBot.Commands
         }
     }
 
-    public class SLCommand : Command
+    public class SLCommand : ICommand
     {
-        protected override List<string> Alias => new List<string> { "私聊提醒" };
+        public List<string> Alias => new List<string> { "私聊提醒" };
 
-        protected override void Run(CommandArgs args)
+        public void Run(CommandArgs args)
         {
             var split1 = args.Arg.Trim().Split(' ');
             string[] splits = split1[0].Split('-');
@@ -66,11 +66,11 @@ namespace BandoriBot.Commands
         }
     }
 
-    public class TBCommand : Command
+    public class TBCommand : ICommand
     {
-        protected override List<string> Alias => new List<string> { "同步刀" };
+        public List<string> Alias => new List<string> { "同步刀" };
 
-        protected override void Run(CommandArgs args)
+        public void Run(CommandArgs args)
         {
             if (!args.IsAdmin) return;
             string[] splits = args.Arg.Trim().Split(' ');
@@ -78,11 +78,11 @@ namespace BandoriBot.Commands
         }
     }
 
-    public class DDCommand : Command
+    public class DDCommand : ICommand
     {
-        protected override List<string> Alias => new List<string> { "代刀" };
+        public List<string> Alias => new List<string> { "代刀" };
 
-        protected override void Run(CommandArgs args)
+        public void Run(CommandArgs args)
         {
             var match = new Regex(@"^\[mirai:at=(.*?)\] (.*)$").Match(args.Arg.Trim());
 
@@ -124,11 +124,11 @@ namespace BandoriBot.Commands
     }
 
 
-    public class CDCommand : Command
+    public class CDCommand : ICommand
     {
-        protected override List<string> Alias => new List<string> { "出刀" };
+        public List<string> Alias => new List<string> { "出刀" };
 
-        protected override void Run(CommandArgs args)
+        public void Run(CommandArgs args)
         {
             int damage;
             try
@@ -159,11 +159,11 @@ namespace BandoriBot.Commands
         }
     }
 
-    public class PCRRunCommand : Command
+    public class PCRRunCommand : ICommand
     {
-        protected override List<string> Alias => new List<string> { "/pcr" };
+        public List<string> Alias => new List<string> { "/pcr" };
 
-        protected override void Run(CommandArgs args)
+        public void Run(CommandArgs args)
         {
             var trimed = args.Arg.Trim();
             var sp = trimed.IndexOf(" ");
@@ -179,7 +179,7 @@ namespace BandoriBot.Commands
         }
     }
 
-    public class RCCommand : Command
+    public class RCCommand : ICommand
     {
         private static List<Color> colors = new List<Color>
         {
@@ -200,9 +200,9 @@ namespace BandoriBot.Commands
             return colors[id];
         }
 
-        protected override List<string> Alias => new List<string> { "日程" };
+        public List<string> Alias => new List<string> { "日程" };
 
-        protected override void Run(CommandArgs args)
+        public void Run(CommandArgs args)
         {
             if (!string.IsNullOrEmpty(args.Arg)) return;
             var js = Utils.GetHttpContent("https://static.biligame.com/pcr/gw/calendar.js");
@@ -298,11 +298,11 @@ namespace BandoriBot.Commands
             img.Dispose();
         }
     }
-    public class CPMCommand : Command
+    public class CPMCommand : ICommand
     {
-        protected override List<string> Alias => new List<string> { "查排名" };
+        public List<string> Alias => new List<string> { "查排名" };
 
-        protected override void Run(CommandArgs args)
+        public void Run(CommandArgs args)
         {
             args.Callback(PCRManager.Instance.GetRankStatistic(int.Parse(args.Arg.Trim())));
         }

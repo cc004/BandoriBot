@@ -6,14 +6,15 @@ using System.Linq;
 
 namespace BandoriBot.Commands
 {
-    public abstract class Activator : Command
+    public abstract class Activator : ICommand
     {
         private static string GetTrans(bool status)
         {
             return status ? "开启" : "关闭";
         }
+        public abstract List<string> Alias { get; }
         protected abstract bool Status { get; }
-        protected sealed override void Run(CommandArgs args)
+        public void Run(CommandArgs args)
         {
             args.Arg = args.Arg.Trim();
             if (args.Arg.Length == 0)
@@ -58,7 +59,7 @@ namespace BandoriBot.Commands
     {
         protected override bool Status => true;
 
-        protected override List<string> Alias => new List<string>
+        public override List<string> Alias => new List<string>
         {
             "/activate"
         };
@@ -67,7 +68,7 @@ namespace BandoriBot.Commands
     {
         protected override bool Status => false;
 
-        protected override List<string> Alias => new List<string>
+        public override List<string> Alias => new List<string>
         {
             "/deactivate"
         };

@@ -9,7 +9,7 @@ namespace BandoriBot.Commands
 {
     public class GachaListCommand : PagedListCommand
     {
-        protected override List<string> Alias => new List<string>
+        public override List<string> Alias => new List<string>
         {
             "抽卡列表"
         };

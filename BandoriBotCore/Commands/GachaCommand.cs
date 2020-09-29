@@ -6,14 +6,14 @@ using System.IO;
 
 namespace BandoriBot.Commands
 {
-    public class GachaCommand : Command
+    public class GachaCommand : ICommand
     {
-        protected override List<string> Alias => new List<string>
+        public List<string> Alias => new List<string>
         {
             "抽卡模拟",
         };
 
-        protected override void Run(CommandArgs args)
+        public void Run(CommandArgs args)
         {
             var Gachas = GachaManager.Instance.GetGachas();
             int max = Gachas.Length;

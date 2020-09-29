@@ -17,8 +17,8 @@ namespace BandoriBot.Commands
 {
     public class R18AllowedCommand : HashCommand<R18Allowed>
     {
-        protected override List<string> Alias => new List<string> { "/r18" };
-        protected override void Run(CommandArgs args)
+        public override List<string> Alias => new List<string> { "/r18" };
+        public override void Run(CommandArgs args)
         {
             if (args.Source.FromQQ != 1176321897L) return;
             base.Run(args);
@@ -27,15 +27,15 @@ namespace BandoriBot.Commands
 
     public class NormalAllowedCommand : HashCommand<NormalAllowed>
     {
-        protected override List<string> Alias => new List<string> { "/normal" };
-        protected override void Run(CommandArgs args)
+        public override List<string> Alias => new List<string> { "/normal" };
+        public override void Run(CommandArgs args)
         {
             if (!args.IsAdmin) return;
             base.Run(args);
         }
     }
 
-    public class SetuCommand : Command
+    public class SetuCommand : ICommand
     {
         private readonly Random rand = new Random();
 
@@ -46,7 +46,7 @@ namespace BandoriBot.Commands
             public int bookmark;
         }
 
-        protected override List<string> Alias => new List<string> { "来点颜色" };
+        public List<string> Alias => new List<string> { "来点颜色" };
 
         private static async Task<JArray> CallApi(Dictionary<string, string> param)
         {
@@ -135,7 +135,7 @@ namespace BandoriBot.Commands
             }
         }
 
-        protected override void Run(CommandArgs args)
+        public void Run(CommandArgs args)
         {
             var flag = Configuration.GetConfig<NormalAllowed>().hash.Contains(args.Source.FromGroup);
             var flag2 = Configuration.GetConfig<R18Allowed>().hash.Contains(args.Source.FromGroup);

@@ -5,10 +5,10 @@ using System.Collections.Generic;
 
 namespace BandoriBot.Commands
 {
-    public class YCM : Command
+    public class YCM : ICommand
     {
         private StationListener listener;
-        protected override List<string> Alias => new List<string>
+        public List<string> Alias => new List<string>
         {
             "ycm",
             "有车吗",
@@ -23,7 +23,7 @@ namespace BandoriBot.Commands
         {
             listener = new StationListener();
         }
-        protected override void Run(CommandArgs args)
+        public void Run(CommandArgs args)
         {
             if (args.Arg == "#" && args.IsAdmin)
             {

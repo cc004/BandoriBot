@@ -41,11 +41,11 @@ namespace PCRClientTest
                     ["is_first"] = 0
                 })["period_ranking"].Single(t => (int)t["rank"] == rank) as JObject;
             }
-            catch (InvalidOperationException e)
+            catch (InvalidOperationException)
             {
                 return 0;
             }
-            catch (ApiException e)
+            catch (ApiException)
             {
                 Do_Login();
                 return 0;
@@ -70,7 +70,7 @@ namespace PCRClientTest
                     ["is_first"] = 0
                 })["period_ranking"].Single(t => (int)t["rank"] == rank) as JObject;
             }
-            catch (InvalidOperationException e)
+            catch (InvalidOperationException)
             {
                 return "找不到工会";
             }

@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
-    public class ZMCCommand : Command
+    public class ZMCCommand : ICommand
     {
-        protected override List<string> Alias => new List<string> { "怎么拆" };
+        public List<string> Alias => new List<string> { "怎么拆" };
 
-        protected override void Run(CommandArgs args)
+        public void Run(CommandArgs args)
         {
             var splits = args.Arg.Trim().Split(' ');
             Team[] teams;

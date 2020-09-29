@@ -8,6 +8,8 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace BandoriBot.Handler
@@ -40,13 +42,33 @@ namespace BandoriBot.Handler
             public IMessageBase[] message;
         }
 
-        //TODO: gather the commands together to improve speed.
         private static readonly List<IMessageHandler> functions = new List<IMessageHandler>();
         private static readonly IMessageHandler instance = new MessageHandler();
         private static readonly Queue<Message> msgRecord = new Queue<Message>();
+        private static readonly State head = new State();
         public static bool booted = false;
 
-        public static void Register<T>(T t) where T : IMessageHandler
+        private class State
+        {
+            public State[] next = new State[256];
+            public Action<CommandArgs> cmd;
+        }
+
+        public static void Register(ICommand t)
+        {
+            foreach (var alias in t.Alias)
+            {
+                var node = head;
+                foreach (var b in Encoding.UTF8.GetBytes(alias))
+                {
+                    if (node.next[b] == null) node.next[b] = new State();
+                    node = node.next[b];
+                }
+                node.cmd = t.Run;
+            }
+        }
+
+        public static void Register(IMessageHandler t)
         {
             functions.Add(t);
         }
@@ -58,11 +80,14 @@ namespace BandoriBot.Handler
             return false;
         }
 
+#pragma warning disable CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
         protected static async Task OnMessage(MiraiHttpSession session, string message, Source Sender)
+#pragma warning restore CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
         {
             if (!booted) return;
 
             bool isAdmin = AdminQQ == Sender.FromQQ || Configuration.GetConfig<Admin>().hash.Contains(Sender.FromQQ);
+            long ticks = DateTime.Now.Ticks;
 
             if (IsIgnore(Sender)) return;
 
@@ -70,12 +95,12 @@ namespace BandoriBot.Handler
             {
                 try
                 {
+                    Utils.Log(LoggerLevel.Debug, $"[{(DateTime.Now.Ticks - ticks) / 10000}ms] sent msg: " + s);
                     if (Sender.FromGroup != 0)
                         session.SendGroupMessageAsync(Sender.FromGroup, Utils.GetMessageChain(s)).Wait();
                     else
                         session.SendFriendMessageAsync(Sender.FromQQ, Utils.GetMessageChain(s)).Wait();
 
-                    Utils.Log(LoggerLevel.Debug, "sent msg: " + s);
                 }
                 catch (Exception e)
                 {
@@ -89,6 +114,29 @@ namespace BandoriBot.Handler
 
         public bool OnMessage(string message, Source Sender, bool isAdmin, ResponseCallback callback)
         {
+            var node = head;
+            var i = 0;
+
+            foreach (var b in Encoding.UTF8.GetBytes(message))
+            {
+                var next = node.next[b];
+                if (next == null) break;
+                node = next;
+                ++i;
+            }
+
+            if (node.cmd != null)
+            {
+                node.cmd(new CommandArgs
+                {
+                    Arg = message.Substring(i),
+                    Source = Sender,
+                    IsAdmin = isAdmin,
+                    Callback = callback
+                });
+                return true;
+            }
+
             foreach (IMessageHandler function in functions)
             {
                 try

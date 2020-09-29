@@ -25,7 +25,7 @@ namespace BandoriBot.Commands
         {
         }
     }
-    public class LegacyCommand : Command
+    public class LegacyCommand : ICommand
     {
         private string Command;
         private Action<CommandArgs> Action;
@@ -36,9 +36,9 @@ namespace BandoriBot.Commands
             this.Action = Action;
         }
 
-        protected override List<string> Alias => new List<string> { Command };
+        public List<string> Alias => new List<string> { Command };
 
-        protected override void Run(CommandArgs args)
+        public void Run(CommandArgs args)
         {
             try
             {

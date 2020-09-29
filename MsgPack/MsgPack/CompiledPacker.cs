@@ -60,7 +60,7 @@ namespace MsgPack
 
 		public sealed class DynamicMethodPacker : PackerBase
 		{
-			protected static MethodInfo LookupMemberMappingMethod;
+			private static MethodInfo LookupMemberMappingMethod;
 
 			private static Dictionary<Type, IDictionary<string, int>> UnpackMemberMappings;
 
@@ -192,7 +192,7 @@ namespace MsgPack
 
 			private static ModuleBuilder DynamicModuleBuilder;
 
-			protected static MethodInfo LookupMemberMappingMethod;
+			private static MethodInfo LookupMemberMappingMethod;
 
 			private static Dictionary<Type, IDictionary<string, int>> UnpackMemberMappings;
 

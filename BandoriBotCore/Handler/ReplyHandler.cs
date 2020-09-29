@@ -3,6 +3,7 @@ using BandoriBot.Config;
 using BandoriBot.DataStructures;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.VisualBasic.CompilerServices;
 using Mirai_CSharp;
 using MsgPack;
 using Newtonsoft.Json.Linq;
@@ -20,19 +21,19 @@ using System.Web;
 
 namespace BandoriBot.Handler
 {
-    using DataType = Dictionary<string, List<Reply>>;
+    using DataType = List<Tuple<Regex, List<Reply>>>;
+    using DataTypeS = Dictionary<string, List<Reply>>;
     using Function = Func<Match, Source, string, bool, ResponseCallback, string>;
 
-    public class ReplyHandler : SerializableConfiguration<List<DataType>>, IMessageHandler
+    public class ReplyHandler : SerializableConfiguration<List<DataTypeS>>, IMessageHandler
     {
         private const int version = 2;
         public override string Name => "reply.json";
-        public DataType data, data2, data3, data4;
+        public DataType data2, data3, data4;
 
         public DataType this[int index] =>
             index switch
             {
-                1 => data,
                 2 => data2,
                 3 => data3,
                 4 => data4,
@@ -41,34 +42,74 @@ namespace BandoriBot.Handler
 
         public override void LoadDefault()
         {
-            data = new DataType();
             data2 = new DataType();
             data3 = new DataType();
             data4 = new DataType();
         }
 
+        public static Tuple<Regex, List<Reply>> D2T(KeyValuePair<string, List<Reply>> pair)
+            => new Tuple<Regex, List<Reply>>(new Regex(@$"^{Utils.FixRegex(pair.Key)}$", RegexOptions.Compiled), pair.Value);
+
+        private static KeyValuePair<string, List<Reply>> T2D(Tuple<Regex, List<Reply>> tuple)
+            => new KeyValuePair<string, List<Reply>>(tuple.Item1.ToString(), tuple.Item2);
+
         public override void LoadFrom(BinaryReader br)
         {
             base.LoadFrom(br);
-            data = t[0];
-            data2 = t[1];
-            data3 = t[2];
-            data4 = t[3];
+            data2 = t[1].Select(D2T).ToList();
+            data3 = t[2].Select(D2T).ToList();
+            data4 = t[3].Select(D2T).ToList();
 
             ReloadAssembly();
         }
 
         public override void SaveTo(BinaryWriter bw)
         {
-            t = new List<DataType>
+            t = new List<DataTypeS>
             {
-                data,
-                data2,
-                data3,
-                data4
+                null,
+                new DataTypeS(data2.Select(T2D)),
+                new DataTypeS(data3.Select(T2D)),
+                new DataTypeS(data4.Select(T2D))
             };
             base.SaveTo(bw);
         }
+
+        private static Regex replace = new Regex(@"\$((?!&).|&...;)", RegexOptions.Compiled);
+
+        public static IEnumerable<(Match, Reply)> FitRegex(DataType data, string content)
+        {
+            IEnumerable<(Match, Reply)> result = new List<(Match, Reply)>();
+
+            foreach (var tuple in data)
+            {
+                var match = tuple.Item1.Match(content);
+                if (match.Success)
+                    result = result.Concat(tuple.Item2.Select(reply => (match, reply)));
+            }
+
+            return result;
+        }
+
+        private static string FitReply((Match, Reply) tuple, Source sender)
+            => replace.Replace(tuple.Item2.reply, m =>
+            {
+                var c = m.Value[1];
+                if (c == '&')
+                {
+                    return m.Groups[1].Value.Decode();
+                }
+                if (c >= '0' && c <= '9')
+                {
+                    var n = c - '0';
+                    if (n < tuple.Item1.Groups.Count)
+                        return tuple.Item1.Groups[c - '0'].Value;
+                }
+                else if (c == '$') return "$";
+                else if (c == 'g') return sender.FromGroup.ToString();
+                else if (c == 'q') return sender.FromQQ.ToString();
+                return m.Value;
+            });
 
         public bool OnMessage(string message, Source Sender, bool isAdmin, ResponseCallback callback)
         {
@@ -81,86 +122,27 @@ namespace BandoriBot.Handler
                     return true;
                 }
 
-                var pending = data.TryGetValue(raw, out var list) ?
-                    list.Select((r) => r.reply).ToList() :
-                    new List<string>();
+                var pending = FitRegex(data2, raw).ToArray();
 
-                foreach (var pair in data2)
-                {
-                    var match = new Regex(@$"^{Utils.FixRegex(pair.Key)}$").Match(raw);
-                    if (match.Success)
-                    {
-                        var reply = pair.Value[new Random().Next(pair.Value.Count)].reply;
-                        pending.Add(new Regex(@"\$((?!&).|&...;)").Replace(reply, (m) =>
-                        {
-                            var c = m.Value[1];
-                            if (c == '&')
-                            {
-                                return m.Groups[1].Value.Decode();
-                            }
-                            if (c >= '0' && c <= '9')
-                            {
-                                var n = (int)(c - '0');
-                                if (n < match.Groups.Count)
-                                    return match.Groups[n].Value;
-                            }
-                            else if (c == '$') return "$";
-                            else if (c == 'g') return Sender.FromGroup.ToString();
-                            else if (c == 'q') return Sender.FromQQ.ToString();
-                            return m.Value;
-                        }));
-                    }
-                }
-                if (pending.Count > 0)
-                    callback(pending[new Random().Next(pending.Count)]);
+                if (pending.Length > 0)
+                    callback(FitReply(pending[new Random().Next(pending.Length)], Sender));
 
                 return true;
             }
             else
             {
-                var pending = new List<Func<string>>();
-                foreach (var pair in data3)
-                {
-                    var match = new Regex(@$"^{Utils.FixRegex(pair.Key)}$").Match(raw);
-                    if (match.Success)
-                    {
-                        var reply = pair.Value[new Random().Next(pair.Value.Count)].reply;
-                        var temp = new Regex(@"\$((?!&).|&...;)").Replace(reply, (m) =>
-                        {
-                            var c = m.Value[1];
-                            if (c == '&')
-                            {
-                                return m.Groups[1].Value.Decode();
-                            }
-                            if (c >= '0' && c <= '9')
-                            {
-                                var n = (int)(c - '0');
-                                if (n < match.Groups.Count)
-                                    return match.Groups[n].Value;
-                            }
-                            else if (c == '$') return "$";
-                            else if (c == 'g') return Sender.FromGroup.ToString();
-                            else if (c == 'q') return Sender.FromQQ.ToString();
-                            return m.Value;
-                        });
-                        pending.Add(() => temp);
-                    }
-                }
+                IEnumerable<Func<string>> pending = new List<Func<string>>();
 
-                foreach (var pair in data4)
-                {
-                    var match = new Regex(@$"^{Utils.FixRegex(pair.Key)}$").Match(raw);
+                pending = pending.Concat(FitRegex(data3, raw).Select(tuple => new Func<string>(() => FitReply(tuple, Sender))));
 
-                    if (match.Success)
-                    {
-                        var reply = pair.Value[new Random().Next(pair.Value.Count)].reply;
-                        pending.Add(() => GetFunction(reply)(match, Sender, message, isAdmin, callback));
-                    }
-                }
-                
-                if (pending.Count > 0)
+                pending = pending.Concat(FitRegex(data4, raw).Select(tuple => new Func<string>(() =>
+                    GetFunction(tuple.Item2.reply)(tuple.Item1, Sender, message, isAdmin, callback))));
+
+                var pa = pending.ToArray();
+
+                if (pa.Length > 0)
                 {
-                    callback(pending[new Random().Next(pending.Count)]());
+                    callback(pa[new Random().Next(pa.Length)]());
                     return true;
                 }
                 return false;
@@ -227,7 +209,7 @@ namespace BandoriBot.Handler
 
             foreach (var pair in data4)
             {
-                foreach (var reply in pair.Value)
+                foreach (var reply in pair.Item2)
                 {
                     if (dict.ContainsKey(reply.reply)) continue;
 

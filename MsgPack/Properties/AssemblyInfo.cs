@@ -15,6 +15,5 @@ using System.Security.Permissions;
 [assembly: InternalsVisibleTo("MessagePackInternalAssembly")]
 [assembly: Debuggable(DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)]
 [assembly: ComVisible(false)]
-[assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 [assembly: AssemblyVersion("0.1.4298.15470")]
 [module: UnverifiableCode]
