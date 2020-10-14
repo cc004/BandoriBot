@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MsgPack", "MsgPack\MsgPack.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mirai-CSharp", "Mirai-CSharp\Mirai-CSharp.csproj", "{70AE3964-4DAC-419D-8721-EDA73C4631C7}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SekaiClient", "SekaiClient\SekaiClient.csproj", "{15C2B7D6-FAC3-4746-A1C8-87FDF927C70C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{70AE3964-4DAC-419D-8721-EDA73C4631C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70AE3964-4DAC-419D-8721-EDA73C4631C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70AE3964-4DAC-419D-8721-EDA73C4631C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15C2B7D6-FAC3-4746-A1C8-87FDF927C70C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15C2B7D6-FAC3-4746-A1C8-87FDF927C70C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15C2B7D6-FAC3-4746-A1C8-87FDF927C70C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15C2B7D6-FAC3-4746-A1C8-87FDF927C70C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

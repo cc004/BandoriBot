@@ -116,8 +116,9 @@ namespace BandoriBot.Handler
         {
             var node = head;
             var i = 0;
+            var bytes = Encoding.UTF8.GetBytes(message);
 
-            foreach (var b in Encoding.UTF8.GetBytes(message))
+            foreach (var b in bytes)
             {
                 var next = node.next[b];
                 if (next == null) break;
@@ -127,13 +128,21 @@ namespace BandoriBot.Handler
 
             if (node.cmd != null)
             {
-                node.cmd(new CommandArgs
+                try
                 {
-                    Arg = message.Substring(i),
-                    Source = Sender,
-                    IsAdmin = isAdmin,
-                    Callback = callback
-                });
+                    node.cmd(new CommandArgs
+                    {
+                        Arg = message.Substring(Encoding.UTF8.GetString(bytes.Take(i).ToArray()).Length),
+                        Source = Sender,
+                        IsAdmin = isAdmin,
+                        Callback = callback
+                    });
+                }
+                catch (Exception e)
+                {
+                    //callback($"Unhandled exception : {e}");
+                    Utils.Log(LoggerLevel.Error, e.ToString());
+                }
                 return true;
             }
 
@@ -145,7 +154,8 @@ namespace BandoriBot.Handler
                 }
                 catch (Exception e)
                 {
-                    callback($"Unhandled exception : {e}");
+                    //callback($"Unhandled exception : {e}");
+                    Utils.Log(LoggerLevel.Error, e.ToString());
                 }
             }
             return true;

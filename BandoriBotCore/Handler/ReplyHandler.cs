@@ -51,7 +51,7 @@ namespace BandoriBot.Handler
             => new Tuple<Regex, List<Reply>>(new Regex(@$"^{Utils.FixRegex(pair.Key)}$", RegexOptions.Compiled), pair.Value);
 
         private static KeyValuePair<string, List<Reply>> T2D(Tuple<Regex, List<Reply>> tuple)
-            => new KeyValuePair<string, List<Reply>>(tuple.Item1.ToString(), tuple.Item2);
+            => new KeyValuePair<string, List<Reply>>(tuple.Item1.ToString()[1..^1], tuple.Item2);
 
         public override void LoadFrom(BinaryReader br)
         {

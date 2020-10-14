@@ -72,7 +72,7 @@ namespace BandoriBot.Commands
                             return;
                         }
 
-                        var t = data.SingleOrDefault(data => data.Item1.ToString() == splits[1]);
+                        var t = data.SingleOrDefault(data => data.Item1.ToString()[1..^1] == splits[1]);
 
                         if (t != null)
                         {
@@ -123,7 +123,7 @@ namespace BandoriBot.Commands
                         }
 
                         var data = config[int.Parse(splits[0].Substring(3))];
-                        var result = Utils.TryGetValueStart(data, (pair) => pair.Item1.ToString(), splits[1], out var list);
+                        var result = Utils.TryGetValueStart(data, (pair) => pair.Item1.ToString()[1..^1], splits[1], out var list);
                         var replystart = string.Concat(splits.Skip(2).Select((s) => s + ' ')).Trim();
 
                         if (string.IsNullOrEmpty(result))
@@ -138,7 +138,7 @@ namespace BandoriBot.Commands
                                     if (list.Item2.Count == 0)
                                         data.Remove(list);
                                     config.Save();
-                                    args.Callback($"successfully removed `{list.Item1.ToString()}` => `{reply.reply}`");
+                                    args.Callback($"successfully removed `{list.Item1.ToString()[1..^1]}` => `{reply.reply}`");
                                 }
                                 else
                                     args.Callback("Access denied.");
@@ -167,7 +167,7 @@ namespace BandoriBot.Commands
                         }
                         else if (splits.Length == 2)
                         {
-                            var result = Utils.TryGetValueStart(data, (pair) => pair.Item1.ToString(), splits[1], out var list);
+                            var result = Utils.TryGetValueStart(data, (pair) => pair.Item1.ToString()[1..^1], splits[1], out var list);
 
                             if (string.IsNullOrEmpty(result))
                                 args.Callback($"All valid replies for `{list.Item1.ToString()[1..^1]}`:\n{string.Concat(list.Item2.Select((reply) => $"`{reply.reply}` (by {reply.qq})\n"))}");
