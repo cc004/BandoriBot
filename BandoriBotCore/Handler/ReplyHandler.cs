@@ -114,6 +114,21 @@ namespace BandoriBot.Handler
         public bool OnMessage(string message, Source Sender, bool isAdmin, ResponseCallback callback)
         {
             var raw = Utils.FindAtMe(message, out var isme, Sender.Session.QQNumber ?? 0).Trim();
+
+            if (!GetConfig<Whitelist>().hash.Contains(Sender.FromGroup) && !isAdmin)
+            {
+                var pending = FitRegex(data4, raw).Select(tuple => new Func<string>(() =>
+                    GetFunction(tuple.Item2.reply)(tuple.Item1, Sender, message, isAdmin, callback)));
+                var pa = pending.ToArray();
+
+                if (pa.Length > 0)
+                {
+                    callback(pa[new Random().Next(pa.Length)]());
+                    return true;
+                }
+                return false;
+            }
+
             if (isme)
             {
                 if (GetConfig<Blacklist>().hash.Contains(Sender.FromQQ))

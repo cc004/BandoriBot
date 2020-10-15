@@ -35,13 +35,17 @@ namespace BandoriBot
             Configuration.Register(new Antirevoke());
             Configuration.Register(new SetuConfig());
             Configuration.Register(new Save());
+            Configuration.Register(new CarTypeConfig());
             //Configuration.Register(new PeriodRank());
             Configuration.LoadAll();
 
-            MessageHandler.Register(new WhitelistHandler());
-            MessageHandler.Register(Configuration.GetConfig<MessageStatistic>());
-            MessageHandler.Register(new YCM());
             MessageHandler.Register(new CarHandler());
+            MessageHandler.Register(Configuration.GetConfig<ReplyHandler>());
+            MessageHandler.Register(new WhitelistHandler());
+            MessageHandler.Register(new RepeatHandler());
+            MessageHandler.Register(Configuration.GetConfig<MessageStatistic>());
+
+            MessageHandler.Register(new YCM());
             MessageHandler.Register(new QueryCommand());
             MessageHandler.Register(new ReplyCommand());
             MessageHandler.Register(new FindCommand());
@@ -56,6 +60,7 @@ namespace BandoriBot
             MessageHandler.Register(new BlacklistCommand());
             MessageHandler.Register(new TitleCommand());
             MessageHandler.Register(new PCRRunCommand());
+            MessageHandler.Register(new CarTypeCommand());
 
             MessageHandler.Register(new DDCommand());
             MessageHandler.Register(new CDCommand());
@@ -100,9 +105,6 @@ namespace BandoriBot
             MessageHandler.Register(new SetuCommand());
             MessageHandler.Register(new ZMCCommand());
             MessageHandler.Register(new AntirevokeCommand());
-
-            MessageHandler.Register(Configuration.GetConfig<ReplyHandler>());
-            MessageHandler.Register(new RepeatHandler());
 
             foreach (var schedule in Configuration.GetConfig<TimeConfiguration>().t)
             {

@@ -62,8 +62,7 @@ namespace SekaiClient
             {
                 try
                 {
-                    pool.proxys
-                    .OrderBy(p => p.GetHashCode()).AsParallel().WithDegreeOfParallelism(64).WithCancellation(token).ForAll(proxy =>
+                    pool.proxys.AsParallel().WithDegreeOfParallelism(64).WithCancellation(token).ForAll(proxy =>
                     {
                         if (available != null) return;
                         try

@@ -1,5 +1,9 @@
 using BandoriBot.Config;
+using BandoriBot.DataStructures;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Web;
 
@@ -9,6 +13,29 @@ namespace BandoriBot.Handler
     {
         private static string source = HttpUtility.UrlEncode("冲冲");
         private static string token = "2NmWeiklE";
+        private static Queue<Car> sekaicars = new Queue<Car>();
+
+        public static List<Car> Cars
+        {
+            get
+            {
+                lock (sekaicars)
+                {
+                    if (sekaicars.Count == 0) return new List<Car>();
+
+                    var nt = DateTime.Now;
+                    while (true)
+                    {
+                        if (nt - sekaicars.Peek().time > new TimeSpan(0, 2, 0))
+                            sekaicars.Dequeue();
+                        else
+                            break;
+                    }
+
+                    return sekaicars.Reverse().ToList();
+                }
+            }
+        }
 
         private bool IsIgnore(Source sender)
         {
@@ -22,8 +49,18 @@ namespace BandoriBot.Handler
             return c >= '0' && c <= '9';
         }
 
+        private static readonly Dictionary<long, int> LastCar = new Dictionary<long, int>();
+
         public bool OnMessage(string message, Source Sender, bool isAdmin, ResponseCallback callback)
         {
+            if (message == "m" || message == "M")
+            {
+                if (LastCar.TryGetValue(Sender.FromQQ, out int lc))
+                    lock (sekaicars)
+                        sekaicars = new Queue<Car>(sekaicars.Where(c => c.index != lc));
+                return true;
+            }
+
             int split, car;
             if (IsIgnore(Sender)) return false;
             if (message.Length < 5) return false;
@@ -33,32 +70,38 @@ namespace BandoriBot.Handler
             if (message.Length > split && IsNumeric(message[split])) return false;
 
             car = int.Parse(message.Substring(0, split));
-            if (car == 114514)
-            {
-                callback("恶意车牌已自动屏蔽");
-                return true;
-            }
-
-            if (message.IndexOf("彩黑") != -1)
-            {
-                message = message.Replace("彩黑", "彩 黑");
-            }
+            LastCar[Sender.FromQQ] = car;
 
             Thread.Sleep(Configuration.GetConfig<Delay>()[Sender.FromQQ] * 1000);
 
-            string raw_message = car.ToString() + " " + message.Substring(split);
-            JObject res = Utils.GetHttp($"http://api.bandoristation.com/?function=submit_room_number&number={car}&source={source}&token={token}&raw_message={raw_message}&user_id={Sender.FromQQ}");
+            string raw_message = car.ToString("d5") + " " + message.Substring(split);
 
-            if (res == null)
+            switch (Configuration.GetConfig<CarTypeConfig>()[Sender.FromGroup])
             {
-                callback($"无法连接到bandoristation.com");
-            }
-            else if (res["status"].ToString() != "success" && res["status"].ToString() != "duplicate_number_submit")
-            {
-                callback($"上传车牌时发生错误: {res["status"]}");
+
+                case CarType.Bandori:
+                    JObject res = Utils.GetHttp($"http://api.bandoristation.com/?function=submit_room_number&number={car}&source={source}&token={token}&raw_message={raw_message}&user_id={Sender.FromQQ}");
+                    if (res == null)
+                    {
+                        callback($"无法连接到bandoristation.com");
+                    }
+                    else if (res["status"].ToString() != "success" && res["status"].ToString() != "duplicate_number_submit")
+                    {
+                        callback($"上传车牌时发生错误: {res["status"]}");
+                    }
+                    return true;
+                case CarType.Sekai:
+                    lock (sekaicars)
+                        sekaicars.Enqueue(new Car
+                        {
+                            index = car,
+                            rawmessage = raw_message,
+                            time = DateTime.Now
+                        });
+                    return true;
             }
 
-            return true;
+            return false;
         }
     }
 }

@@ -1,7 +1,10 @@
-﻿using BandoriBot.DataStructures;
+﻿using BandoriBot.Config;
+using BandoriBot.DataStructures;
 using BandoriBot.Handler;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 namespace BandoriBot.Commands
 {
@@ -15,8 +18,7 @@ namespace BandoriBot.Commands
             "车来",
             "车",
             "来车",
-            "车滚",
-            "贴贴"
+            "车滚"
         };
 
         public YCM()
@@ -25,22 +27,18 @@ namespace BandoriBot.Commands
         }
         public void Run(CommandArgs args)
         {
-            if (args.Arg == "#" && args.IsAdmin)
-            {
-                args.Callback(
-                    "Listener status\n" +
-                    $"IsRunning : {listener.Running}\n" +
-                    $"IsActive : {listener.Active}\n" +
-                    $"Cars : {listener.Cars.Count}\n" +
-                    $"");
-            }
             if (!string.IsNullOrEmpty(args.Arg)) return;
             lock (listener)
                 if (!listener.Running)
                     listener.Start();
 
+            List<Car> cars = Configuration.GetConfig<CarTypeConfig>()[args.Source.FromGroup] switch
+            {
+                CarType.Bandori => listener.Cars,
+                CarType.Sekai => CarHandler.Cars
+            };
+
             string result = "";
-            List<Car> cars = listener.Cars;
             HashSet<int> indexes = new HashSet<int>();
             foreach (Car car in cars)
             {

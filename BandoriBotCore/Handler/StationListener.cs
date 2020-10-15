@@ -29,11 +29,12 @@ namespace BandoriBot.Handler
 
                 lock (cars)
                 {
-                    return cars.Where(c =>
-                        {
-                            if (t - c.time > new TimeSpan(0, 2, 0)) return false;
-                            return true;
-                        }).Reverse().ToList();
+                    cars = cars.Where(c =>
+                    {
+                        if (t - c.time > new TimeSpan(0, 2, 0)) return false;
+                        return true;
+                    }).Reverse().ToList();
+                    return cars;
                 }
             }
         }

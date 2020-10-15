@@ -41,7 +41,8 @@ namespace BandoriBot.Commands
 
         private class SearchResult
         {
-            public string uri;
+            public int pid, uid;
+            public string uri, origin;
             public int sanity;
             public int bookmark;
         }
@@ -87,7 +88,10 @@ namespace BandoriBot.Commands
                 {
                     bookmark = token.Value<int>("total_bookmarks"),
                     sanity = token.Value<int>("sanity_level"),
-                    uri = token["image_urls"].Value<string>("medium")
+                    uri = token["image_urls"].Value<string>("medium"),
+                    pid = token.Value<int>("id"),
+                    uid = token["user"].Value<int>("id"),
+                    origin = token["image_urls"].Value<string>("large")
                 });
             }
             catch
@@ -173,7 +177,11 @@ namespace BandoriBot.Commands
 
             var piece = result[new Random().Next(result.Count)];
             var img = GetImage(piece.uri).Result;
-            args.Callback($"{args.Arg.Trim()}:\n" + Utils.GetImageCode(img));
+            args.Callback($"{args.Arg.Trim()}:\n" +
+                    $"作品id: {piece.pid}\n" +
+                    $"画师id: {piece.uid}\n" +
+                    $"神秘链接: {piece.origin}\n" +
+                    Utils.GetImageCode(img));
         }
     }
 }

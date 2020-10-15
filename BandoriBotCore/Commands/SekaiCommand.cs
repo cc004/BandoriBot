@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using SekaiClient.Datas;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -22,7 +23,7 @@ namespace BandoriBot.Commands
             {
                 try
                 {
-                    client = new SekaiClient.SekaiClient(new SekaiClient.EnvironmentInfo(), true);
+                    client = new SekaiClient.SekaiClient(new SekaiClient.EnvironmentInfo(), false);
                     await client.UpgradeEnvironment();
                     await client.Login(await client.Register());
                     await client.PassTutorial(true);
@@ -40,7 +41,8 @@ namespace BandoriBot.Commands
 
         public SekaiCommand()
         {
-            ClientReady().Wait();
+            if (File.Exists("sekai"))
+                ClientReady().Wait();
         }
 
         public void Run(CommandArgs args)
