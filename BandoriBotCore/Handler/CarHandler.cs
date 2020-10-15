@@ -21,10 +21,8 @@ namespace BandoriBot.Handler
             {
                 lock (sekaicars)
                 {
-                    if (sekaicars.Count == 0) return new List<Car>();
-
                     var nt = DateTime.Now;
-                    while (true)
+                    while (sekaicars.Count > 0)
                     {
                         if (nt - sekaicars.Peek().time > new TimeSpan(0, 2, 0))
                             sekaicars.Dequeue();
