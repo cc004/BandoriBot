@@ -203,7 +203,9 @@ namespace BandoriBot.Handler
                 "BandoriBot.Config",
                 "BandoriBot.Handler",
                 "System",
-                "System.Text.RegularExpressions"
+                "System.Collections.Generic",
+                "System.Text.RegularExpressions",
+                "System.Linq"
             };
 
             var references = new List<PortableExecutableReference>();

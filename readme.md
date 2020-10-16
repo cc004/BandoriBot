@@ -14,6 +14,8 @@ This plugin has a basic message handling framework and permission control. Some 
 - Custom Replies with regex or csharp code
 - Random Pixiv Images (powered by lolicon.app, pixiv.cat and api.imjad.cn)
 - Anti-revoke
+- Sekai event rank query (realtime)
+- Sekai station (memory based database)
 
 ## Usage
 
