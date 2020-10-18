@@ -35,7 +35,7 @@ namespace BandoriBot.Commands
                         group = long.Parse(args.Arg);
                         if (!args.IsAdmin)
                         {
-                            source = Common.CqApi.GetMemberList(group).Where((GroupMemberInfo info) => (info.QQId == args.Source.FromQQ)).ToList();
+                            source = args.Source.Session.GetMemberList(group).Where((GroupMemberInfo info) => (info.QQId == args.Source.FromQQ)).ToList();
                             if (source.Count == 0 || source[0].PermitType == PermitType.None)
                             {
                                 args.Callback("权限不足");

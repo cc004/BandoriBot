@@ -234,7 +234,7 @@ namespace BandoriBot.Handler
             {
                 await session.SendGroupMessageAsync(record.group, (new IMessageBase[]
                 {
-                    new AtMessage(e.Operator.Id, ""),
+                    new AtMessage(e.Operator.Id),
                     new PlainMessage("尝试撤回一条消息：")
                 }).Concat(record.message).ToArray());
                 return true;

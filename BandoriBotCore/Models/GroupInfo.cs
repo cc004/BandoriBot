@@ -18,13 +18,5 @@ namespace BandoriBot.Models
 		/// 群名字
 		/// </summary>
 		public string Name;
-		/// <summary>
-		/// 当前成员数量, 由 <see cref="CqApi.GetGroupInfo"/> 方法获取
-		/// </summary>
-		public int CurrentNumber;
-		/// <summary>
-		/// 获取最大成员数量, 由 <see cref="CqApi.GetGroupInfo"/> 方法获取
-		/// </summary>
-		public int MaximumNumber;
     }
 }

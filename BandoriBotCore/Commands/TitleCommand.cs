@@ -20,7 +20,7 @@ namespace BandoriBot.Commands
             try
             {
                 var title = args.Arg.Trim();
-                var res = Common.CqApi.SetGroupSpecialTitle(args.Source.FromGroup, args.Source.FromQQ, title, new TimeSpan(-1L));
+                var res = args.Source.Session.SetGroupSpecialTitle(args.Source.FromGroup, args.Source.FromQQ, title, new TimeSpan(-1L));
                 args.Callback($"你的头衔已经修改为：`{title}`！");
                 return new TimeSpan(1, 0, 0);
             }

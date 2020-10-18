@@ -29,6 +29,7 @@ namespace BandoriBot.Services
     {
         public static JJCManager Instance = new JJCManager(Path.Combine("jjc"));
 
+#pragma warning disable CS0649
         [JsonObject]
         private class Character
         {

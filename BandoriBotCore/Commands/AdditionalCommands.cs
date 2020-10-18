@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
+#pragma warning disable CS0028
+
 namespace BandoriBot.Commands
 {
     public static class AdditionalCommands
@@ -28,7 +30,7 @@ namespace BandoriBot.Commands
             [Admin]
             public static void Main(CommandArgs args, long qq)
             {
-                //Common.CqApi.SetGroupBanSpeak(args.Source.FromGroup, qq, new TimeSpan(0, 0, new Random().Next(3600 * 24 * 30)));
+                //args.Source.Session.SetGroupBanSpeak(args.Source.FromGroup, qq, new TimeSpan(0, 0, new Random().Next(3600 * 24 * 30)));
             }
         }
         public class 绑定
@@ -376,7 +378,7 @@ namespace BandoriBot.Commands
                 Configuration.GetConfig<ServerManager>().GetServer(args).RunCommand($"/ban add {name}");
                 args.Callback(string.Format(GlobalConfiguration.Global.func5Info, name));
 
-                //Common.CqApi.SetGroupMemberRemove(args.Source.FromGroup,
+                //args.Source.Session.SetGroupMemberRemove(args.Source.FromGroup,
                 //    (long)Configuration.GetConfig<AccountBinding>().list.Where((o) => (string)o["username"] == name).Single()["qq"]);
             }
         }

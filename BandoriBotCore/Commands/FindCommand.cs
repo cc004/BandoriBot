@@ -36,8 +36,8 @@ namespace BandoriBot.Commands
                     }
                     infos.Clear();
                     args.Callback($"refreshing...please wait.");
-                    foreach (var group in (groups = Common.CqApi.GetGroupList()))
-                        foreach (var member in Common.CqApi.GetMemberList(group.Id) ?? new List<GroupMemberInfo>())
+                    foreach (var group in (groups = args.Source.Session.GetGroupList()))
+                        foreach (var member in args.Source.Session.GetMemberList(group.Id) ?? new List<GroupMemberInfo>())
                             infos.Add(member);
                     var idhash = new HashSet<long>(groups.Select((group) => group.Id));
                     var groupfile = Path.Combine("groups.json");
@@ -62,15 +62,8 @@ namespace BandoriBot.Commands
                                 foreach (JObject member in group["members"])
                                     infos.Add(new GroupMemberInfo
                                     {
-                                        Nick = (string)member["nick"],
                                         QQId = (long)member["qq"],
-                                        Age = (int)member["age"],
-                                        Sex = (Sex)Enum.Parse(typeof(Sex), (string)member["sex"]),
-                                        Card = (string)member["card"],
                                         PermitType = (PermitType)Enum.Parse(typeof(PermitType), (string)member["position"]),
-                                        JoiningTime = DateTime.Parse((string)member["join"]),
-                                        LastDateTime = DateTime.Parse((string)member["last"]),
-                                        SpecialTitle = (string)member["title"],
                                         GroupId = info.Id
                                     });
 
@@ -98,7 +91,6 @@ namespace BandoriBot.Commands
                         users.Add(member.QQId);
                     args.Callback(@$"{
                         new HashSet<long>(infos
-                            .Where((info) => info.LastDateTime > active)
                             .Select((info) => info.QQId)).Count
                         } members in total {(active.Ticks == 0 ? "" : "is active after " + active.ToString())} (counting in {groups.Count} groups).");
                     break;

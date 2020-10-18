@@ -35,7 +35,8 @@ namespace BandoriBot.Commands
             List<Car> cars = Configuration.GetConfig<CarTypeConfig>()[args.Source.FromGroup] switch
             {
                 CarType.Bandori => listener.Cars,
-                CarType.Sekai => CarHandler.Cars
+                CarType.Sekai => CarHandler.Cars,
+                _ => null
             };
 
             string result = "";

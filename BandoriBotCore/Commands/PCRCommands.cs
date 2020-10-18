@@ -56,9 +56,9 @@ namespace BandoriBot.Commands
             DateTime start = DateTime.ParseExact(splits[0], "MMddHH", CultureInfo.CurrentCulture);
             DateTime end = DateTime.ParseExact(splits[1], "MMddHH", CultureInfo.CurrentCulture);
             var list = Configuration.GetConfig<PCRConfig>().Query(start, end);
-            foreach (var info in Common.CqApi.GetMemberList(args.Source.FromGroup).Where(info => !list.Contains(info.QQId)))
+            foreach (var info in args.Source.Session.GetMemberList(args.Source.FromGroup).Where(info => !list.Contains(info.QQId)))
             {
-                //Common.CqApi.SendPrivateMessage(info.QQId, string.Join(" ", split1.Skip(1)));
+                //args.Source.Session.SendPrivateMessage(info.QQId, string.Join(" ", split1.Skip(1)));
                 result += $"[mirai:at={info.QQId}] ";
             }
 

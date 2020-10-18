@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Mirai-CSharp\Mirai-CSharp.csproj" />
+    <ProjectReference Include="..\Mirai-CSharp\Mirai-CSharp\Mirai-CSharp.csproj" />
     <ProjectReference Include="..\MsgPack\MsgPack.csproj" />
     <ProjectReference Include="..\SekaiClient\SekaiClient.csproj" />
   </ItemGroup>

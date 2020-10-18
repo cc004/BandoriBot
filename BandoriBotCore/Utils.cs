@@ -71,7 +71,7 @@ namespace BandoriBot
                 var val = match.Groups[3].Value;
                 switch (match.Groups[2].Value)
                 {
-                    case "mirai:at": result.Add(new AtMessage(long.Parse(val), "")); break;
+                    case "mirai:at": result.Add(new AtMessage(long.Parse(val))); break;
                     case "mirai:imageid": result.Add(new ImageMessage(val.Decode(), "", "")); break;
                     case "mirai:imageurl": result.Add(new ImageMessage("", val.Decode(), "")); break;
                     case "mirai:imagepath": result.Add(new ImageMessage("", "", val.Decode())); break;
@@ -80,7 +80,7 @@ namespace BandoriBot
                     case "mirai:xml": result.Add(new XmlMessage(val.Decode())); break;
                     case "mirai:poke": result.Add(new PokeMessage(Enum.Parse<PokeType>(val))); break;
                     case "mirai:face": result.Add(new FaceMessage(int.Parse(val), "")); break;
-                    case "CQ:at,qq": result.Add(new AtMessage(long.Parse(val), "")); break;
+                    case "CQ:at,qq": result.Add(new AtMessage(long.Parse(val))); break;
                     case "CQ:face,id": result.Add(new FaceMessage(int.Parse(val), "")); break;
                 }
                 msg = match.Groups[4].Value;
