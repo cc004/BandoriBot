@@ -121,12 +121,17 @@ namespace BandoriBot
 
         public static async Task Main(string[] args)
         {
-            
+            Console.Write("authkey=");
+            string authkey;
+            authkey = Console.ReadLine();
+            if (string.IsNullOrEmpty(authkey))
+                authkey = "1234567890";
+
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
             var options = args.Length == 0 ?
-                new MiraiHttpSessionOptions("bothost", 8080, "1234567890"):
-                new MiraiHttpSessionOptions("localhost", 8080, "1234567890");
+                new MiraiHttpSessionOptions("bothost", 8080, authkey) :
+                new MiraiHttpSessionOptions("localhost", 8080, authkey);
 
             await using var session = new MiraiHttpSession();
 
