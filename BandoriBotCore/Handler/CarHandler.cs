@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Web;
 
@@ -49,6 +50,8 @@ namespace BandoriBot.Handler
 
         private static readonly Dictionary<long, int> LastCar = new Dictionary<long, int>();
 
+        private static readonly Regex codereg = new Regex(@"\[.*?\]", RegexOptions.Compiled);
+
         public bool OnMessage(string message, Source Sender, bool isAdmin, ResponseCallback callback)
         {
             if (message == "m" || message == "M")
@@ -73,6 +76,10 @@ namespace BandoriBot.Handler
             Thread.Sleep(Configuration.GetConfig<Delay>()[Sender.FromQQ] * 1000);
 
             string raw_message = car.ToString("d5") + " " + message.Substring(split);
+
+            // ignore non-text messages
+
+            raw_message = codereg.Replace(raw_message, _ => "");
 
             switch (Configuration.GetConfig<CarTypeConfig>()[Sender.FromGroup])
             {

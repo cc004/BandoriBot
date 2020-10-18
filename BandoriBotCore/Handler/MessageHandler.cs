@@ -109,7 +109,11 @@ namespace BandoriBot.Handler
             };
 
             Utils.Log(LoggerLevel.Debug, "recv msg: " + message);
-            instance.OnMessage(message, Sender, isAdmin, callback);
+
+            Task.Run(() =>
+            {
+                instance.OnMessage(message, Sender, isAdmin, callback);
+            }).Start();
         }
 
         public bool OnMessage(string message, Source Sender, bool isAdmin, ResponseCallback callback)
@@ -130,6 +134,7 @@ namespace BandoriBot.Handler
             {
                 try
                 {
+                    lock (node)
                     node.cmd(new CommandArgs
                     {
                         Arg = message.Substring(Encoding.UTF8.GetString(bytes.Take(i).ToArray()).Length),
@@ -150,6 +155,7 @@ namespace BandoriBot.Handler
             {
                 try
                 {
+                    lock (function)
                     if (function.OnMessage(message, Sender, isAdmin, callback)) break;
                 }
                 catch (Exception e)
