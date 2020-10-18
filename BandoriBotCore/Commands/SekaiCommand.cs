@@ -34,9 +34,9 @@ namespace BandoriBot.Commands
                     this.Log(LoggerLevel.Error, e.ToString());
                 }
             }
+            eventId = 2; //TODO: get and cache event id from master data
             //var master = await client.CallApi("/suite/master", HttpMethod.Get, null);
             //eventId = master["events"].Last().Value<int>("id");
-            eventId = 1;
         }
 
         public SekaiCommand()
@@ -62,7 +62,7 @@ namespace BandoriBot.Commands
                 var result = (arg > int.MaxValue ?
                     client.CallUserApi($"/event/{eventId}/ranking?targetUserId={arg}", HttpMethod.Get, null) :
                     client.CallUserApi($"/event/{eventId}/ranking?targetRank={arg}", HttpMethod.Get, null)).Result;
-                var rank = result["rankings"].SingleOrDefault();
+                var rank = result["rankings"]?.SingleOrDefault();
 
                 args.Callback(rank == null ? "找不到玩家" : $"排名为{rank["rank"]}的玩家是`{rank["name"]}`(uid={rank["userId"]})，分数为{rank["score"]}");
             }

@@ -25,7 +25,8 @@ namespace BandoriBot.Handler
                     var nt = DateTime.Now;
                     while (sekaicars.Count > 0)
                     {
-                        if (nt - sekaicars.Peek().time > new TimeSpan(0, 2, 0))
+                        var car = sekaicars.Peek();
+                        if (nt - car.time > (car.index > 99999 ? new TimeSpan(0, 10, 0) : new TimeSpan(0, 2, 0)))
                             sekaicars.Dequeue();
                         else
                             break;
