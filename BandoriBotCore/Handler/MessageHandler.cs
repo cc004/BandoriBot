@@ -18,6 +18,7 @@ namespace BandoriBot.Handler
     {
         public long FromGroup, FromQQ;
         public MiraiHttpSession Session;
+        public bool IsTemp;
 
         public JObject GetSave()
         {
@@ -32,7 +33,7 @@ namespace BandoriBot.Handler
     }
 
     public delegate void ResponseCallback(string message);
-    public class MessageHandler : IMessageHandler, IFriendMessage, IGroupMessage, IBotInvitedJoinGroup, INewFriendApply, IGroupMessageRevoked
+    public class MessageHandler : IMessageHandler, IFriendMessage, IGroupMessage, IBotInvitedJoinGroup, INewFriendApply, IGroupMessageRevoked, ITempMessage
     {
         private class Message
         {
@@ -98,8 +99,10 @@ namespace BandoriBot.Handler
                     Utils.Log(LoggerLevel.Debug, $"[{(DateTime.Now.Ticks - ticks) / 10000}ms] sent msg: " + s);
                     if (Sender.FromGroup != 0)
                         session.SendGroupMessageAsync(Sender.FromGroup, Utils.GetMessageChain(s)).Wait();
-                    else
+                    else if (!Sender.IsTemp)
                         session.SendFriendMessageAsync(Sender.FromQQ, Utils.GetMessageChain(s)).Wait();
+                    else
+                        session.SendTempMessageAsync(Sender.FromQQ, Sender.FromGroup, Utils.GetMessageChain(s)).Wait();
 
                 }
                 catch (Exception e)
@@ -241,6 +244,18 @@ namespace BandoriBot.Handler
                 this.Log(LoggerLevel.Error, e2.ToString());
                 return false;
             }
+        }
+
+        public async Task<bool> TempMessage(MiraiHttpSession session, ITempMessageEventArgs e)
+        {
+            await OnMessage(session, Utils.GetCQMessage(e.Chain), new Source
+            {
+                FromGroup = 0,
+                FromQQ = e.Sender.Id,
+                Session = session,
+                IsTemp = true
+            });
+            return false;
         }
     }
 }

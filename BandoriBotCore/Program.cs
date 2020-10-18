@@ -131,7 +131,7 @@ namespace BandoriBot
             await using var session = new MiraiHttpSession();
 
             session.AddPlugin(new MessageHandler());
-
+            
             await session.ConnectAsync(options, long.Parse(args.Length == 0 ? "2025551588" : args[0]));
 
             PluginInitialize(session);
