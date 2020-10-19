@@ -111,7 +111,7 @@ namespace BandoriBot
                 var s = schedule;
                 ScheduleManager.QueueTimed(() =>
                 {
-                    session.SendGroupMessageAsync(s.group, Utils.GetMessageChain(s.message));
+                    session.SendGroupMessageAsync(s.group, Utils.GetMessageChain(s.message, p => session.UploadPictureAsync(UploadTarget.Group, p).Result));
                 }, s.delay);
             }
 
@@ -144,6 +144,7 @@ namespace BandoriBot
             Console.WriteLine("connected to server");
 
             Thread.Sleep(int.MaxValue);
+
         }
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)

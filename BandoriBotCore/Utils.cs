@@ -59,7 +59,7 @@ namespace BandoriBot
 
         private static Regex codeReg = new Regex(@"^(.*?)\[(.*?)=(.*?)\](.*)$", RegexOptions.Singleline | RegexOptions.Multiline | RegexOptions.Compiled);
         
-        public static IMessageBase[] GetMessageChain(string msg)
+        public static IMessageBase[] GetMessageChain(string msg, Func<string, ImageMessage> picUploader)
         {
             Match match;
             List<IMessageBase> result = new List<IMessageBase>();
@@ -74,7 +74,7 @@ namespace BandoriBot
                     case "mirai:at": result.Add(new AtMessage(long.Parse(val))); break;
                     case "mirai:imageid": result.Add(new ImageMessage(val.Decode(), "", "")); break;
                     case "mirai:imageurl": result.Add(new ImageMessage("", val.Decode(), "")); break;
-                    case "mirai:imagepath": result.Add(new ImageMessage("", "", val.Decode())); break;
+                    case "mirai:imagepath": result.Add(picUploader(Path.GetFullPath(val.Decode()))); break;
                     case "mirai:atall": result.Add(new AtAllMessage());break;
                     case "mirai:json": result.Add(new JsonMessage(val.Decode())); break;
                     case "mirai:xml": result.Add(new XmlMessage(val.Decode())); break;
@@ -182,9 +182,9 @@ public static string FixImage(string origin)
 
         public static string GetImageCode(byte[] img)
         {
-            int rnd = new Random().Next();
-            File.WriteAllBytes(Path.Combine("imagecache", $"cache{rnd}.jpg"), img);
-            return $"[mirai:imagepath=cache{rnd}.jpg]";
+            var path = Path.Combine("imagecache", $"cache{new Random().Next()}.jpg");
+            File.WriteAllBytes(path, img);
+            return $"[mirai:imagepath={path}]";
         }
 
         public static Image Resize(this Image img, float scale)
@@ -196,9 +196,9 @@ public static string FixImage(string origin)
 
         public static string GetImageCode(Image img)
         {
-            int rnd = new Random().Next();
-            img.Save(Path.Combine("imagecache", $"cache{rnd}.jpg"));
-            return $"[mirai:imagepath=cache{rnd}.jpg]";
+            var path = Path.Combine("imagecache", $"cache{new Random().Next()}.jpg");
+            img.Save(path);
+            return $"[mirai:imagepath={path}]";
         }
 
         public static void Log(this object o, LoggerLevel level, string s)

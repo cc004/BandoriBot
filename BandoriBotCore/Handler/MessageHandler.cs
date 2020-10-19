@@ -98,11 +98,11 @@ namespace BandoriBot.Handler
                 {
                     Utils.Log(LoggerLevel.Debug, $"[{(DateTime.Now.Ticks - ticks) / 10000}ms] sent msg: " + s);
                     if (Sender.FromGroup != 0)
-                        session.SendGroupMessageAsync(Sender.FromGroup, Utils.GetMessageChain(s)).Wait();
+                        session.SendGroupMessageAsync(Sender.FromGroup, Utils.GetMessageChain(s, p => session.UploadPictureAsync(UploadTarget.Group, p).Result)).Wait();
                     else if (!Sender.IsTemp)
-                        session.SendFriendMessageAsync(Sender.FromQQ, Utils.GetMessageChain(s)).Wait();
+                        session.SendFriendMessageAsync(Sender.FromQQ, Utils.GetMessageChain(s, p => session.UploadPictureAsync(UploadTarget.Temp, p).Result)).Wait();
                     else
-                        session.SendTempMessageAsync(Sender.FromQQ, Sender.FromGroup, Utils.GetMessageChain(s)).Wait();
+                        session.SendTempMessageAsync(Sender.FromQQ, Sender.FromGroup, Utils.GetMessageChain(s, p => session.UploadPictureAsync(UploadTarget.Friend, p).Result)).Wait();
 
                 }
                 catch (Exception e)
