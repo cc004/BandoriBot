@@ -1,5 +1,4 @@
-﻿using MessagePack.Formatters;
-using MessagePack.ImmutableCollection;
+﻿using MessagePack.ImmutableCollection;
 using Newtonsoft.Json.Linq;
 using SekaiClient.Datas;
 using System;
@@ -35,8 +34,10 @@ namespace SekaiClient
 
         private bool connected = false;
         private readonly HttpClient client;
-        private readonly EnvironmentInfo environment;
         private string adid, uid, token;
+        internal readonly EnvironmentInfo environment;
+
+        public string AssetHash { get; private set; }
 
         private void SetupHeaders()
         {
@@ -49,53 +50,6 @@ namespace SekaiClient
                     field.GetValue(environment) as string);
             }
         }
-
-        private WebProxy GetProxy()
-        {
-            var pool = new ProxyPool();
-            pool.GetProxysFromAPIs();
-            WebProxy available = null;
-            CancellationTokenSource src = new CancellationTokenSource();
-            var token = src.Token;
-
-            new Thread(new ThreadStart(() =>
-            {
-                try
-                {
-                    pool.proxys.AsParallel().WithDegreeOfParallelism(64).WithCancellation(token).ForAll(proxy =>
-                    {
-                        if (available != null) return;
-                        try
-                        {
-                            var client = new HttpClient(new HttpClientHandler
-                            {
-                                Proxy = new WebProxy(proxy.ToString())
-                            });
-
-                            var result = client.GetAsync("http://production-game-api.sekai.colorfulpalette.org/api/system").Result;
-
-                            if (result.StatusCode == HttpStatusCode.UnsupportedMediaType)
-                            {
-                                available = new WebProxy(proxy.ToString());
-                                src.Cancel();
-                            }
-                            Console.WriteLine(result.StatusCode);
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e.Message);
-                        }
-                    });
-                }
-                catch { }
-            })).Start();
-
-            token.WaitHandle.WaitOne();
-
-            Console.WriteLine(available.Address.ToString());
-            return available;
-        }
-
         public SekaiClient(EnvironmentInfo info, bool useProxy = false)
         {
             var headertype = typeof(HttpClient).Assembly.GetType("System.Net.Http.Headers.HttpHeaderType");
@@ -103,22 +57,42 @@ namespace SekaiClient
 
             if (useProxy)
             {
-                client = new HttpClient(new HttpClientHandler
+                var pool = new ProxyPool();
+                pool.GetProxysFromAPIs();
+                foreach (var proxy in pool.proxys)
                 {
-                    Proxy = GetProxy()
-                });
+                    try
+                    {
+                        client = new HttpClient(new HttpClientHandler
+                        {
+                            Proxy = new WebProxy(proxy.ToString())
+                        });
+                        client.Timeout = new TimeSpan(0, 0, 5);
+                        typeof(HttpHeaders).GetField("_allowedHeaderTypes", BindingFlags.NonPublic | BindingFlags.Instance)
+                            .SetValue(client.DefaultRequestHeaders, Enum.Parse(headertype, "All"));
+
+                        SetupHeaders();
+                        Register().Wait();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.ToString());
+                    }
+                }
+
+                throw new Exception("No proxy");
             }
             else
             {
                 client = new HttpClient();
+                typeof(HttpHeaders).GetField("_allowedHeaderTypes", BindingFlags.NonPublic | BindingFlags.Instance)
+                    .SetValue(client.DefaultRequestHeaders, Enum.Parse(headertype, "All"));
+                SetupHeaders();
             }
 
-            typeof(HttpHeaders).GetField("_allowedHeaderTypes", BindingFlags.NonPublic | BindingFlags.Instance)
-                .SetValue(client.DefaultRequestHeaders, Enum.Parse(headertype, "All"));
-            SetupHeaders();
-            //client.DefaultRequestHeaders.TryAddWithoutValidation("Connection", "Keep-Alive");
+                //client.DefaultRequestHeaders.TryAddWithoutValidation("Connection", "Keep-Alive");
 
-        }
+            }
 
         public async Task<JToken> CallApi(string apiurl, HttpMethod method, JObject content)
         {
@@ -187,6 +161,8 @@ namespace SekaiClient
                 ["credential"] = user.credit
             });
             token = json["sessionToken"].ToString();
+            AssetHash = json.Value<string>("assetHash");
+
             DebugWrite($"authenticated as {user.uid}");
         }
 
@@ -204,7 +180,7 @@ namespace SekaiClient
             };
         }
 
-        public async Task PassTutorial(bool simplified = false)
+        public async Task<int> PassTutorial(bool simplified = false)
         {
             //bypass turtorials
             await CallUserApi($"/tutorial", HttpMethod.Patch, new JObject { ["tutorialStatus"] = "opening_1" });
@@ -216,7 +192,7 @@ namespace SekaiClient
             var presents = (await CallUserApi($"/home/refresh", HttpMethod.Put, new JObject { ["refreshableTypes"] = new JArray("login_bonus") }))["updatedResources"]["userPresents"]
                 .Select(t => t.Value<string>("presentId")).ToArray();
             await CallUserApi($"/tutorial", HttpMethod.Patch, new JObject { ["tutorialStatus"] = "end" });
-            if (simplified) return;
+            if (simplified) return 0;
             var episodes = new int[] { 50000, 50001, 40000, 40001, 30000, 30001, 20000, 20001, 60000, 60001, 4, 8, 12, 16, 20 };
             foreach (var episode in episodes)
                 await CallUserApi($"/story/unit_story/episode/{episode}", HttpMethod.Post, null);
@@ -226,28 +202,49 @@ namespace SekaiClient
             var currency = (await CallUserApi($"/mission/beginner_mission", HttpMethod.Put, new JObject
             {
                 ["missionIds"] = new JArray(1, 2, 3, 4, 5, 6, 8, 10)
-            }))["updatedResources"]["user"]["userGamedata"]["chargedCurrency"]["free"];
+            }))["updatedResources"]["user"]["userGamedata"]["chargedCurrency"].Value<int>("free");
 
             DebugWrite($"present received, now currency = {currency}");
+            return currency;
         }
 
-        public async Task<string[]> Gacha()
+        public async Task<IEnumerable<Card>> Gacha(GachaBehaviour behaviour)
+        {
+            return (await CallUserApi($"/gacha/{behaviour.gachaId}/gachaBehaviorId/{behaviour.id}", HttpMethod.Put, null))["obtainPrizes"]
+                .Select(t => MasterData.Instance.cards.Single(c => c.id == t["card"].Value<int>("resourceId")));
+        }
+
+        public async Task<string[]> Gacha(int currency)
         {
             IEnumerable<Card> icards = new Card[0];
-            icards = icards.Concat((await CallUserApi("/gacha/4/gachaBehaviorId/8", HttpMethod.Put, null))["obtainPrizes"]
-                .Select(t => MasterData.cards[t["card"].Value<int>("resourceId").ToString()]));
-            for (int i = 0; i < 6; ++i)
-            icards = icards.Concat((await CallUserApi("/gacha/4/gachaBehaviorId/7", HttpMethod.Put, null))["obtainPrizes"]
-                .Select(t => MasterData.cards[t["card"].Value<int>("resourceId").ToString()]));
-            icards = icards.Concat((await CallUserApi("/gacha/2/gachaBehaviorId/4", HttpMethod.Put, null))["obtainPrizes"]
-                .Select(t => MasterData.cards[t["card"].Value<int>("resourceId").ToString()]));
 
+            var rolls = MasterData.Instance.gachaBehaviours
+                .GroupBy(b => b.costResourceQuantity)
+                .Select(g => g.OrderByDescending(b => MasterData.Instance.gachas.Single(ga => ga.id == b.gachaId).endAt).First());
+
+            var roll10 = rolls.Single(b => b.costResourceQuantity == 3000);
+            var roll1 = rolls.Single(b => b.costResourceQuantity == 300);
+            var roll3 = rolls.Single(b => b.costResourceQuantity == 1);
+
+            icards = await Gacha(roll3);
+
+            while (currency > 3000)
+            {
+                currency -= 3000;
+                icards = icards.Concat(await Gacha(roll10));
+            }
+
+            while (currency > 300)
+            {
+                currency -= 300;
+                icards = icards.Concat(await Gacha(roll1));
+            }
             var cards = icards.ToArray();
             var desc = cards
                 .Select(card =>
                 {
-                    var character = MasterData.characters[card.characterId.ToString()];
-                    var skill = MasterData.skills[card.skillId.ToString()];
+                    var character = MasterData.Instance.gameCharacters.Single(gc => gc.id == card.characterId);
+                    var skill = MasterData.Instance.skills.Single(s => s.id == card.skillId);
                     return $"[{card.prefix}]".PadRightEx(30) + $"[{card.attr}]".PadRightEx(12) +
                         $"({character.gender.First()}){character.firstName}{character.givenName}".PadRightEx(20) +
                         skill.descriptionSpriteName.PadRightEx(20) + new string(Enumerable.Range(0, card.rarity).Select(_ => '*').ToArray());
@@ -285,13 +282,13 @@ namespace SekaiClient
 
         public async Task<int> APLive(int musicId, int boostCount, int deckId, string musicDifficulty = "expert", int score=100000000)
         {
-            var music = MasterData.musics[musicId.ToString()];
-            var md = music.musicDifficulties.Single(md => md.musicDifficulty == musicDifficulty);
+            var music = MasterData.Instance.musics.Single(m => m.id == musicId);
+            var md = MasterData.Instance.musicDifficulties.Single(md => md.musicDifficulty == musicDifficulty);
             var result = (await CallUserApi("/live", HttpMethod.Post, new JObject
             {
                 ["musicId"] = musicId,
                 ["musicDifficultyId"] = md.id,
-                ["musicVocalId"] = music.musicVocals.First().id,
+                ["musicVocalId"] = MasterData.Instance.musicVocals.First(mv => mv.musicId == musicId).id,
                 ["deckId"] = deckId,
                 ["boostCount"] = boostCount
             }));

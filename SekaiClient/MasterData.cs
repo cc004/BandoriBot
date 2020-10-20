@@ -3,15 +3,19 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace SekaiClient.Datas
 {
     [JsonObject]
-    public class MusicInfo
+    public class Event
     {
-
+        public int id;
     }
+
     [JsonObject]
     public class MusicDifficulty
     {
@@ -22,55 +26,84 @@ namespace SekaiClient.Datas
     public class MusicVocal
     {
         public int id;
+        public int musicId;
     }
     [JsonObject]
     public class Music
     {
-        public MusicInfo music;
-        public MusicDifficulty[] musicDifficulties;
-        public MusicVocal[] musicVocals;
+        public int id;
     }
 
     [JsonObject]
     public class Card
     {
-        public int characterId, rarity, skillId;
+        public int characterId, rarity, skillId, id;
         public string prefix, attr;
     }
 
     [JsonObject]
-    public class Character
+    public class GameCharacter
     {
         public string firstName, givenName, gender;
+        public int id;
     }
 
     [JsonObject]
     public class Skill
     {
+        public int id;
         public string descriptionSpriteName;
     }
 
-    public static class MasterData
+    [JsonObject]
+    public class Gacha
     {
-        public static readonly Dictionary<string, Character> characters;
-        public static readonly Dictionary<string, Card> cards;
-        public static readonly Dictionary<string, Skill> skills;
-        public static readonly Dictionary<string, Music> musics;
+        public long startAt, endAt;
+        public int id;
+        public GachaBehaviour[] gachaBehaviors;
+    }
 
-        static MasterData()
+    [JsonObject]
+    public class GachaBehaviour
+    {
+        public int id, gachaId, costResourceQuantity;
+    }
+
+    [JsonObject]
+    public class MasterData
+    {
+        public GameCharacter[] gameCharacters;
+        public Card[] cards;
+        public Skill[] skills;
+        public Music[] musics;
+        public Gacha[] gachas;
+        public MusicDifficulty[] musicDifficulties;
+        public MusicVocal[] musicVocals;
+        public Event[] events;
+
+        [JsonIgnore]
+        public GachaBehaviour[] gachaBehaviours;
+
+        public static MasterData Instance { get; private set; }
+
+        public static async Task Initialize(SekaiClient client)
         {
+            var fn = client.environment.X_Data_Version + ".json";
+
             try
             {
-                var master = JObject.Parse(File.ReadAllText("master_data.json"));
-                characters = master["gameCharacters"].ToObject<Dictionary<string, Character>>();
-                cards = master["cards"].ToObject<Dictionary<string, Card>>();
-                skills = master["skills"].ToObject<Dictionary<string, Skill>>();
-                musics = master["musicAlls"].ToObject<Dictionary<string, Music>>();
+                Instance = JObject.Parse(File.ReadAllText(fn)).ToObject<MasterData>();
             }
             catch
             {
+                Console.WriteLine("fetchinig master data...");
+                var master = await client.CallApi("/suite/master", HttpMethod.Get, null);
+                File.WriteAllText(fn, master.ToString(Formatting.Indented));
+                Instance = master.ToObject<MasterData>();
 
             }
+
+            Instance.gachaBehaviours = Instance.gachas.SelectMany(g => g.gachaBehaviors).ToArray();
         }
     }
 }

@@ -14,25 +14,18 @@ namespace BandoriBot.Handler
     {
         private static string source = HttpUtility.UrlEncode("冲冲");
         private static string token = "2NmWeiklE";
-        private static Queue<Car> sekaicars = new Queue<Car>();
+        private static List<Car> sekaicars = new List<Car>();
 
         public static List<Car> Cars
         {
             get
             {
+                var nt = DateTime.Now;
                 lock (sekaicars)
                 {
-                    var nt = DateTime.Now;
-                    while (sekaicars.Count > 0)
-                    {
-                        var car = sekaicars.Peek();
-                        if (nt - car.time > (car.index > 99999 ? new TimeSpan(0, 10, 0) : new TimeSpan(0, 2, 0)))
-                            sekaicars.Dequeue();
-                        else
-                            break;
-                    }
-
-                    return sekaicars.Reverse().ToList();
+                    sekaicars = sekaicars.Where(car => nt - car.time > (car.index > 99999 ? new TimeSpan(0, 10, 0) : new TimeSpan(0, 2, 0)))
+                        .OrderByDescending(c => c.time).ToList();
+                    return sekaicars;
                 }
             }
         }
@@ -59,7 +52,7 @@ namespace BandoriBot.Handler
             {
                 if (LastCar.TryGetValue(Sender.FromQQ, out int lc))
                     lock (sekaicars)
-                        sekaicars = new Queue<Car>(sekaicars.Where(c => c.index != lc));
+                        sekaicars = sekaicars.Where(c => c.index != lc).ToList();
                 return true;
             }
 
@@ -98,7 +91,7 @@ namespace BandoriBot.Handler
                     return true;
                 case CarType.Sekai:
                     lock (sekaicars)
-                        sekaicars.Enqueue(new Car
+                        sekaicars.Add(new Car
                         {
                             index = car,
                             rawmessage = raw_message,

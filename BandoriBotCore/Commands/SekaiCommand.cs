@@ -26,6 +26,7 @@ namespace BandoriBot.Commands
                     client = new SekaiClient.SekaiClient(new SekaiClient.EnvironmentInfo(), false);
                     await client.UpgradeEnvironment();
                     await client.Login(await client.Register());
+                    await MasterData.Initialize(client);
                     await client.PassTutorial(true);
                     break;
                 }
@@ -34,9 +35,7 @@ namespace BandoriBot.Commands
                     this.Log(LoggerLevel.Error, e.ToString());
                 }
             }
-            eventId = 2; //TODO: get and cache event id from master data
-            //var master = await client.CallApi("/suite/master", HttpMethod.Get, null);
-            //eventId = master["events"].Last().Value<int>("id");
+            eventId = MasterData.Instance.events.Last().id;
         }
 
         public SekaiCommand()
