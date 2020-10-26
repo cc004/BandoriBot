@@ -14,7 +14,14 @@ namespace BandoriBot.Services
             new Thread(new ThreadStart(() =>
             {
                 Thread.Sleep(sec * 1000);
-                a.Invoke();
+                try
+                {
+                    a.Invoke();
+                }
+                catch (Exception e)
+                {
+                    Utils.Log(Models.LoggerLevel.Error, e.ToString());
+                }
             })).Start();
         }
 
@@ -24,7 +31,14 @@ namespace BandoriBot.Services
 
             handler = new Action(() =>
             {
-                a.Invoke();
+                try
+                {
+                    a.Invoke();
+                }
+                catch (Exception e)
+                {
+                    Utils.Log(Models.LoggerLevel.Error, e.ToString());
+                }
                 Thread.Sleep(sec * 1000);
                 new Thread(new ThreadStart(handler)).Start();
             });

@@ -15,7 +15,7 @@ using System.Web;
 
 namespace BandoriBot.Commands
 {
-    public class R18AllowedCommand : HashCommand<R18Allowed>
+    public class R18AllowedCommand : HashCommand<R18Allowed, long>
     {
         public override List<string> Alias => new List<string> { "/r18" };
         public override void Run(CommandArgs args)
@@ -25,7 +25,7 @@ namespace BandoriBot.Commands
         }
     }
 
-    public class NormalAllowedCommand : HashCommand<NormalAllowed>
+    public class NormalAllowedCommand : HashCommand<NormalAllowed, long>
     {
         public override List<string> Alias => new List<string> { "/normal" };
         public override void Run(CommandArgs args)

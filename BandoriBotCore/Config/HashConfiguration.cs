@@ -7,27 +7,21 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Config
 {
-    public abstract class HashConfiguration : SerializableConfiguration<List<long>>
+    public abstract class HashConfiguration<TValue> : SerializableConfiguration<List<TValue>>
     {
-        public HashSet<long> hash = new HashSet<long>();
+        public HashSet<TValue> hash = new HashSet<TValue>();
 
         public sealed override void LoadDefault()
         {
-            hash = new HashSet<long>
-            {
-                0
-            };
+            hash = new HashSet<TValue>();
 
-            t = new List<long>
-            {
-                0
-            };
+            t = new List<TValue>();
         }
 
         public sealed override void LoadFrom(BinaryReader br)
         {
             base.LoadFrom(br);
-            hash = new HashSet<long>(t);
+            hash = new HashSet<TValue>(t);
         }
 
         public sealed override void SaveTo(BinaryWriter bw)

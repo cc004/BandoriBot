@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Config
 {
-    public class Whitelist : HashConfiguration
+    public class Whitelist : HashConfiguration<long>
     {
         public override string Name => "whitelist.json";
     }

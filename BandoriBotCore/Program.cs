@@ -5,8 +5,10 @@ using BandoriBot.Services;
 using Mirai_CSharp;
 using Mirai_CSharp.Models;
 using Native.Csharp.App.Terraria;
+using SekaiClient.Datas;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +26,7 @@ namespace BandoriBot
             Configuration.Register(new Whitelist());
             Configuration.Register(new Admin());
             Configuration.Register(new Blacklist());
+            Configuration.Register(new BlacklistF());
             Configuration.Register(new TitleCooldown());
             Configuration.Register(new PCRConfig());
             Configuration.Register(new R18Allowed());
@@ -61,6 +64,7 @@ namespace BandoriBot
             MessageHandler.Register(new TitleCommand());
             MessageHandler.Register(new PCRRunCommand());
             MessageHandler.Register(new CarTypeCommand());
+            MessageHandler.Register(new SekaiLineCommand());
 
             MessageHandler.Register(new DDCommand());
             MessageHandler.Register(new CDCommand());
@@ -113,6 +117,20 @@ namespace BandoriBot
                 {
                     session.SendGroupMessageAsync(s.group, Utils.GetMessageChain(s.message, p => session.UploadPictureAsync(UploadTarget.Group, p).Result));
                 }, s.delay);
+            }
+
+
+            if (File.Exists("sekai"))
+            {
+                ScheduleManager.QueueTimed(() =>
+                {
+                    var id = MasterData.Instance.events.Last().id;
+                    var data = Utils.GetHttp($"https://bitbucket.org/sekai-world/sekai-event-track/raw/main/event{id}.json");
+                    var fn = $"sekai_event{id}.csv";
+                    if (!File.Exists(fn)) File.WriteAllText(fn, $"time,{string.Join(",", data.Properties().Where(p => p.Name.StartsWith("rank")).Select(p => p.Name))}\n");
+
+                    File.AppendAllText(fn, $"{data["time"]},{string.Join(",", data.Properties().Where(p => p.Name.StartsWith("rank")).Select(p => p.Value.Single()["score"]))}\n");
+                }, 60);
             }
 
             GC.Collect();

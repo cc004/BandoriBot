@@ -65,7 +65,11 @@ namespace BandoriBot.Handler
                     if (node.next[b] == null) node.next[b] = new State();
                     node = node.next[b];
                 }
-                node.cmd = t.Run;
+                node.cmd = args =>
+                {
+                    if (!Configuration.GetConfig<BlacklistF>().InBlacklist(args.Source.FromGroup, t))
+                        t.Run(args);
+                };
             }
         }
 
@@ -158,7 +162,8 @@ namespace BandoriBot.Handler
             {
                 try
                 {
-                    lock (function)
+                    if (!Configuration.GetConfig<BlacklistF>().InBlacklist(Sender.FromGroup, function))
+                        lock (function)
                     if (function.OnMessage(message, Sender, isAdmin, callback)) break;
                 }
                 catch (Exception e)

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace BandoriBot.Config
 {
-    public class Antirevoke : HashConfiguration
+    public class Antirevoke : HashConfiguration<long>
     {
         public override string Name => "antirevoke.json";
     }

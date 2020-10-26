@@ -15,7 +15,7 @@ namespace BandoriBot.Config
     {
         public override string Name => "lz.json";
     }
-    public class DailyConfig : HashConfiguration
+    public class DailyConfig : HashConfiguration<long>
     {
         public override string Name => "daily.json";
     }

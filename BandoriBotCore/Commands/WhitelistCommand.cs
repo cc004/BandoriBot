@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
-    public class WhitelistCommand : HashCommand<Whitelist>
+    public class WhitelistCommand : HashCommand<Whitelist, long>
     {
         public override List<string> Alias => new List<string>
         {

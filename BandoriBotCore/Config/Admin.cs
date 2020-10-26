@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Config
 {
-    public class Admin : HashConfiguration
+    public class Admin : HashConfiguration<long>
     {
         public override string Name => "admin.json";
     }

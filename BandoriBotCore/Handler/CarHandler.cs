@@ -23,7 +23,7 @@ namespace BandoriBot.Handler
                 var nt = DateTime.Now;
                 lock (sekaicars)
                 {
-                    sekaicars = sekaicars.Where(car => nt - car.time > (car.index > 99999 ? new TimeSpan(0, 10, 0) : new TimeSpan(0, 2, 0)))
+                    sekaicars = sekaicars.Where(car => nt - car.time <= (car.index > 99999 ? new TimeSpan(0, 10, 0) : new TimeSpan(0, 2, 0)))
                         .OrderByDescending(c => c.time).ToList();
                     return sekaicars;
                 }

@@ -11,6 +11,17 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
+    public class SekaiLineCommand : ICommand
+    {
+        public List<string> Alias => new List<string> { "sekai线" };
+
+        public void Run(CommandArgs args)
+        {
+            var track = Utils.GetHttp($"https://bitbucket.org/sekai-world/sekai-event-track/raw/main/event{MasterData.Instance.events.Last().id}.json");
+            args.Callback(string.Join('\n', new int[] { 100, 500, 1000, 2000, 5000, 10000, 50000 }.Select(i => $"rank{i} pt={track[$"rank{i}"].Single()["score"]}")));
+        }
+    }
+
     public class SekaiCommand : ICommand
     {
         public List<string> Alias => new List<string> { "sekai" };

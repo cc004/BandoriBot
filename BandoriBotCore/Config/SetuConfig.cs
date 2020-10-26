@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Config
 {
-    public class R18Allowed : HashConfiguration
+    public class R18Allowed : HashConfiguration<long>
     {
         public override string Name => "r18allowed.json";
     }
-    public class NormalAllowed : HashConfiguration
+    public class NormalAllowed : HashConfiguration<long>
     {
         public override string Name => "normalallowed.json";
     }

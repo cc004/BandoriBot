@@ -1,5 +1,6 @@
 using BandoriBot.Handler;
 using BandoriBot.Models;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Mirai_CSharp;
 using Mirai_CSharp.Models;
 using Newtonsoft.Json.Linq;
@@ -10,6 +11,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using static Mirai_CSharp.Models.PokeMessage;
 
@@ -267,6 +269,15 @@ public static string FixImage(string origin)
             {
                 return null;
             }
+        }
+
+        public static T ParseTo<T>(this string str)
+        {
+            if (typeof(T) == typeof(string))
+                return (T)(object)str;
+            else
+                return (T) typeof(T).GetMethod("Parse", BindingFlags.Public | BindingFlags.Static, null, new Type[] { typeof(string) }, null)
+                    .Invoke(null, new object[] { str });
         }
     }
 }

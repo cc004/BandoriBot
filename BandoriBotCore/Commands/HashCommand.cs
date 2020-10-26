@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
-    public abstract class HashCommand<T> : ICommand where T : HashConfiguration
+    public abstract class HashCommand<T, TValue> : ICommand where T : HashConfiguration<TValue>
     {
         public abstract List<string> Alias { get; }
         public virtual void Run(CommandArgs args)
@@ -17,12 +17,12 @@ namespace BandoriBot.Commands
             switch (splits[0])
             {
                 case "add":
-                    config.hash.Add(long.Parse(splits[1]));
+                    config.hash.Add(splits[1].ParseTo<TValue>());
                     config.Save();
                     args.Callback($"successfully added {splits[1]}");
                     break;
                 case "del":
-                    config.hash.Remove(long.Parse(splits[1]));
+                    config.hash.Remove(splits[1].ParseTo<TValue>());
                     config.Save();
                     args.Callback($"successfully removed {splits[1]}");
                     break;

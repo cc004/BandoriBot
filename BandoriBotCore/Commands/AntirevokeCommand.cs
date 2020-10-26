@@ -5,7 +5,7 @@ using System.Text;
 
 namespace BandoriBot.Commands
 {
-    public class AntirevokeCommand : HashCommand<Antirevoke>
+    public class AntirevokeCommand : HashCommand<Antirevoke, long>
     {
         public override List<string> Alias => new List<string> { "/antirevoke" };
         public override void Run(CommandArgs args)

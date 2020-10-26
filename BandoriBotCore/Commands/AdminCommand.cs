@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
-    public class AdminCommand : HashCommand<Admin>
+    public class AdminCommand : HashCommand<Admin, long>
     {
         public override List<string> Alias => new List<string>
         {
