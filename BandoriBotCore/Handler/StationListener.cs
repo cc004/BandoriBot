@@ -16,7 +16,7 @@ namespace BandoriBot.Handler
 {
     public class StationListener
     {
-        private const string uri = "wss://api.bandoristation.com:50443";
+        private const string uri = "wss://api.bandoristation.com";
         private ClientWebSocket client;
         private List<Car> cars;
         public bool Running { get; private set; }
@@ -44,9 +44,47 @@ namespace BandoriBot.Handler
             Active = false;
             cars = new List<Car>();
             Running = false;
+
+            OnMsg += StationListener_OnMsg;
         }
 
-        private void Connect()
+        private void StationListener_OnMsg(JObject obj)
+        {
+            this.Log(LoggerLevel.Info, obj);
+
+            if (obj["status"].ToString() != "success" || obj["action"].ToString() != "sendRoomNumberList") return;
+
+            foreach (JObject car in (JArray)obj["response"])
+            {
+                this.Log(LoggerLevel.Info, car);
+                var c = new Car(car);
+                lock (cars)
+                    cars.Add(c);
+            }
+        }
+
+        private event Action<JObject> OnMsg;
+
+        private async Task SendMsg(object json)
+        {
+            if (client.State == WebSocketState.Open)
+                await client.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(json.ToString())), WebSocketMessageType.Text, true, CancellationToken.None);
+        }
+
+        private async Task Login()
+        {
+            await SendMsg(new JObject
+            {
+                ["action"] = "setClient",
+                ["data"] = new JObject
+                {
+                    ["send_room_number"] = true,
+                    ["send_chat"] = false
+                }
+            });
+        }
+
+        private async Task Connect()
         {
             while (Running && (client == null || client.State != WebSocketState.Open))
             {
@@ -54,37 +92,51 @@ namespace BandoriBot.Handler
                 {
                     client = new ClientWebSocket();
                     using (Task connect = client.ConnectAsync(new Uri(uri), CancellationToken.None))
-                        if (Task.WhenAny(connect, Task.Delay(5000)).Result != connect)
-                            this.Log(LoggerLevel.Info, "Exception normal : websocket connection timed out.");
+                        if (await Task.WhenAny(connect, Task.Delay(5000)) != connect)
+                            this.Log(LoggerLevel.Warn, "Exception normal : websocket connection timed out.");
+
+                    await Login();
+
+                    this.Log(LoggerLevel.Info, "Connected to Bandori Station");
                 }
                 catch { }
             }
             Active = Running;
         }
-        public void Stop()
+
+        public async Task Stop()
         {
             Running = false;
-            client.CloseAsync(WebSocketCloseStatus.Empty, "connection closed.", CancellationToken.None).Wait();
+            await client.CloseAsync(WebSocketCloseStatus.Empty, "connection closed.", CancellationToken.None);
         }
+
         public void Start()
         {
             Running = true;
-            Connect();
-            new Thread(new ThreadStart(delegate ()
+            Connect().Wait();
+
+            Task.Run(async () =>
             {
-                ArraySegment<byte> heartbeat = new ArraySegment<byte>(Encoding.UTF8.GetBytes("heartbeat"));
                 while (Running)
                 {
                     try
                     {
-                        if (client.State == WebSocketState.Open)
-                            client.SendAsync(heartbeat, WebSocketMessageType.Text, true, CancellationToken.None).Wait();
+                        await SendMsg(new JObject
+                        {
+                            ["action"] = "heartbeat",
+                            ["data"] = new JObject
+                            {
+                                ["client"] = "喵喵喵"
+                            }
+                        });
+
                     }
                     catch { }
                     Thread.Sleep(10000);
                 }
-            })).Start();
-            new Thread(new ThreadStart(delegate ()
+            });
+
+            Task.Run(async () =>
             {
                 byte[] buffer = new byte[1 << 16];
                 while (Running)
@@ -105,7 +157,7 @@ namespace BandoriBot.Handler
                                     catch (AggregateException)
                                     {
                                         Active = false;
-                                        if (Running) Connect();
+                                        if (Running) await Connect();
                                     }
                                 }
 
@@ -119,50 +171,7 @@ namespace BandoriBot.Handler
                                 if (result.EndOfMessage) break;
                             }
 
-                            try
-                            {
-                                /*
-                                using var client = new TcpClient();
-                                client.Connect("39.106.92.32", 7777);
-                                using var br = new BinaryReader(client.GetStream());
-                                using var bw = new BinaryWriter(client.GetStream());*/
-
-                                JObject obj = JObject.Parse(Encoding.UTF8.GetString(ms.ToArray()));
-                                if (obj["status"].ToString() != "success") continue;
-                                foreach (JObject car in (JArray)obj["response"])
-                                {
-                                    var c = new Car(car);
-                                    /*
-                                    bw.Write(c.index);
-                                    var s = br.ReadString();
-                                    if (string.IsNullOrEmpty(s)) continue;
-                                    var j = JObject.Parse(s);
-                                    if ((int)j["num"] == 5) continue;
-
-                                    var type = (string)j["property"];
-                                    c.rawmessage = (type == "private_100_Normal_2.9" ? "18w" :
-                                                    type == "private_10_Normal_2.9" ? "12w" :
-                                                    type == "private_2_Normal_2.9" ? "7w" : "0w") +
-                                                    $"q{5 - (int)j["num"]} " + c.rawmessage
-                                        .Replace("q1", "")
-                                        .Replace("q2", "")
-                                        .Replace("q3", "")
-                                        .Replace("q4", "")
-                                        .Replace("18w", "")
-                                        .Replace("7w", "")
-                                        .Replace("12w", "")
-                                        .Replace("自由", "")
-                                        .Replace("大师", "");
-                                        */
-                                    lock (cars)
-                                        cars.Add(c);
-                                }
-                            }
-                            catch (JsonReaderException e)
-                            {
-                                this.Log(LoggerLevel.Warn, e.ToString());
-                                this.Log(LoggerLevel.Warn, "when trying to decode : " + Encoding.UTF8.GetString(ms.ToArray()));
-                            }
+                            OnMsg?.Invoke(JObject.Parse(Encoding.UTF8.GetString(ms.ToArray())));
                         }
                     }
                     catch (Exception e)
@@ -170,7 +179,7 @@ namespace BandoriBot.Handler
                         this.Log(LoggerLevel.Warn, "Uncaught exception : " + e.ToString());
                     }
                 }
-            })).Start();
+            });
         }
 
     }

@@ -5,10 +5,10 @@ using Mirai_CSharp;
 using Mirai_CSharp.Models;
 using Mirai_CSharp.Plugin.Interfaces;
 using Newtonsoft.Json.Linq;
+using SekaiClient;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -32,7 +32,6 @@ namespace BandoriBot.Handler
         }
     }
 
-    public delegate void ResponseCallback(string message);
     public class MessageHandler : IMessageHandler, IFriendMessage, IGroupMessage, IBotInvitedJoinGroup, INewFriendApply, IGroupMessageRevoked, ITempMessage
     {
         private class Message
@@ -96,7 +95,7 @@ namespace BandoriBot.Handler
 
             if (IsIgnore(Sender)) return;
 
-            ResponseCallback callback = delegate (string s)
+            Action<string> callback = delegate (string s)
             {
                 try
                 {
@@ -123,7 +122,15 @@ namespace BandoriBot.Handler
             }).Start();
         }
 
-        public bool OnMessage(string message, Source Sender, bool isAdmin, ResponseCallback callback)
+        private void ProcessError(Action<string> callback, Exception e)
+        {
+            Utils.Log(LoggerLevel.Error, e.ToString());
+
+            while (e is AggregateException) e = e.InnerException;
+            if (e is ApiException) callback(e.Message);
+        }
+
+        public bool OnMessage(string message, Source Sender, bool isAdmin, Action<string> callback)
         {
             var node = head;
             var i = 0;
@@ -142,20 +149,18 @@ namespace BandoriBot.Handler
                 try
                 {
                     lock (node)
-                    node.cmd(new CommandArgs
-                    {
-                        Arg = message.Substring(Encoding.UTF8.GetString(bytes.Take(i).ToArray()).Length),
-                        Source = Sender,
-                        IsAdmin = isAdmin,
-                        Callback = callback
-                    });
+                        node.cmd(new CommandArgs
+                        {
+                            Arg = message.Substring(Encoding.UTF8.GetString(bytes.Take(i).ToArray()).Length),
+                            Source = Sender,
+                            IsAdmin = isAdmin,
+                            Callback = callback
+                        });
                 }
                 catch (Exception e)
                 {
-                    //callback($"Unhandled exception : {e}");
-                    Utils.Log(LoggerLevel.Error, e.ToString());
+                    ProcessError(callback, e);
                 }
-                return true;
             }
 
             foreach (IMessageHandler function in functions)
@@ -163,13 +168,12 @@ namespace BandoriBot.Handler
                 try
                 {
                     if (!Configuration.GetConfig<BlacklistF>().InBlacklist(Sender.FromGroup, function))
-                        lock (function)
-                    if (function.OnMessage(message, Sender, isAdmin, callback)) break;
+                            lock (function)
+                                if (function.OnMessage(message, Sender, isAdmin, callback)) break;
                 }
                 catch (Exception e)
                 {
-                    //callback($"Unhandled exception : {e}");
-                    Utils.Log(LoggerLevel.Error, e.ToString());
+                    ProcessError(callback, e);
                 }
             }
             return true;

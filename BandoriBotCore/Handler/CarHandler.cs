@@ -46,7 +46,7 @@ namespace BandoriBot.Handler
 
         private static readonly Regex codereg = new Regex(@"\[.*?\]", RegexOptions.Compiled);
 
-        public bool OnMessage(string message, Source Sender, bool isAdmin, ResponseCallback callback)
+        public bool OnMessage(string message, Source Sender, bool isAdmin, Action<string> callback)
         {
             if (message == "m" || message == "M")
             {

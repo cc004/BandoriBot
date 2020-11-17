@@ -9,7 +9,7 @@ namespace BandoriBot.Commands
 {
     public struct CommandArgs
     {
-        public ResponseCallback Callback;
+        public Action<string> Callback;
         public string Arg;
         public bool IsAdmin;
         public Source Source;

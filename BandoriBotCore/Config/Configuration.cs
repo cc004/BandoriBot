@@ -11,7 +11,7 @@ namespace BandoriBot.Config
 
         public static void Register<T>(T t) where T : Configuration
         {
-            instances.Add(t);
+            configs.Add(t.GetType(), t);
         }
 
         private static Dictionary<Type, Configuration> configs = new Dictionary<Type, Configuration>();
@@ -31,12 +31,14 @@ namespace BandoriBot.Config
             using (FileStream fs = new FileStream(Path.Combine("", Name), FileMode.Create))
             using (BinaryWriter bw = new BinaryWriter(fs))
                 SaveTo(bw);
+            Utils.Log(LoggerLevel.Info, $"{GetType().Name} successfully saved");
         }
         public void Load()
         {
             using (FileStream fs = new FileStream(Path.Combine("", Name), FileMode.Open))
             using (BinaryReader br = new BinaryReader(fs))
                 LoadFrom(br);
+            Utils.Log(LoggerLevel.Info, $"{GetType().Name} successfully loaded");
         }
         public static void SaveAll()
         {
@@ -53,19 +55,17 @@ namespace BandoriBot.Config
 
         public static void LoadAll()
         {
-            foreach (Configuration config in instances)
+            foreach (var config in configs)
             {
                 try
                 {
-                    config.Load();
-                    Utils.Log(LoggerLevel.Info, $"{config.GetType().Name} successfully loaded");
+                    config.Value.Load();
                 }
                 catch (Exception e)
                 {
                     Utils.Log(LoggerLevel.Error, e.ToString());
-                    config.LoadDefault();
+                    config.Value.LoadDefault();
                 }
-                configs.Add(config.GetType(), config);
             }
         }
     }

@@ -12,7 +12,7 @@ namespace BandoriBot.Handler
         }
         private Dictionary<int, GroupStatus> lastMessage = new Dictionary<int, GroupStatus>();
         private const string breakMessage = "打断", breakMessage2 = "继续打断";
-        public bool OnMessage(string message, Source Sender, bool isAdmin, ResponseCallback callback)
+        public bool OnMessage(string message, Source Sender, bool isAdmin, Action<string> callback)
         {
             int groupHash = Sender.FromGroup == 0 ? Sender.FromQQ.GetHashCode() : $"{Sender.FromGroup}".GetHashCode();
             int messageHash = message.GetHashCode();

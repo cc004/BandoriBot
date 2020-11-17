@@ -24,13 +24,12 @@ namespace BandoriBot.Commands
         public YCM()
         {
             listener = new StationListener();
+            listener.Start();
         }
         public void Run(CommandArgs args)
         {
+
             if (!string.IsNullOrEmpty(args.Arg)) return;
-            lock (listener)
-                if (!listener.Running)
-                    listener.Start();
 
             List<Car> cars = Configuration.GetConfig<CarTypeConfig>()[args.Source.FromGroup] switch
             {

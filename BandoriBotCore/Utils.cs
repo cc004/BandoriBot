@@ -203,7 +203,7 @@ public static string FixImage(string origin)
             return $"[mirai:imagepath={path}]";
         }
 
-        public static void Log(this object o, LoggerLevel level, string s)
+        public static void Log(this object o, LoggerLevel level, object s)
         {
             lock (Console.Out)
             {

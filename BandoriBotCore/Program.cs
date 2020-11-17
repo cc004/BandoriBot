@@ -40,7 +40,6 @@ namespace BandoriBot
             Configuration.Register(new Save());
             Configuration.Register(new CarTypeConfig());
             //Configuration.Register(new PeriodRank());
-            Configuration.LoadAll();
 
             MessageHandler.Register(new CarHandler());
             MessageHandler.Register(Configuration.GetConfig<ReplyHandler>());
@@ -110,16 +109,6 @@ namespace BandoriBot
             MessageHandler.Register(new ZMCCommand());
             MessageHandler.Register(new AntirevokeCommand());
 
-            foreach (var schedule in Configuration.GetConfig<TimeConfiguration>().t)
-            {
-                var s = schedule;
-                ScheduleManager.QueueTimed(() =>
-                {
-                    session.SendGroupMessageAsync(s.group, Utils.GetMessageChain(s.message, p => session.UploadPictureAsync(UploadTarget.Group, p).Result));
-                }, s.delay);
-            }
-
-
             if (File.Exists("sekai"))
             {
                 ScheduleManager.QueueTimed(() =>
@@ -133,17 +122,23 @@ namespace BandoriBot
                 }, 60);
             }
 
+            Configuration.LoadAll();
+            foreach (var schedule in Configuration.GetConfig<TimeConfiguration>().t)
+            {
+                var s = schedule;
+                ScheduleManager.QueueTimed(() =>
+                {
+                    session.SendGroupMessageAsync(s.group, Utils.GetMessageChain(s.message, p => session.UploadPictureAsync(UploadTarget.Group, p).Result));
+                }, s.delay);
+            }
+
             GC.Collect();
             MessageHandler.booted = true;
         }
 
         public static async Task Main(string[] args)
         {
-            Console.Write("authkey=");
-            string authkey;
-            authkey = Console.ReadLine();
-            if (string.IsNullOrEmpty(authkey))
-                authkey = "1234567890";
+            string authkey = File.ReadAllText("authkey.txt");
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 

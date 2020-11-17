@@ -34,7 +34,7 @@ namespace BandoriBot.Handler
             }
         }
 
-        public bool OnMessage(string message, Source Sender, bool isAdmin, ResponseCallback callback)
+        public bool OnMessage(string message, Source Sender, bool isAdmin, Action<string> callback)
         {
             if (Sender.FromGroup == 0) return false;
             lock (Data)

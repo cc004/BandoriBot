@@ -23,7 +23,7 @@ namespace BandoriBot.Handler
 {
     using DataType = List<Tuple<Regex, List<Reply>>>;
     using DataTypeS = Dictionary<string, List<Reply>>;
-    using Function = Func<Match, Source, string, bool, ResponseCallback, string>;
+    using Function = Func<Match, Source, string, bool, Action<string>, string>;
 
     public class ReplyHandler : SerializableConfiguration<List<DataTypeS>>, IMessageHandler
     {
@@ -111,7 +111,7 @@ namespace BandoriBot.Handler
                 return m.Value;
             });
 
-        public bool OnMessage(string message, Source Sender, bool isAdmin, ResponseCallback callback)
+        public bool OnMessage(string message, Source Sender, bool isAdmin, Action<string> callback)
         {
             var raw = Utils.FindAtMe(message, out var isme, Sender.Session.QQNumber ?? 0).Trim();
 
@@ -230,7 +230,7 @@ namespace BandoriBot.Handler
                 {
                     if (dict.ContainsKey(reply.reply)) continue;
 
-                    sb.Append($"public static string Function{++func}(Match match, Source source, string message, bool isAdmin, ResponseCallback callback)\n{{\n");
+                    sb.Append($"public static string Function{++func}(Match match, Source source, string message, bool isAdmin, Action<string> callback)\n{{\n");
                     sb.Append(reply.reply.Decode());
                     sb.Append("\n}\n");
                     dict.Add(reply.reply, func);

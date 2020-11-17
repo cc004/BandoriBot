@@ -31,6 +31,13 @@ namespace BandoriBot.Commands
 
             switch (splits[0])
             {
+                case "reload":
+                    if (args.IsAdmin)
+                    {
+                        config.Load();
+                        args.Callback("configuration has been reloaded successfully.");
+                    }
+                    break;
                 case "save":
                     if (args.IsAdmin)
                     {

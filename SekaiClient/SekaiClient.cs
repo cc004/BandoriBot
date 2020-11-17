@@ -20,6 +20,13 @@ using System.Xml;
 
 namespace SekaiClient
 {
+    public class ApiException : Exception
+    {
+        public ApiException(string message) : base(message)
+        {
+        }
+    }
+
     public class SekaiClient
     {
         public static Action<string> DebugWrite = text =>
@@ -106,6 +113,9 @@ namespace SekaiClient
             {
                 Content = method == HttpMethod.Get ? null : new ByteArrayContent(PackHelper.Pack(content))
             });
+
+            if (!resp.IsSuccessStatusCode)
+                throw new ApiException($"与服务器通信时发生错误, HTTP {(int)resp.StatusCode} {resp.StatusCode}");
 
             var nextToken = resp.Headers.Contains("X-Session-Token") ? resp.Headers.GetValues("X-Session-Token").Single() : null;
             if (nextToken != null) token = nextToken;
