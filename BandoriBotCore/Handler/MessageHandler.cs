@@ -79,6 +79,8 @@ namespace BandoriBot.Handler
 
         private static long AdminQQ = 1176321897;
 
+        public bool IgnoreCommandHandled => true;
+
         private static bool IsIgnore(Source sender)
         {
             return false;
@@ -144,6 +146,8 @@ namespace BandoriBot.Handler
                 ++i;
             }
 
+            var cmdhandle = false;
+
             if (node.cmd != null)
             {
                 try
@@ -156,6 +160,7 @@ namespace BandoriBot.Handler
                             IsAdmin = isAdmin,
                             Callback = callback
                         });
+                    cmdhandle = true;
                 }
                 catch (Exception e)
                 {
@@ -167,7 +172,7 @@ namespace BandoriBot.Handler
             {
                 try
                 {
-                    if (!Configuration.GetConfig<BlacklistF>().InBlacklist(Sender.FromGroup, function))
+                    if ((!cmdhandle || function.IgnoreCommandHandled) && !Configuration.GetConfig<BlacklistF>().InBlacklist(Sender.FromGroup, function))
                             lock (function)
                                 if (function.OnMessage(message, Sender, isAdmin, callback)) break;
                 }

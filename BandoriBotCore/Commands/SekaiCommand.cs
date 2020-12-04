@@ -22,6 +22,56 @@ namespace BandoriBot.Commands
         }
     }
 
+    public class SekaiPCommand : ICommand
+    {
+        public List<string> Alias => new List<string> { "sekai预测" };
+
+        private static Tuple<double, double> LSE(double[] x, double[] y)
+        {
+            var n = x.Length;
+            double avgx = x.Sum() / n, avgy = y.Sum() / n;
+
+            double k = Enumerable.Range(0, n).Sum(i => (x[i] - avgx) * (y[i] - avgy)) / Enumerable.Range(0, n).Sum(i => (x[i] - avgx) * (x[i] - avgx));
+            double b = avgy - k * avgx;
+
+            return new Tuple<double, double>(k, b);
+        }
+
+        private static double PassZero(double[] x, double[] y)
+        {
+            var n = x.Length;
+            return Enumerable.Range(0, n).Sum(i => x[i] * y[i]) / Enumerable.Range(0, n).Sum(i => x[i] * x[i]);
+        }
+
+        public void Run(CommandArgs args)
+        {
+            var evt = MasterData.Instance.events.Last();
+
+            RankData data;
+            
+            lock (Program.SekaiFile)
+                data = RankData.FromFile($"sekai_event{evt.id}.csv");
+
+
+            int.TryParse(args.Arg, out int rank);
+
+            if (!data.ranks.ContainsKey(rank))
+            {
+                args.Callback("排名数据不存在");
+                return;
+            }
+
+            var x = data.timestamp.Select(l => (double)l).ToArray();
+            var y = data.ranks[rank].Select(l => (double)l).ToArray();
+
+            var fit = LSE(x, y);
+            var fit2 = PassZero(x.Select(l => l - evt.startAt).ToArray(), y);
+
+            args.Callback($"排名{rank}的预测分数为\n{(int)(fit.Item1 * evt.aggregateAt + fit.Item2)} (LSE)\n{(int)(fit2 * (evt.aggregateAt - evt.startAt))} (过原点)");
+        }
+    }
+
+
     public class SekaiCommand : ICommand
     {
         public List<string> Alias => new List<string> { "sekai" };

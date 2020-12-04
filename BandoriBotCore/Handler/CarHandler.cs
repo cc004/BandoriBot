@@ -16,6 +16,8 @@ namespace BandoriBot.Handler
         private static string token = "2NmWeiklE";
         private static List<Car> sekaicars = new List<Car>();
 
+        public bool IgnoreCommandHandled => false;
+
         public static List<Car> Cars
         {
             get

@@ -8,40 +8,25 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Handler
 {
-    public class MessageStatistic : Configuration, IMessageHandler
+    public class MessageStatistic : SerializableConfiguration<Dictionary<long, Dictionary<long, int>>>, IMessageHandler
     {
-        public Dictionary<long, Dictionary<long, int>> Data;
+        public override string Name => "statistic.json";
 
-        public override string Name => "Statistic";
+        public bool IgnoreCommandHandled => true;
 
         public override void LoadDefault()
         {
-            Data = new Dictionary<long, Dictionary<long, int>>();
-        }
-
-        public override void LoadFrom(BinaryReader br)
-        {
-            Data = new Dictionary<long, Dictionary<long, int>>();
-
-            int size = br.ReadInt32();
-            for (int i = 0; i < size; ++i)
-            {
-                long group = br.ReadInt64();
-                int size2 = br.ReadInt32();
-                Data[group] = new Dictionary<long, int>();
-                for (int j = 0; j < size2; ++j)
-                    Data[group][br.ReadInt64()] = br.ReadInt32();
-            }
+            t = new Dictionary<long, Dictionary<long, int>>();
         }
 
         public bool OnMessage(string message, Source Sender, bool isAdmin, Action<string> callback)
         {
             if (Sender.FromGroup == 0) return false;
-            lock (Data)
+            lock (t)
             {
-                if (!Data.ContainsKey(Sender.FromGroup))
-                    Data[Sender.FromGroup] = new Dictionary<long, int>();
-                Dictionary<long, int> dic = Data[Sender.FromGroup];
+                if (!t.ContainsKey(Sender.FromGroup))
+                    t[Sender.FromGroup] = new Dictionary<long, int>();
+                Dictionary<long, int> dic = t[Sender.FromGroup];
                 if (!dic.ContainsKey(Sender.FromQQ))
                     dic[Sender.FromQQ] = 1;
                 else
@@ -49,22 +34,6 @@ namespace BandoriBot.Handler
                 Save();
             }
             return false;
-        }
-
-        public override void SaveTo(BinaryWriter bw)
-        {
-            bw.Write(Data.Count);
-
-            foreach (var pair in Data)
-            {
-                bw.Write(pair.Key);
-                bw.Write(pair.Value.Count);
-                foreach (var pair2 in pair.Value)
-                {
-                    bw.Write(pair2.Key);
-                    bw.Write(pair2.Value);
-                }
-            }
         }
     }
 }

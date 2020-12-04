@@ -27,8 +27,8 @@ namespace BandoriBot.Commands
                     switch (splits[0])
                     {
                         case "reset":
-                            lock (data.Data)
-                                data.Data = new Dictionary<long, Dictionary<long, int>>();
+                            lock (data.t)
+                                data.t = new Dictionary<long, Dictionary<long, int>>();
                             data.Save();
                             args.Callback("Record has been reset successfully.");
                             return;
@@ -38,8 +38,8 @@ namespace BandoriBot.Commands
                             int val = int.Parse(splits[3]);
                             if (gr > 0 && qq > 0)
                             {
-                                lock (data.Data)
-                                    data.Data[gr][qq] = val;
+                                lock (data.t)
+                                    data.t[gr][qq] = val;
                                 data.Save();
                                 args.Callback($"data changed [{gr},{qq}] => {val}.");
                             }
@@ -64,9 +64,9 @@ namespace BandoriBot.Commands
             }
             List<Tuple<long, int>> sort;
 
-            lock (data.Data)
+            lock (data.t)
             {
-                if (!data.Data.ContainsKey(group))
+                if (!data.t.ContainsKey(group))
                 {
                     args.Callback($"No record from the group {group} till now.");
                     return;
@@ -74,7 +74,7 @@ namespace BandoriBot.Commands
 
                 sort = new List<Tuple<long, int>>();
 
-                foreach (KeyValuePair<long, int> num in data.Data[group])
+                foreach (KeyValuePair<long, int> num in data.t[group])
                     sort.Add(new Tuple<long, int> (num.Key, num.Value));
             }
 

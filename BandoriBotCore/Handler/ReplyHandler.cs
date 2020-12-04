@@ -27,6 +27,8 @@ namespace BandoriBot.Handler
 
     public class ReplyHandler : SerializableConfiguration<List<DataTypeS>>, IMessageHandler
     {
+        public bool IgnoreCommandHandled => false;
+
         private const int version = 2;
         public override string Name => "reply.json";
         public DataType data2, data3, data4;

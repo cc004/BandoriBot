@@ -17,6 +17,8 @@ namespace BandoriBot
 {
     class Program
     {
+        public static object SekaiFile = new object();
+
         private static void PluginInitialize(MiraiHttpSession session)
         {
             Configuration.Register(new Activation());
@@ -54,6 +56,7 @@ namespace BandoriBot
             MessageHandler.Register(new DelayCommand());
             MessageHandler.Register(new AdminCommand());
             MessageHandler.Register(new SekaiCommand());
+            MessageHandler.Register(new SekaiPCommand());
             MessageHandler.Register(new WhitelistCommand());
             MessageHandler.Register(new GachaCommand());
             MessageHandler.Register(new GachaListCommand());
@@ -116,13 +119,18 @@ namespace BandoriBot
                     var id = MasterData.Instance.events.Last().id;
                     var data = Utils.GetHttp($"https://bitbucket.org/sekai-world/sekai-event-track/raw/main/event{id}.json");
                     var fn = $"sekai_event{id}.csv";
-                    if (!File.Exists(fn)) File.WriteAllText(fn, $"time,{string.Join(",", data.Properties().Where(p => p.Name.StartsWith("rank")).Select(p => p.Name))}\n");
 
-                    File.AppendAllText(fn, $"{data["time"]},{string.Join(",", data.Properties().Where(p => p.Name.StartsWith("rank")).Select(p => p.Value.Single()["score"]))}\n");
+                    lock (SekaiFile)
+                    {
+                        if (!File.Exists(fn)) File.WriteAllText(fn, $"time,{string.Join(",", data.Properties().Where(p => p.Name.StartsWith("rank")).Select(p => p.Name))}\n");
+
+                        File.AppendAllText(fn, $"{data["time"]},{string.Join(",", data.Properties().Where(p => p.Name.StartsWith("rank")).Select(p => p.Value.Single()["score"]))}\n");
+                    }
                 }, 60);
             }
 
             Configuration.LoadAll();
+
             foreach (var schedule in Configuration.GetConfig<TimeConfiguration>().t)
             {
                 var s = schedule;

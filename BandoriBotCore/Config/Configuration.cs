@@ -63,6 +63,7 @@ namespace BandoriBot.Config
                 }
                 catch (Exception e)
                 {
+                    if (!(e is FileNotFoundException))
                     Utils.Log(LoggerLevel.Error, e.ToString());
                     config.Value.LoadDefault();
                 }
