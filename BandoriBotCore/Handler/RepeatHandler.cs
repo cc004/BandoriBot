@@ -28,6 +28,7 @@ namespace BandoriBot.Handler
             if (lastMessage.ContainsKey(hash))
                 lastMessage.Remove(hash);
         }
+
         public bool OnMessage(string message, Source Sender, bool isAdmin, Action<string> callback)
         {
             int groupHash = Sender.FromGroup == 0 ? Sender.FromQQ.GetHashCode() : $"{Sender.FromGroup}".GetHashCode();

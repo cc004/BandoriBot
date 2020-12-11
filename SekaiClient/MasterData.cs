@@ -14,6 +14,7 @@ namespace SekaiClient.Datas
     public class Event
     {
         public int id;
+        public long startAt, aggregateAt;
     }
 
     [JsonObject]
