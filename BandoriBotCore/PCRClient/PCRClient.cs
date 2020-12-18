@@ -36,6 +36,25 @@ namespace PCRClient
         public JObject Home { get; private set; }
 
         public int ClanId => Home["user_clan"].Value<int>("clan_id");
+        
+        private int _clanbattleid = 0;
+        public int ClanBattleid
+        {
+            get
+            {
+                if (_clanbattleid == 0)
+                {
+                    _clanbattleid = Callapi("clan_battle/top", new JObject
+                    {
+                        ["clan_id"] = ClanId,
+                        ["is_first"] = 1,
+                        ["current_clan_battle_coin"] = 0
+                    }).Value<int>("clan_battle_id");
+                }
+
+                return _clanbattleid;
+            }
+        }
 
         public PCRClient(EnvironmentInfo info)
         {

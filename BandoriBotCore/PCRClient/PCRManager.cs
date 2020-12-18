@@ -16,7 +16,7 @@ namespace PCRClientTest
 
         public void Do_Login()
         {
-            client = new PCRClient.PCRClient(new PCRClient.EnvironmentInfo());
+            client = new PCRClient.PCRClient(new EnvironmentInfo());
             client.Login("432399396", "5e09f022e619c1c9e0c34fc742ff98da_sh");
         }
 
@@ -25,21 +25,26 @@ namespace PCRClientTest
             Do_Login();
         }
 
+        public JObject GetRankInfo(int rank)
+        {
+            return client.Callapi("clan_battle/period_ranking", new JObject
+            {
+                ["clan_id"] = client.ClanId,
+                ["clan_battle_id"] = client.ClanBattleid,
+                ["period"] = 1,
+                ["month"] = 0,
+                ["page"] = (rank - 1) / 10,
+                ["is_my_clan"] = 0,
+                ["is_first"] = 0
+            })["period_ranking"].Single(t => (int)t["rank"] == rank) as JObject;
+        }
+
         public long GetRankDamage(int rank)
         {
             JObject obj;
             try
             {
-                obj = client.Callapi("clan_battle/period_ranking", new JObject
-                {
-                    ["clan_id"] = 614747,
-                    ["clan_battle_id"] = 1004,
-                    ["period"] = 1,
-                    ["month"] = 0,
-                    ["page"] = (rank - 1) / 10,
-                    ["is_my_clan"] = 0,
-                    ["is_first"] = 0
-                })["period_ranking"].Single(t => (int)t["rank"] == rank) as JObject;
+                obj = GetRankInfo(rank);
             }
             catch (InvalidOperationException)
             {
@@ -59,16 +64,7 @@ namespace PCRClientTest
             JObject obj;
             try
             {
-                obj = client.Callapi("clan_battle/period_ranking", new JObject
-                {
-                    ["clan_id"] = 614747,
-                    ["clan_battle_id"] = 1005,
-                    ["period"] = 1,
-                    ["month"] = 0,
-                    ["page"] = (rank - 1) / 10,
-                    ["is_my_clan"] = 0,
-                    ["is_first"] = 0
-                })["period_ranking"].Single(t => (int)t["rank"] == rank) as JObject;
+                obj = GetRankInfo(rank);
             }
             catch (InvalidOperationException)
             {
