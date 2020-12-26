@@ -27,3 +27,4 @@ To send a picture, you need to make a directory named `imagecache`.
 
 Some functions such as Gacha and Arena query need static resources, You need to download it from release and extract it into the folder.
 
+please use mirai-http-api v1.9.x
