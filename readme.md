@@ -19,7 +19,7 @@ This plugin has a basic message handling framework and permission control. Some 
 
 ## Usage
 
-The plugin is not designed to be on-click-startup. You need to enter the authkey at startup and the http endpoint is hard coded as `127.0.0.1:8080`. Meanwhile, You need to pass the qq id to the program through commandline, for example:
+The plugin is not designed to be one-click-startup. You need to ~~enter the authkey at startup~~ create a text file named `authkey.txt` containing the authkey and the http endpoint is hard coded as `127.0.0.1:8080`. Meanwhile, You need to pass the qq id to the program through commandline, for example:
 
 `botclient\bandoribot.exe 2025551588`
 
