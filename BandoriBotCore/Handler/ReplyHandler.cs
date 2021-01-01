@@ -116,11 +116,12 @@ namespace BandoriBot.Handler
         public async Task<bool> OnMessage(HandlerArgs args)
         {
             var raw = Utils.FindAtMe(args.message, out var isme, args.Sender.Session.QQNumber ?? 0).Trim();
+            var isadmin = await args.Sender.CheckPermission();
 
-            if (!GetConfig<Whitelist>().hash.Contains(args.Sender.FromGroup) && !args.IsAdmin)
+            if (!GetConfig<Whitelist>().hash.Contains(args.Sender.FromGroup) && !isadmin)
             {
                 var pending = FitRegex(data4, raw).Select(tuple => new Func<string>(() =>
-                    GetFunction(tuple.Item2.reply)(tuple.Item1, args.Sender, args.message, args.IsAdmin, s => args.Callback(s).Wait())));
+                    GetFunction(tuple.Item2.reply)(tuple.Item1, args.Sender, args.message, isadmin, s => args.Callback(s).Wait())));
                 var pa = pending.ToArray();
 
                 if (pa.Length > 0)
@@ -153,7 +154,7 @@ namespace BandoriBot.Handler
                 pending = pending.Concat(FitRegex(data3, raw).Select(tuple => new Func<string>(() => FitReply(tuple, args.Sender))));
 
                 pending = pending.Concat(FitRegex(data4, raw).Select(tuple => new Func<string>(() =>
-                    GetFunction(tuple.Item2.reply)(tuple.Item1, args.Sender, args.message, args.IsAdmin, s => args.Callback(s).Wait()))));
+                    GetFunction(tuple.Item2.reply)(tuple.Item1, args.Sender, args.message, isadmin, s => args.Callback(s).Wait()))));
 
                 var pa = pending.ToArray();
 

@@ -32,14 +32,14 @@ namespace BandoriBot.Commands
             switch (splits[0])
             {
                 case "reload":
-                    if (args.IsAdmin)
+                    if (!await args.Source.CheckPermission())
                     {
                         config.Load();
                         await args.Callback("configuration has been reloaded successfully.");
                     }
                     break;
                 case "save":
-                    if (args.IsAdmin)
+                    if (!await args.Source.CheckPermission())
                     {
                         config.Save();
                         await args.Callback("configuration has been saved successfully.");
@@ -73,7 +73,7 @@ namespace BandoriBot.Commands
 
                         var data = config[int.Parse(splits[0].Substring(3))];
 
-                        if (splits[0] == "add4" && !args.IsAdmin)
+                        if (splits[0] == "add4" && !await args.Source.CheckPermission())
                         {
                             await args.Callback("Access denied!");
                             return;
@@ -139,7 +139,7 @@ namespace BandoriBot.Commands
 
                             if (string.IsNullOrEmpty(result2))
                             {
-                                if (reply.qq == qq || args.IsAdmin)
+                                if (reply.qq == qq || !await args.Source.CheckPermission())
                                 {
                                     list.Item2.Remove(reply);
                                     if (list.Item2.Count == 0)
@@ -165,7 +165,7 @@ namespace BandoriBot.Commands
                         var data = config[int.Parse(splits[0].Substring(4))];
                         if (splits.Length == 1)
                         {
-                            if (!args.IsAdmin)
+                            if (!await args.Source.CheckPermission())
                             {
                                 await args.Callback("Access denied.");
                                 return;

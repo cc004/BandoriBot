@@ -19,7 +19,7 @@ namespace BandoriBot.Commands
         {
             MessageStatistic data = Configuration.GetConfig<MessageStatistic>();
 
-            if (args.IsAdmin)
+            if (!await args.Source.CheckPermission())
             {
                 string[] splits = args.Arg.Trim().Split(' ');
                 if (splits.Length > 0)

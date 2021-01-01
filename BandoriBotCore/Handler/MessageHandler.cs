@@ -20,6 +20,10 @@ namespace BandoriBot.Handler
         public MiraiHttpSession Session;
         public bool IsTemp;
 
+        private static readonly long AdminQQ = 1176321897;
+
+        private bool IsAdmin => AdminQQ == FromQQ || Configuration.GetConfig<Admin>().hash.Contains(FromQQ);
+
         public JObject GetSave()
         {
             var result = Configuration.GetConfig<Save>()[FromQQ];
@@ -29,6 +33,13 @@ namespace BandoriBot.Handler
                 Configuration.GetConfig<Save>()[FromQQ] = result;
             }
             return result;
+        }
+
+        public async Task<bool> CheckPermission(long target = 0, GroupPermission required = GroupPermission.Administrator)
+        {
+            var qq = FromQQ;
+            return IsAdmin || ((target == 0 ? new IGroupMemberInfo[0] : await Session.GetGroupMemberListAsync(target))
+                .SingleOrDefault(info => info.Id == qq)?.Permission ?? GroupPermission.Member) > required;
         }
     }
 
@@ -96,14 +107,7 @@ namespace BandoriBot.Handler
             }
         }
 
-        private static readonly long AdminQQ = 1176321897;
-
         public bool IgnoreCommandHandled => true;
-
-        private static bool IsIgnore(Source sender)
-        {
-            return false;
-        }
 
         //provide api compatibility
 
@@ -112,7 +116,6 @@ namespace BandoriBot.Handler
             OnMessage(new HandlerArgs
             {
                 message = message,
-                IsAdmin = isAdmin,
                 Sender = source,
                 Callback = async s => callback(s)
             }).Wait();
@@ -122,10 +125,7 @@ namespace BandoriBot.Handler
         {
             if (!booted) return;
 
-            bool isAdmin = AdminQQ == Sender.FromQQ || Configuration.GetConfig<Admin>().hash.Contains(Sender.FromQQ);
             long ticks = DateTime.Now.Ticks;
-
-            if (IsIgnore(Sender)) return;
 
             Func<string, Task> callback = async s =>
             {
@@ -151,7 +151,6 @@ namespace BandoriBot.Handler
             Task.Run(() => instance.OnMessage(new HandlerArgs
             {
                 message = message,
-                IsAdmin = isAdmin,
                 Sender = Sender,
                 Callback = callback
             })).Start();
@@ -189,7 +188,6 @@ namespace BandoriBot.Handler
                     {
                         Arg = args.message.Substring(Encoding.UTF8.GetString(bytes.Take(i).ToArray()).Length),
                         Source = args.Sender,
-                        IsAdmin = args.IsAdmin,
                         Callback = args.Callback
                     });
                     cmdhandle = true;

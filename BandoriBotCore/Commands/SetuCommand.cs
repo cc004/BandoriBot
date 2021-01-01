@@ -28,9 +28,10 @@ namespace BandoriBot.Commands
     public class NormalAllowedCommand : HashCommand<NormalAllowed, long>
     {
         public override List<string> Alias => new List<string> { "/normal" };
+        protected override long GetTarget(long value) => value;
+
         public override async Task Run(CommandArgs args)
         {
-            if (!args.IsAdmin) return;
             await base.Run(args);
         }
     }

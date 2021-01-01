@@ -1,6 +1,7 @@
 using BandoriBot.Handler;
 using BandoriBot.Models;
 using Mirai_CSharp;
+using Mirai_CSharp.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,8 +13,16 @@ namespace BandoriBot.Commands
     {
         public Func<string, Task> Callback;
         public string Arg;
-        public bool IsAdmin;
         public Source Source;
+    }
+
+    public class PermissionAttribute : Attribute
+    {
+        public GroupPermission permission;
+        public PermissionAttribute(GroupPermission permission)
+        {
+            this.permission = permission;
+        }
     }
 
     public interface ICommand

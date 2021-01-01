@@ -20,10 +20,6 @@ namespace BandoriBot
 {
     public static class Utils
     {
-        public static async Task<bool> CheckPermission(Source sender, long target, GroupPermission required = GroupPermission.Administrator)
-        {
-            return default;
-        }
 
         public static string FindAtMe(string origin, out bool isat, long qq)
         {

@@ -29,7 +29,7 @@ namespace BandoriBot.Commands
             switch (splits[0])
             {
                 case "refresh":
-                    if (!args.IsAdmin)
+                    if (!await args.Source.CheckPermission())
                     {
                         await args.Callback("Access denied!");
                         return;
@@ -102,7 +102,7 @@ namespace BandoriBot.Commands
                     }
                     if (long.TryParse(splits[1], out long qq))
                     {
-                        if (!args.IsAdmin)
+                        if (!await args.Source.CheckPermission())
                         {
                             await args.Callback("Access denied.");
                             return;

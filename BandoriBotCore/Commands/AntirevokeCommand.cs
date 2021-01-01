@@ -9,9 +9,11 @@ namespace BandoriBot.Commands
     public class AntirevokeCommand : HashCommand<Antirevoke, long>
     {
         public override List<string> Alias => new List<string> { "/antirevoke" };
+        protected override long GetTarget(long value) => value;
+
         public override async Task Run(CommandArgs args)
         {
-            if (!args.IsAdmin) return;
+            if (!await args.Source.CheckPermission()) return;
             await base.Run(args);
         }
     }

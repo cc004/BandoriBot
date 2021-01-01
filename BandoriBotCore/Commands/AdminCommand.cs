@@ -13,9 +13,9 @@ namespace BandoriBot.Commands
         {
             "/admin"
         };
+
         public override async Task Run(CommandArgs args)
         {
-            if (!args.IsAdmin) return;
             await base.Run(args);
         }
     }

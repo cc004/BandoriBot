@@ -75,7 +75,7 @@ namespace BandoriBot.Commands
 
                 if (error || index != lst.Count) continue;
 
-                if (method.IsDefined(typeof(AdminAttribute)) && !arg.IsAdmin)
+                if (method.IsDefined(typeof(AdminAttribute)) && !arg.Source.CheckPermission().Result)
                 {
                     arg.Callback(noperm);
                     return true;

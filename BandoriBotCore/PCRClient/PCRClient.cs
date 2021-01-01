@@ -95,8 +95,8 @@ namespace PCRClient
             var header = json["data_headers"] as JObject;
             if (header.TryGetValue("sid", out var sid) && !string.IsNullOrEmpty((string)sid))
             {
-                using (var md5 = MD5.Create())
-                    session_id = string.Concat(md5.ComputeHash(Encoding.UTF8.GetBytes((string)sid + "c!SID!n")).Select(b => b.ToString("x2")));
+                using var md5 = MD5.Create();
+                session_id = string.Concat(md5.ComputeHash(Encoding.UTF8.GetBytes((string)sid + "c!SID!n")).Select(b => b.ToString("x2")));
             }
 
             if (header.TryGetValue("request_id", out var rid) && (string)rid != request_id)

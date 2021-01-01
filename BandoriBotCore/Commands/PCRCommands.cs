@@ -72,7 +72,7 @@ namespace BandoriBot.Commands
 
         public async Task Run(CommandArgs args)
         {
-            if (!args.IsAdmin) return;
+            if (!await args.Source.CheckPermission()) return;
             string[] splits = args.Arg.Trim().Split(' ');
             Configuration.GetConfig<PCRConfig>().SetData(int.Parse(splits[0]), int.Parse(splits[1]), int.Parse(splits[2]));
         }

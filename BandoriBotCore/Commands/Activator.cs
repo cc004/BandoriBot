@@ -34,7 +34,7 @@ namespace BandoriBot.Commands
                     {
                         List<GroupMemberInfo> source;
                         group = long.Parse(args.Arg);
-                        if (!args.IsAdmin)
+                        if (!await args.Source.CheckPermission())
                         {
                             source = (await args.Source.Session.GetMemberList(group)).Where((GroupMemberInfo info) => (info.QQId == args.Source.FromQQ)).ToList();
                             if (source.Count == 0 || source[0].PermitType == PermitType.None)

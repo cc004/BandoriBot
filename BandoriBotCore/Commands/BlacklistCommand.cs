@@ -14,9 +14,20 @@ namespace BandoriBot.Commands
             "/blacklist"
         };
 
+        protected override long GetTarget(string value)
+        {
+            try
+            {
+                return long.Parse(value.Split('.')[0]);
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
         public override async Task Run(CommandArgs args)
         {
-            if (!args.IsAdmin) return;
             await base.Run(args);
         }
     }
