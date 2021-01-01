@@ -15,10 +15,10 @@ namespace BandoriBot.Commands
     {
         public List<string> Alias => new List<string> { "sekai线" };
 
-        public void Run(CommandArgs args)
+        public async Task Run(CommandArgs args)
         {
-            var track = Utils.GetHttp($"https://bitbucket.org/sekai-world/sekai-event-track/raw/main/event{MasterData.Instance.events.Last().id}.json");
-            args.Callback(string.Join('\n', new int[] { 100, 500, 1000, 2000, 5000, 10000, 50000 }.Select(i => $"rank{i} pt={track[$"rank{i}"].Single()["score"]}")));
+            var track = await Utils.GetHttp($"https://bitbucket.org/sekai-world/sekai-event-track/raw/main/event{MasterData.Instance.events.Last().id}.json");
+            await args.Callback(string.Join('\n', new int[] { 100, 500, 1000, 2000, 5000, 10000, 50000 }.Select(i => $"rank{i} pt={track[$"rank{i}"].Single()["score"]}")));
         }
     }
 
@@ -43,7 +43,7 @@ namespace BandoriBot.Commands
             return Enumerable.Range(0, n).Sum(i => x[i] * y[i]) / Enumerable.Range(0, n).Sum(i => x[i] * x[i]);
         }
 
-        public void Run(CommandArgs args)
+        public async Task Run(CommandArgs args)
         {
             var evt = MasterData.Instance.events.Last();
 
@@ -57,7 +57,7 @@ namespace BandoriBot.Commands
 
             if (!data.ranks.ContainsKey(rank))
             {
-                args.Callback("排名数据不存在");
+                await args.Callback("排名数据不存在");
                 return;
             }
 
@@ -67,7 +67,7 @@ namespace BandoriBot.Commands
             var fit = LSE(x, y);
             var fit2 = PassZero(x.Select(l => l - evt.startAt).ToArray(), y);
 
-            args.Callback($"排名{rank}的预测分数为\n{(int)(fit.Item1 * evt.aggregateAt + fit.Item2)} (LSE)\n{(int)(fit2 * (evt.aggregateAt - evt.startAt))} (过原点)");
+            await args.Callback($"排名{rank}的预测分数为\n{(int)(fit.Item1 * evt.aggregateAt + fit.Item2)} (LSE)\n{(int)(fit2 * (evt.aggregateAt - evt.startAt))} (过原点)");
         }
     }
 
@@ -105,7 +105,7 @@ namespace BandoriBot.Commands
                 ClientReady().Wait();
         }
 
-        public void Run(CommandArgs args)
+        public async Task Run(CommandArgs args)
         {
             long arg;
             try
@@ -119,17 +119,17 @@ namespace BandoriBot.Commands
 
             try
             {
-                var result = (arg > int.MaxValue ?
+                var result = await (arg > int.MaxValue ?
                     client.CallUserApi($"/event/{eventId}/ranking?targetUserId={arg}", HttpMethod.Get, null) :
-                    client.CallUserApi($"/event/{eventId}/ranking?targetRank={arg}", HttpMethod.Get, null)).Result;
+                    client.CallUserApi($"/event/{eventId}/ranking?targetRank={arg}", HttpMethod.Get, null));
                 var rank = result["rankings"]?.SingleOrDefault();
 
-                args.Callback(rank == null ? "找不到玩家" : $"排名为{rank["rank"]}的玩家是`{rank["name"]}`(uid={rank["userId"]})，分数为{rank["score"]}");
+                await args.Callback(rank == null ? "找不到玩家" : $"排名为{rank["rank"]}的玩家是`{rank["name"]}`(uid={rank["userId"]})，分数为{rank["score"]}");
             }
             catch (Exception e)
             {
                 this.Log(LoggerLevel.Debug, e.ToString());
-                ClientReady().Wait();
+                await ClientReady();
             }
         }
     }

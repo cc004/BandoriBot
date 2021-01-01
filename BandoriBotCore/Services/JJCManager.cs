@@ -96,7 +96,7 @@ namespace BandoriBot.Services
             return result;
         }
 
-        public Team[] Callapi(string[] defs)
+        public async Task<Team[]> Callapi(string[] defs)
         {
             int[] ids = new int[5];
             int i = 0;
@@ -111,10 +111,10 @@ namespace BandoriBot.Services
             JObject obj;
             using (var client = new HttpClient())
             {
-                obj = JObject.Parse(client.GetStringAsync("https://www.bigfun.cn/api/client/web?method=findLineUp&order=like&roles=" + string.Join(",", ids)).Result);
+                obj = JObject.Parse(await client.GetStringAsync("https://www.bigfun.cn/api/client/web?method=findLineUp&order=like&roles=" + string.Join(",", ids)));
             }
 
-            Func<JToken, Services.Character > parser = token => new Services.Character
+            Func<JToken, Services.Character> parser = token => new Services.Character
             {
                 level = (int)token["level"],
                 weaponed = (bool)token["is_have_weapon"],

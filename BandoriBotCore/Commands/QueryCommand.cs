@@ -15,7 +15,7 @@ namespace BandoriBot.Commands
             "/query"
         };
 
-        public void Run(CommandArgs args)
+        public async Task Run(CommandArgs args)
         {
             MessageStatistic data = Configuration.GetConfig<MessageStatistic>();
 
@@ -30,7 +30,7 @@ namespace BandoriBot.Commands
                             lock (data.t)
                                 data.t = new Dictionary<long, Dictionary<long, int>>();
                             data.Save();
-                            args.Callback("Record has been reset successfully.");
+                            await args.Callback("Record has been reset successfully.");
                             return;
                         case "set":
                             long gr = splits[1] == "~" ? args.Source.FromGroup : long.Parse(splits[1]);
@@ -41,11 +41,11 @@ namespace BandoriBot.Commands
                                 lock (data.t)
                                     data.t[gr][qq] = val;
                                 data.Save();
-                                args.Callback($"data changed [{gr},{qq}] => {val}.");
+                                await args.Callback($"data changed [{gr},{qq}] => {val}.");
                             }
                             else
                             {
-                                args.Callback("Invalid argument.");
+                                await args.Callback("Invalid argument.");
                             }
                             return;
                     }
@@ -59,7 +59,7 @@ namespace BandoriBot.Commands
                 long.TryParse(arg, out group);
             if (group == 0L)
             {
-                args.Callback("Invalid group number specified");
+                await args.Callback("Invalid group number specified");
                 return;
             }
             List<Tuple<long, int>> sort;
@@ -89,12 +89,12 @@ namespace BandoriBot.Commands
             {
                 for (int i = 0; i < 10; ++i)
                 {
-                    result += $"{i + 1}.{args.Source.Session.GetName(group, sort[i].Item1)} {sort[i].Item2}pcs\n";
+                    result += $"{i + 1}.{await args.Source.Session.GetName(group, sort[i].Item1)} {sort[i].Item2}pcs\n";
                 }
             }
             catch (ArgumentOutOfRangeException) { }
 
-            args.Callback(result);
+            await args.Callback(result);
         }
     }
 }

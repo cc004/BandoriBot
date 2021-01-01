@@ -18,20 +18,20 @@ namespace BandoriBot.Commands
     public class R18AllowedCommand : HashCommand<R18Allowed, long>
     {
         public override List<string> Alias => new List<string> { "/r18" };
-        public override void Run(CommandArgs args)
+        public override async Task Run(CommandArgs args)
         {
             if (args.Source.FromQQ != 1176321897L) return;
-            base.Run(args);
+            await base.Run(args);
         }
     }
 
     public class NormalAllowedCommand : HashCommand<NormalAllowed, long>
     {
         public override List<string> Alias => new List<string> { "/normal" };
-        public override void Run(CommandArgs args)
+        public override async Task Run(CommandArgs args)
         {
             if (!args.IsAdmin) return;
-            base.Run(args);
+            await base.Run(args);
         }
     }
 
@@ -139,7 +139,7 @@ namespace BandoriBot.Commands
             }
         }
 
-        public void Run(CommandArgs args)
+        public async Task Run(CommandArgs args)
         {
             var flag = Configuration.GetConfig<NormalAllowed>().hash.Contains(args.Source.FromGroup);
             var flag2 = Configuration.GetConfig<R18Allowed>().hash.Contains(args.Source.FromGroup);
@@ -149,7 +149,7 @@ namespace BandoriBot.Commands
                 var pics = Configuration.GetConfig<SetuConfig>().t.Where(pic => pic.r18 ? flag2 : flag).ToArray();
                 if (pics.Length == 0)
                 {
-                    args.Callback("图片库为空或者你所在的群没有权限！");
+                    await args.Callback("图片库为空或者你所在的群没有权限！");
                     return;
                 }
                 var pic = pics[rand.Next(pics.Length)];
@@ -158,26 +158,26 @@ namespace BandoriBot.Commands
                     .Replace("img-original", "c/540x540_70/img-master")
                     .Split("_p0.").First() + "_p0_master1200.jpg").Result);
 
-                args.Callback($"作品id: {pic.pid}\n" +
+                await args.Callback($"作品id: {pic.pid}\n" +
                     $"画师id: {pic.uid}\n" +
                     $"神秘链接: {pic.url}\n" +
                     Utils.GetImageCode(imgres));
                 return;
             }
 
-            var result = SearchAll(args.Arg.Trim()).Result;
+            var result = await SearchAll(args.Arg.Trim());
 
             result = result.Where(t => t.sanity == 2 && flag || t.sanity != 2 && flag2).ToList();
 
             if (result.Count == 0)
             {
-                args.Callback($"找不到\"{args.Arg.Trim()}\"的图片!");
+                await args.Callback($"找不到\"{args.Arg.Trim()}\"的图片!");
                 return;
             }
 
             var piece = result[new Random().Next(result.Count)];
             var img = GetImage(piece.uri).Result;
-            args.Callback($"{args.Arg.Trim()}:\n" +
+            await args.Callback($"{args.Arg.Trim()}:\n" +
                     $"作品id: {piece.pid}\n" +
                     $"画师id: {piece.uid}\n" +
                     $"神秘链接: {piece.origin}\n" +

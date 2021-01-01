@@ -38,7 +38,7 @@ namespace BandoriBot.Commands
 
         public List<string> Alias => new List<string> { Command };
 
-        public void Run(CommandArgs args)
+        public async Task Run(CommandArgs args)
         {
             try
             {
@@ -48,13 +48,13 @@ namespace BandoriBot.Commands
             catch (TargetInvocationException e)
             {
                 if (e.InnerException is CommandException e2)
-                    args.Callback(e2.Message);
+                    await args.Callback(e2.Message);
                 else
                     throw;
             }
             catch (CommandException e)
             {
-                args.Callback(e.Message);
+                await args.Callback(e.Message);
             }
         }
     }

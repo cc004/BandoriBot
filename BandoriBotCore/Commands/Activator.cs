@@ -3,6 +3,7 @@ using BandoriBot.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
@@ -14,13 +15,13 @@ namespace BandoriBot.Commands
         }
         public abstract List<string> Alias { get; }
         protected abstract bool Status { get; }
-        public void Run(CommandArgs args)
+        public async Task Run(CommandArgs args)
         {
             args.Arg = args.Arg.Trim();
             if (args.Arg.Length == 0)
             {
                 Configuration.GetConfig<Activation>()[args.Source.FromQQ] = Status;
-                args.Callback($"个人车牌转发已{GetTrans(Status)}");
+                await args.Callback($"个人车牌转发已{GetTrans(Status)}");
             }
             else
             {
@@ -35,10 +36,10 @@ namespace BandoriBot.Commands
                         group = long.Parse(args.Arg);
                         if (!args.IsAdmin)
                         {
-                            source = args.Source.Session.GetMemberList(group).Where((GroupMemberInfo info) => (info.QQId == args.Source.FromQQ)).ToList();
+                            source = (await args.Source.Session.GetMemberList(group)).Where((GroupMemberInfo info) => (info.QQId == args.Source.FromQQ)).ToList();
                             if (source.Count == 0 || source[0].PermitType == PermitType.None)
                             {
-                                args.Callback("权限不足");
+                                await args.Callback("权限不足");
                                 return;
                             }
                         }
@@ -46,11 +47,11 @@ namespace BandoriBot.Commands
                 }
                 catch (Exception)
                 {
-                    args.Callback("群号错误");
+                    await args.Callback("群号错误");
                     return;
                 }
                 Configuration.GetConfig<Activation>()[group] = Status;
-                args.Callback($"{group}的车牌转发已{GetTrans(Status)}");
+                await args.Callback($"{group}的车牌转发已{GetTrans(Status)}");
             }
         }
 

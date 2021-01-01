@@ -9,6 +9,7 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace BandoriBot
 {
@@ -17,9 +18,9 @@ namespace BandoriBot
 	/// </summary>
 	public static class CqApi
 	{
-		public static List<Models.GroupMemberInfo> GetMemberList(this MiraiHttpSession session, long groupId)
+		public static async Task<List<Models.GroupMemberInfo>> GetMemberList(this MiraiHttpSession session, long groupId)
 		{
-			return session.GetGroupMemberListAsync(groupId).Result.Select(info => new Models.GroupMemberInfo
+			return (await session.GetGroupMemberListAsync(groupId)).Select(info => new Models.GroupMemberInfo
             {
 				GroupId = groupId,
 				QQId = info.Id,
@@ -32,9 +33,9 @@ namespace BandoriBot
 			}).ToList();
 		}
 
-		public static List<Models.GroupInfo> GetGroupList(this MiraiHttpSession session)
+		public static async Task<List<Models.GroupInfo>> GetGroupList(this MiraiHttpSession session)
 		{
-			return session.GetGroupListAsync().Result.Select(info => new Models.GroupInfo
+			return (await session.GetGroupListAsync()).Select(info => new Models.GroupInfo
             {
 				Id = info.Id,
 				Name = info.Name

@@ -11,9 +11,9 @@ namespace BandoriBot.Handler
     {
         public bool IgnoreCommandHandled => true;
 
-        public bool OnMessage(string message, Source Sender, bool isAdmin, Action<string> callback)
+        public async Task<bool> OnMessage(HandlerArgs args)
         {
-            return !Configuration.GetConfig<Whitelist>().hash.Contains(Sender.FromGroup) && !isAdmin;
+            return !Configuration.GetConfig<Whitelist>().hash.Contains(args.Sender.FromGroup) && !args.IsAdmin;
         }
     }
 }

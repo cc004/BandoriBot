@@ -1,6 +1,7 @@
 using BandoriBot.Config;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
@@ -10,14 +11,14 @@ namespace BandoriBot.Commands
         {
             "/delay"
         };
-        public void Run(CommandArgs args)
+        public async Task Run(CommandArgs args)
         {
             try
             {
                 int expected = int.Parse(args.Arg.Trim());
                 expected = Math.Max(0, Math.Min(60, expected));
                 Configuration.GetConfig<Config.Delay>()[args.Source.FromQQ] = expected;
-                args.Callback($"车牌转发延迟已更改为{expected}秒");
+                await args.Callback($"车牌转发延迟已更改为{expected}秒");
             }
             catch { }
         }

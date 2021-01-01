@@ -19,12 +19,12 @@ namespace BandoriBot.Commands
     {
         public List<string> Alias => new List<string> { "查出刀" };
 
-        public void Run(CommandArgs args)
+        public async Task Run(CommandArgs args)
         {
             string[] splits = args.Arg.Trim().Split('-');
             DateTime start = DateTime.ParseExact(splits[0], "MMddHH", CultureInfo.CurrentCulture);
             DateTime end = DateTime.ParseExact(splits[1], "MMddHH", CultureInfo.CurrentCulture);
-            args.Callback(Configuration.GetConfig<PCRConfig>().Query(start, end, qq => args.Source.Session.GetName(args.Source.FromGroup, qq)));
+            await args.Callback(Configuration.GetConfig<PCRConfig>().Query(start, end, qq => args.Source.Session.GetName(args.Source.FromGroup, qq).Result));
         }
     }
 
@@ -32,15 +32,15 @@ namespace BandoriBot.Commands
     {
         public List<string> Alias => new List<string> { "生成csv" };
 
-        public void Run(CommandArgs args)
+        public async Task Run(CommandArgs args)
         {
             string[] splits = args.Arg.Trim().Split('-');
             DateTime start = DateTime.ParseExact(splits[0], "MMddHH", CultureInfo.CurrentCulture);
             DateTime end = DateTime.ParseExact(splits[1], "MMddHH", CultureInfo.CurrentCulture);
             var name = args.Arg.Trim() + ".csv";
-            File.WriteAllText(name, Configuration.GetConfig<PCRConfig>().GetCSV(start, end, qq => args.Source.Session.GetName(args.Source.FromGroup, qq)), Encoding.UTF8);
+            File.WriteAllText(name, Configuration.GetConfig<PCRConfig>().GetCSV(start, end, qq => args.Source.Session.GetName(args.Source.FromGroup, qq).Result), Encoding.UTF8);
 
-            args.Callback($"数据已保存到{args.Arg.Trim() + ".csv"}");
+            await args.Callback($"数据已保存到{args.Arg.Trim() + ".csv"}");
         }
     }
 
@@ -48,7 +48,7 @@ namespace BandoriBot.Commands
     {
         public List<string> Alias => new List<string> { "私聊提醒" };
 
-        public void Run(CommandArgs args)
+        public async Task Run(CommandArgs args)
         {
             var split1 = args.Arg.Trim().Split(' ');
             string[] splits = split1[0].Split('-');
@@ -56,13 +56,13 @@ namespace BandoriBot.Commands
             DateTime start = DateTime.ParseExact(splits[0], "MMddHH", CultureInfo.CurrentCulture);
             DateTime end = DateTime.ParseExact(splits[1], "MMddHH", CultureInfo.CurrentCulture);
             var list = Configuration.GetConfig<PCRConfig>().Query(start, end);
-            foreach (var info in args.Source.Session.GetMemberList(args.Source.FromGroup).Where(info => !list.Contains(info.QQId)))
+            foreach (var info in (await args.Source.Session.GetMemberList(args.Source.FromGroup)).Where(info => !list.Contains(info.QQId)))
             {
                 //args.Source.Session.SendPrivateMessage(info.QQId, string.Join(" ", split1.Skip(1)));
                 result += $"[mirai:at={info.QQId}] ";
             }
 
-            args.Callback("已私聊提醒下列未出刀的屑：\n" + result);
+            await args.Callback("已私聊提醒下列未出刀的屑：\n" + result);
         }
     }
 
@@ -70,7 +70,7 @@ namespace BandoriBot.Commands
     {
         public List<string> Alias => new List<string> { "同步刀" };
 
-        public void Run(CommandArgs args)
+        public async Task Run(CommandArgs args)
         {
             if (!args.IsAdmin) return;
             string[] splits = args.Arg.Trim().Split(' ');
@@ -82,13 +82,13 @@ namespace BandoriBot.Commands
     {
         public List<string> Alias => new List<string> { "代刀" };
 
-        public void Run(CommandArgs args)
+        public async Task Run(CommandArgs args)
         {
             var match = new Regex(@"^\[mirai:at=(.*?)\] (.*)$").Match(args.Arg.Trim());
 
             if (!match.Success)
             {
-                args.Callback("代刀 @xxx 伤害");
+                await args.Callback("代刀 @xxx 伤害");
                 return;
             }
 
@@ -100,24 +100,24 @@ namespace BandoriBot.Commands
                 damage = int.Parse(match.Groups[2].Value);
                 if (damage < 0)
                 {
-                    args.Callback("伤害不能是负数!");
+                    await args.Callback("伤害不能是负数!");
                     return;
                 }
             }
             catch
             {
-                args.Callback("格式错误，请输入数字！");
+                await args.Callback("格式错误，请输入数字！");
                 return;
             }
 
             try
             {
-                args.Callback(string.Format(Configuration.GetConfig<PCRConfig>().Add(qq, damage),
+                await args.Callback(string.Format(Configuration.GetConfig<PCRConfig>().Add(qq, damage),
                     args.Source.Session.GetName(args.Source.FromGroup, qq)));
             }
             catch (Exception e)
             {
-                args.Callback(e.Message);
+                await args.Callback(e.Message);
                 return;
             }
         }
@@ -128,7 +128,7 @@ namespace BandoriBot.Commands
     {
         public List<string> Alias => new List<string> { "出刀" };
 
-        public void Run(CommandArgs args)
+        public async Task Run(CommandArgs args)
         {
             int damage;
             try
@@ -136,24 +136,24 @@ namespace BandoriBot.Commands
                 damage = int.Parse(args.Arg.Trim());
                 if (damage < 0)
                 {
-                    args.Callback("伤害不能是负数!");
+                    await args.Callback("伤害不能是负数!");
                     return;
                 }
             }
             catch
             {
-                args.Callback("格式错误，请输入数字！");
+                await args.Callback("格式错误，请输入数字！");
                 return;
             }
 
             try
             {
-                args.Callback(string.Format(Configuration.GetConfig<PCRConfig>().Add(args.Source.FromQQ, damage), 
+                await args.Callback(string.Format(Configuration.GetConfig<PCRConfig>().Add(args.Source.FromQQ, damage), 
                     args.Source.Session.GetName(args.Source.FromGroup, args.Source.FromQQ)));
             }
             catch (Exception e)
             {
-                args.Callback(e.Message);
+                await args.Callback(e.Message);
                 return;
             }
         }
@@ -163,17 +163,17 @@ namespace BandoriBot.Commands
     {
         public List<string> Alias => new List<string> { "/pcr" };
 
-        public void Run(CommandArgs args)
+        public async Task Run(CommandArgs args)
         {
             var trimed = args.Arg.Trim();
             var sp = trimed.IndexOf(" ");
             try
             {
-                args.Callback(PCRManager.Instance.client.Callapi(trimed.Substring(0, sp), JObject.Parse(trimed.Substring(sp))).ToString(Formatting.Indented));
+                await args.Callback(PCRManager.Instance.client.Callapi(trimed.Substring(0, sp), JObject.Parse(trimed.Substring(sp))).ToString(Formatting.Indented));
             }
             catch (ApiException e)
             {
-                args.Callback(e.Message);
+                await args.Callback(e.Message);
                 PCRManager.Instance.Do_Login();
             }
         }
@@ -202,7 +202,7 @@ namespace BandoriBot.Commands
 
         public List<string> Alias => new List<string> { "日程" };
 
-        public void Run(CommandArgs args)
+        public async Task Run(CommandArgs args)
         {
             if (!string.IsNullOrEmpty(args.Arg)) return;
             var js = Utils.GetHttpContent("https://static.biligame.com/pcr/gw/calendar.js");
@@ -293,7 +293,7 @@ namespace BandoriBot.Commands
 
             canvas.Dispose();
 
-            args.Callback(Utils.GetImageCode(img));
+            await args.Callback(Utils.GetImageCode(img));
 
             img.Dispose();
         }
@@ -302,9 +302,9 @@ namespace BandoriBot.Commands
     {
         public List<string> Alias => new List<string> { "查排名" };
 
-        public void Run(CommandArgs args)
+        public async Task Run(CommandArgs args)
         {
-            args.Callback(PCRManager.Instance.GetRankStatistic(int.Parse(args.Arg.Trim())));
+            await args.Callback(PCRManager.Instance.GetRankStatistic(int.Parse(args.Arg.Trim())));
         }
     }
 }

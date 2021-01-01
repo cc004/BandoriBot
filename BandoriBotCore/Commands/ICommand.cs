@@ -4,12 +4,13 @@ using Mirai_CSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
     public struct CommandArgs
     {
-        public Action<string> Callback;
+        public Func<string, Task> Callback;
         public string Arg;
         public bool IsAdmin;
         public Source Source;
@@ -19,6 +20,6 @@ namespace BandoriBot.Commands
     {
         List<string> Alias { get; }
 
-        void Run(CommandArgs args);
+        Task Run(CommandArgs args);
     }
 }

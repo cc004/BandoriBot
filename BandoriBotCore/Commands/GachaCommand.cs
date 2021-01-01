@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
@@ -13,7 +14,7 @@ namespace BandoriBot.Commands
             "抽卡模拟",
         };
 
-        public void Run(CommandArgs args)
+        public async Task Run(CommandArgs args)
         {
             var Gachas = GachaManager.Instance.GetGachas();
             int max = Gachas.Length;
@@ -22,13 +23,13 @@ namespace BandoriBot.Commands
                 index = res;
             index = index < 1 ? 1 : index > max ? max : index;
 
-            var tuple = GachaManager.Instance.Gacha(Gachas[index - 1].gachaId);
+            var tuple = await GachaManager.Instance.Gacha(Gachas[index - 1].gachaId);
             string code;
 
             using (var scaled = new Bitmap(tuple.Item2, new Size(tuple.Item2.Width / 4, tuple.Item2.Height / 4)))
                 code = Utils.GetImageCode(scaled);
             tuple.Item2.Dispose();
-            args.Callback($"[mirai:at={args.Source.FromQQ}]的{tuple.Item1}：\n{code}");
+            await args.Callback($"[mirai:at={args.Source.FromQQ}]的{tuple.Item1}：\n{code}");
 
         }
     }

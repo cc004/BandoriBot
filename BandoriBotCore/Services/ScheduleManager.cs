@@ -11,9 +11,8 @@ namespace BandoriBot.Services
     {
         public static void QueueOnce(Action a, int sec)
         {
-            new Thread(new ThreadStart(() =>
+            Task.Delay(sec * 1000).ContinueWith(_ =>
             {
-                Thread.Sleep(sec * 1000);
                 try
                 {
                     a.Invoke();
@@ -22,28 +21,26 @@ namespace BandoriBot.Services
                 {
                     Utils.Log(Models.LoggerLevel.Error, e.ToString());
                 }
-            })).Start();
+            }).Start();
         }
 
-        public static void QueueTimed(Action a, int sec)
+        public static void QueueTimed(Func<Task> a, int sec)
         {
-            Action handler = null;
-
-            handler = new Action(() =>
+            new Thread(new ThreadStart(() =>
             {
-                try
+                while (true)
                 {
-                    a.Invoke();
+                    Thread.Sleep(sec);
+                    try
+                    {
+                        a.Invoke().Wait();
+                    }
+                    catch (Exception e)
+                    {
+                        Utils.Log(Models.LoggerLevel.Error, e.ToString());
+                    }
                 }
-                catch (Exception e)
-                {
-                    Utils.Log(Models.LoggerLevel.Error, e.ToString());
-                }
-                Thread.Sleep(sec * 1000);
-                new Thread(new ThreadStart(handler)).Start();
-            });
-
-            new Thread(new ThreadStart(handler)).Start();
+            })).Start();
         }
     }
 }

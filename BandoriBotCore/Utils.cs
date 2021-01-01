@@ -13,12 +13,18 @@ using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using static Mirai_CSharp.Models.PokeMessage;
 
 namespace BandoriBot
 {
     public static class Utils
     {
+        public static async Task<bool> CheckPermission(Source sender, long target, GroupPermission required = GroupPermission.Administrator)
+        {
+            return default;
+        }
+
         public static string FindAtMe(string origin, out bool isat, long qq)
         {
             var at = $"[mirai:at={qq}]";
@@ -61,7 +67,7 @@ namespace BandoriBot
 
         private static Regex codeReg = new Regex(@"^(.*?)\[(.*?)=(.*?)\](.*)$", RegexOptions.Singleline | RegexOptions.Multiline | RegexOptions.Compiled);
         
-        public static IMessageBase[] GetMessageChain(string msg, Func<string, ImageMessage> picUploader)
+        public static async Task<IMessageBase[]> GetMessageChain(string msg, Func<string, Task<ImageMessage>> picUploader)
         {
             Match match;
             List<IMessageBase> result = new List<IMessageBase>();
@@ -76,7 +82,7 @@ namespace BandoriBot
                     case "mirai:at": result.Add(new AtMessage(long.Parse(val))); break;
                     case "mirai:imageid": result.Add(new ImageMessage(val.Decode(), "", "")); break;
                     case "mirai:imageurl": result.Add(new ImageMessage("", val.Decode(), "")); break;
-                    case "mirai:imagepath": result.Add(picUploader(Path.GetFullPath(val.Decode()))); break;
+                    case "mirai:imagepath": result.Add(await picUploader(Path.GetFullPath(val.Decode()))); break;
                     case "mirai:atall": result.Add(new AtAllMessage());break;
                     case "mirai:json": result.Add(new JsonMessage(val.Decode())); break;
                     case "mirai:xml": result.Add(new XmlMessage(val.Decode())); break;
@@ -122,11 +128,11 @@ public static string FixImage(string origin)
             return Image.FromFile(path) as Bitmap;
         }
 
-        public static string GetName(this MiraiHttpSession session, long group, long qq)
+        public static async Task<string> GetName(this MiraiHttpSession session, long group, long qq)
         {
             try
             {
-                return session.GetGroupMemberInfoAsync(qq, group).Result.Name;
+                return (await session.GetGroupMemberInfoAsync(qq, group)).Name;
             }
             catch (Exception e)
             {
@@ -135,8 +141,8 @@ public static string FixImage(string origin)
             }
         }
 
-        public static string GetName(this Source source)
-            => source.Session.GetName(source.FromGroup, source.FromQQ);
+        public static async Task<string> GetName(this Source source)
+            => await source.Session.GetName(source.FromGroup, source.FromQQ);
 
         internal static string GetCQMessage(IEnumerable<IMessageBase> chain)
         {
@@ -255,14 +261,14 @@ public static string FixImage(string origin)
             }
         }
 
-        public static JObject GetHttp(string uri)
+        public static async Task<JObject> GetHttp(string uri)
         {
             try
             {
                 using (HttpClient client = new HttpClient())
                 {
                     client.Timeout = new TimeSpan(0, 0, 5);
-                    return JObject.Parse(client.GetAsync(uri).Result.Content.ReadAsStringAsync().Result);
+                    return JObject.Parse(await (await client.GetAsync(uri)).Content.ReadAsStringAsync());
                 }
             }
             catch

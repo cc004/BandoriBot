@@ -18,7 +18,7 @@ namespace BandoriBot.Config
 
         private void Start()
         {
-            ScheduleManager.QueueTimed(() =>
+            ScheduleManager.QueueTimed(async () =>
             {
                 var now = DateTime.Now;
                 int span1 = (int)(now - standard).TotalMinutes, span2 = (int)(lastSync - standard).TotalMinutes;

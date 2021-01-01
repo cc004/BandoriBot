@@ -18,12 +18,12 @@ namespace BandoriBot.Commands
             "/find"
         };
 
-        public void Run(CommandArgs args)
+        public async Task Run(CommandArgs args)
         {
             string[] splits = args.Arg.Trim().Split(' ');
             if (splits.Length < 1)
             {
-                args.Callback("/find <refresh/count/id> ...");
+                await args.Callback("/find <refresh/count/id> ...");
                 return;
             }
             switch (splits[0])
@@ -31,13 +31,13 @@ namespace BandoriBot.Commands
                 case "refresh":
                     if (!args.IsAdmin)
                     {
-                        args.Callback("Access denied!");
+                        await args.Callback("Access denied!");
                         return;
                     }
                     infos.Clear();
-                    args.Callback($"refreshing...please wait.");
-                    foreach (var group in (groups = args.Source.Session.GetGroupList()))
-                        foreach (var member in args.Source.Session.GetMemberList(group.Id) ?? new List<GroupMemberInfo>())
+                    await args.Callback($"refreshing...please wait.");
+                    foreach (var group in groups = await args.Source.Session.GetGroupList())
+                        foreach (var member in await args.Source.Session.GetMemberList(group.Id) ?? new List<GroupMemberInfo>())
                             infos.Add(member);
                     var idhash = new HashSet<long>(groups.Select((group) => group.Id));
                     var groupfile = Path.Combine("groups.json");
@@ -45,7 +45,7 @@ namespace BandoriBot.Commands
                     {
                         try
                         {
-                            args.Callback("reading from groups.json...");
+                            await args.Callback("reading from groups.json...");
                             var json = JArray.Parse(File.ReadAllText(groupfile));
                             foreach (JObject group in json)
                             {
@@ -71,10 +71,10 @@ namespace BandoriBot.Commands
                         }
                         catch (Exception e)
                         {
-                            args.Callback(e.ToString());
+                            await args.Callback(e.ToString());
                         }
                     }
-                    args.Callback($"Member info has refreshed succussfully. ({infos.Count} records in {groups.Count} groups)");
+                    await args.Callback($"Member info has refreshed succussfully. ({infos.Count} records in {groups.Count} groups)");
                     break;
                 case "count":
                     var users = new HashSet<long>();
@@ -89,7 +89,7 @@ namespace BandoriBot.Commands
                     }
                     foreach (var member in infos)
                         users.Add(member.QQId);
-                    args.Callback(@$"{
+                    await args.Callback(@$"{
                         new HashSet<long>(infos
                             .Select((info) => info.QQId)).Count
                         } members in total {(active.Ticks == 0 ? "" : "is active after " + active.ToString())} (counting in {groups.Count} groups).");
@@ -97,14 +97,14 @@ namespace BandoriBot.Commands
                 case "id":
                     if (splits.Length < 2)
                     {
-                        args.Callback("Invalid argument count.");
+                        await args.Callback("Invalid argument count.");
                         return;
                     }
                     if (long.TryParse(splits[1], out long qq))
                     {
                         if (!args.IsAdmin)
                         {
-                            args.Callback("Access denied.");
+                            await args.Callback("Access denied.");
                             return;
                         }
                         var total = 0;
@@ -119,7 +119,7 @@ namespace BandoriBot.Commands
                                     _ => "",
                                 }}
 "));
-                        args.Callback($"{qq}所在的群(共{total}个):\n{list}");
+                        await args.Callback($"{qq}所在的群(共{total}个):\n{list}");
                     }
                     break;
                     

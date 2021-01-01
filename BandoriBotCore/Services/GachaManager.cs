@@ -157,8 +157,10 @@ namespace BandoriBot.Services
             return img;
         }
 
-        public Tuple<string, Image> Gacha(short gachaId, Random rand = null)
+        public async Task<Tuple<string, Image>> Gacha(short gachaId, Random rand = null)
         {
+            await Task.Yield();
+
             var gachaInfo = GachaMap[gachaId.ToString()];
             var detail = gachaInfo.details;
             rand ??= new Random();

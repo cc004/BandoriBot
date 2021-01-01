@@ -13,7 +13,7 @@ namespace BandoriBot.Commands
 
         protected abstract TimeSpan DoRun(CommandArgs args);
 
-        public void Run(CommandArgs args)
+        public async Task Run(CommandArgs args)
         {
             var config = Configuration.GetConfig<T>();
             if (args.IsAdmin || config.IsExpire(args.Source.FromQQ))
@@ -24,7 +24,7 @@ namespace BandoriBot.Commands
             }
             else
             {
-                args.Callback("You are in cooldown!");
+                await args.Callback("You are in cooldown!");
             }
         }
     }

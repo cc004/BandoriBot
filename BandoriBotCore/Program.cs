@@ -21,61 +21,61 @@ namespace BandoriBot
 
         private static void PluginInitialize(MiraiHttpSession session)
         {
-            Configuration.Register(new Activation());
-            Configuration.Register(new Delay());
-            Configuration.Register(new MessageStatistic());
-            Configuration.Register(new ReplyHandler());
-            Configuration.Register(new Whitelist());
-            Configuration.Register(new Admin());
-            Configuration.Register(new Blacklist());
-            Configuration.Register(new BlacklistF());
-            Configuration.Register(new TitleCooldown());
-            Configuration.Register(new PCRConfig());
-            Configuration.Register(new R18Allowed());
-            Configuration.Register(new NormalAllowed());
-            Configuration.Register(new AccountBinding());
-            Configuration.Register(new ServerManager());
-            Configuration.Register(new TimeConfiguration());
-            Configuration.Register(new GlobalConfiguration());
-            Configuration.Register(new Antirevoke());
-            Configuration.Register(new SetuConfig());
-            Configuration.Register(new Save());
-            Configuration.Register(new CarTypeConfig());
-            //Configuration.Register(new PeriodRank());
+            Configuration.Register<Activation>();
+            Configuration.Register<Delay>();
+            Configuration.Register<MessageStatistic>();
+            Configuration.Register<ReplyHandler>();
+            Configuration.Register<Whitelist>();
+            Configuration.Register<Admin>();
+            Configuration.Register<Blacklist>();
+            Configuration.Register<BlacklistF>();
+            Configuration.Register<TitleCooldown>();
+            Configuration.Register<PCRConfig>();
+            Configuration.Register<R18Allowed>();
+            Configuration.Register<NormalAllowed>();
+            Configuration.Register<AccountBinding>();
+            Configuration.Register<ServerManager>();
+            Configuration.Register<TimeConfiguration>();
+            Configuration.Register<GlobalConfiguration>();
+            Configuration.Register<Antirevoke>();
+            Configuration.Register<SetuConfig>();
+            Configuration.Register<Save>();
+            Configuration.Register<CarTypeConfig>();
+            //Configuration.Register<PeriodRank>();
 
-            MessageHandler.Register(new CarHandler());
+            MessageHandler.Register<CarHandler>();
             MessageHandler.Register(Configuration.GetConfig<ReplyHandler>());
-            MessageHandler.Register(new WhitelistHandler());
-            MessageHandler.Register(new RepeatHandler());
+            MessageHandler.Register<WhitelistHandler>();
+            MessageHandler.Register<RepeatHandler>();
             MessageHandler.Register(Configuration.GetConfig<MessageStatistic>());
 
-            MessageHandler.Register(new YCM());
-            MessageHandler.Register(new QueryCommand());
-            MessageHandler.Register(new ReplyCommand());
-            MessageHandler.Register(new FindCommand());
-            MessageHandler.Register(new DelayCommand());
-            MessageHandler.Register(new AdminCommand());
-            MessageHandler.Register(new SekaiCommand());
-            MessageHandler.Register(new SekaiPCommand());
-            MessageHandler.Register(new WhitelistCommand());
-            MessageHandler.Register(new GachaCommand());
-            MessageHandler.Register(new GachaListCommand());
-            MessageHandler.Register(new Activate());
-            MessageHandler.Register(new Deactivate());
-            MessageHandler.Register(new BlacklistCommand());
-            MessageHandler.Register(new TitleCommand());
-            MessageHandler.Register(new PCRRunCommand());
-            MessageHandler.Register(new CarTypeCommand());
-            MessageHandler.Register(new SekaiLineCommand());
+            MessageHandler.Register<YCM>();
+            MessageHandler.Register<QueryCommand>();
+            MessageHandler.Register<ReplyCommand>();
+            MessageHandler.Register<FindCommand>();
+            MessageHandler.Register<DelayCommand>();
+            MessageHandler.Register<AdminCommand>();
+            MessageHandler.Register<SekaiCommand>();
+            MessageHandler.Register<SekaiPCommand>();
+            MessageHandler.Register<WhitelistCommand>();
+            MessageHandler.Register<GachaCommand>();
+            MessageHandler.Register<GachaListCommand>();
+            MessageHandler.Register<Activate>();
+            MessageHandler.Register<Deactivate>();
+            MessageHandler.Register<BlacklistCommand>();
+            MessageHandler.Register<TitleCommand>();
+            MessageHandler.Register<PCRRunCommand>();
+            MessageHandler.Register<CarTypeCommand>();
+            MessageHandler.Register<SekaiLineCommand>();
 
-            MessageHandler.Register(new DDCommand());
-            MessageHandler.Register(new CDCommand());
-            MessageHandler.Register(new CCDCommand());
-            MessageHandler.Register(new SLCommand());
-            MessageHandler.Register(new SCCommand());
-            MessageHandler.Register(new TBCommand());
-            MessageHandler.Register(new RCCommand());
-            MessageHandler.Register(new CPMCommand());
+            MessageHandler.Register<DDCommand>();
+            MessageHandler.Register<CDCommand>();
+            MessageHandler.Register<CCDCommand>();
+            MessageHandler.Register<SLCommand>();
+            MessageHandler.Register<SCCommand>();
+            MessageHandler.Register<TBCommand>();
+            MessageHandler.Register<RCCommand>();
+            MessageHandler.Register<CPMCommand>();
 
             CommandHelper.Register<AdditionalCommands.随机禁言>();
             CommandHelper.Register<AdditionalCommands.泰拉在线>();
@@ -106,18 +106,18 @@ namespace BandoriBot
             CommandHelper.Register<AdditionalCommands.封ip>();
             CommandHelper.Register<AdditionalCommands.saveall>();
 
-            MessageHandler.Register(new R18AllowedCommand());
-            MessageHandler.Register(new NormalAllowedCommand());
-            MessageHandler.Register(new SetuCommand());
-            MessageHandler.Register(new ZMCCommand());
-            MessageHandler.Register(new AntirevokeCommand());
+            MessageHandler.Register<R18AllowedCommand>();
+            MessageHandler.Register<NormalAllowedCommand>();
+            MessageHandler.Register<SetuCommand>();
+            MessageHandler.Register<ZMCCommand>();
+            MessageHandler.Register<AntirevokeCommand>();
 
             if (File.Exists("sekai"))
             {
-                ScheduleManager.QueueTimed(() =>
+                ScheduleManager.QueueTimed(async () =>
                 {
                     var id = MasterData.Instance.events.Last().id;
-                    var data = Utils.GetHttp($"https://bitbucket.org/sekai-world/sekai-event-track/raw/main/event{id}.json");
+                    var data = await Utils.GetHttp($"https://bitbucket.org/sekai-world/sekai-event-track/raw/main/event{id}.json");
                     var fn = $"sekai_event{id}.csv";
 
                     lock (SekaiFile)
@@ -134,9 +134,9 @@ namespace BandoriBot
             foreach (var schedule in Configuration.GetConfig<TimeConfiguration>().t)
             {
                 var s = schedule;
-                ScheduleManager.QueueTimed(() =>
+                ScheduleManager.QueueTimed(async () =>
                 {
-                    session.SendGroupMessageAsync(s.group, Utils.GetMessageChain(s.message, p => session.UploadPictureAsync(UploadTarget.Group, p).Result));
+                    await session.SendGroupMessageAsync(s.group, await Utils.GetMessageChain(s.message, async p => await session.UploadPictureAsync(UploadTarget.Group, p)));
                 }, s.delay);
             }
 

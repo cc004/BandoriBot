@@ -62,7 +62,7 @@ namespace BandoriBot.Handler
             data3 = t[2].Select(D2T).ToList();
             data4 = t[3].Select(D2T).ToList();
 
-            ReloadAssembly();
+            ReloadAssembly().Wait();
         }
 
         public override void SaveTo(BinaryWriter bw)
@@ -113,19 +113,19 @@ namespace BandoriBot.Handler
                 return m.Value;
             });
 
-        public bool OnMessage(string message, Source Sender, bool isAdmin, Action<string> callback)
+        public async Task<bool> OnMessage(HandlerArgs args)
         {
-            var raw = Utils.FindAtMe(message, out var isme, Sender.Session.QQNumber ?? 0).Trim();
+            var raw = Utils.FindAtMe(args.message, out var isme, args.Sender.Session.QQNumber ?? 0).Trim();
 
-            if (!GetConfig<Whitelist>().hash.Contains(Sender.FromGroup) && !isAdmin)
+            if (!GetConfig<Whitelist>().hash.Contains(args.Sender.FromGroup) && !args.IsAdmin)
             {
                 var pending = FitRegex(data4, raw).Select(tuple => new Func<string>(() =>
-                    GetFunction(tuple.Item2.reply)(tuple.Item1, Sender, message, isAdmin, callback)));
+                    GetFunction(tuple.Item2.reply)(tuple.Item1, args.Sender, args.message, args.IsAdmin, s => args.Callback(s).Wait())));
                 var pa = pending.ToArray();
 
                 if (pa.Length > 0)
                 {
-                    callback(pa[new Random().Next(pa.Length)]());
+                    await args.Callback(pa[new Random().Next(pa.Length)]());
                     return true;
                 }
                 return false;
@@ -133,16 +133,16 @@ namespace BandoriBot.Handler
 
             if (isme)
             {
-                if (GetConfig<Blacklist>().hash.Contains(Sender.FromQQ))
+                if (GetConfig<Blacklist>().hash.Contains(args.Sender.FromQQ))
                 {
-                    callback("调戏机器人吃枣药丸");
+                    await args.Callback("调戏机器人吃枣药丸");
                     return true;
                 }
 
                 var pending = FitRegex(data2, raw).ToArray();
 
                 if (pending.Length > 0)
-                    callback(FitReply(pending[new Random().Next(pending.Length)], Sender));
+                    await args.Callback(FitReply(pending[new Random().Next(pending.Length)], args.Sender));
 
                 return true;
             }
@@ -150,16 +150,16 @@ namespace BandoriBot.Handler
             {
                 IEnumerable<Func<string>> pending = new List<Func<string>>();
 
-                pending = pending.Concat(FitRegex(data3, raw).Select(tuple => new Func<string>(() => FitReply(tuple, Sender))));
+                pending = pending.Concat(FitRegex(data3, raw).Select(tuple => new Func<string>(() => FitReply(tuple, args.Sender))));
 
                 pending = pending.Concat(FitRegex(data4, raw).Select(tuple => new Func<string>(() =>
-                    GetFunction(tuple.Item2.reply)(tuple.Item1, Sender, message, isAdmin, callback))));
+                    GetFunction(tuple.Item2.reply)(tuple.Item1, args.Sender, args.message, args.IsAdmin, s => args.Callback(s).Wait()))));
 
                 var pa = pending.ToArray();
 
                 if (pa.Length > 0)
                 {
-                    callback(pa[new Random().Next(pa.Length)]());
+                    await args.Callback(pa[new Random().Next(pa.Length)]());
                     return true;
                 }
                 return false;
@@ -178,8 +178,10 @@ namespace BandoriBot.Handler
             typeof(HttpUtility).GetType();
         }
 
-        public void ReloadAssembly()
+        public async Task ReloadAssembly()
         {
+            await Task.Yield();
+
             ResolveAssemblies();
             var functions = new Dictionary<string, Function>();
             var options = new CSharpCompilationOptions(

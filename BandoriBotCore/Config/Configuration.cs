@@ -9,6 +9,11 @@ namespace BandoriBot.Config
     {
         private static List<Configuration> instances = new List<Configuration>();
 
+        public static void Register<T>() where T : Configuration, new()
+        {
+            configs.Add(typeof(T), new T());
+        }
+
         public static void Register<T>(T t) where T : Configuration
         {
             configs.Add(t.GetType(), t);

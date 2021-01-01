@@ -166,7 +166,7 @@ namespace BandoriBot.Config
                 info[record.qq] += record.extra ? $"({record.nowboss + 1})" : (record.nowboss + 1).ToString();
             }
 
-            return string.Join("\n", damage.OrderByDescending(pair => pair.Value).Select(pair => $"{namegetter(pair.Key)} {pair.Value} {info[pair.Key]}"));
+            return string.Join("\n", damage.OrderByDescending(pair => pair.Value).Select(async pair => $"{namegetter(pair.Key)} {pair.Value} {info[pair.Key]}"));
         }
 
         public string GetCSV(DateTime start, DateTime end, Func<long, string> namegetter)

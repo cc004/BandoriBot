@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace BandoriBot.Handler
@@ -48,18 +49,20 @@ namespace BandoriBot.Handler
 
         private static readonly Regex codereg = new Regex(@"\[.*?\]", RegexOptions.Compiled);
 
-        public bool OnMessage(string message, Source Sender, bool isAdmin, Action<string> callback)
+        public async Task<bool> OnMessage(HandlerArgs args)
         {
+            var message = args.message;
+
             if (message == "m" || message == "M")
             {
-                if (LastCar.TryGetValue(Sender.FromQQ, out int lc))
+                if (LastCar.TryGetValue(args.Sender.FromQQ, out int lc))
                     lock (sekaicars)
                         sekaicars = sekaicars.Where(c => c.index != lc).ToList();
                 return true;
             }
 
             int split, car;
-            if (IsIgnore(Sender)) return false;
+            if (IsIgnore(args.Sender)) return false;
             if (message.Length < 5) return false;
             for (int i = 0; i < 5; ++i)
                 if (!IsNumeric(message[i])) return false;
@@ -67,9 +70,9 @@ namespace BandoriBot.Handler
             if (message.Length > split && IsNumeric(message[split])) return false;
 
             car = int.Parse(message.Substring(0, split));
-            LastCar[Sender.FromQQ] = car;
+            LastCar[args.Sender.FromQQ] = car;
 
-            Thread.Sleep(Configuration.GetConfig<Delay>()[Sender.FromQQ] * 1000);
+            await Task.Delay(Configuration.GetConfig<Delay>()[args.Sender.FromQQ] * 1000);
 
             string raw_message = car.ToString("d5") + " " + message.Substring(split);
 
@@ -77,18 +80,18 @@ namespace BandoriBot.Handler
 
             raw_message = codereg.Replace(raw_message, _ => "");
 
-            switch (Configuration.GetConfig<CarTypeConfig>()[Sender.FromGroup])
+            switch (Configuration.GetConfig<CarTypeConfig>()[args.Sender.FromGroup])
             {
 
                 case CarType.Bandori:
-                    JObject res = Utils.GetHttp($"http://api.bandoristation.com/?function=submit_room_number&number={car}&source={source}&token={token}&raw_message={raw_message}&user_id={Sender.FromQQ}");
+                    JObject res = await Utils.GetHttp($"http://api.bandoristation.com/?function=submit_room_number&number={car}&source={source}&token={token}&raw_message={raw_message}&user_id={args.Sender.FromQQ}");
                     if (res == null)
                     {
-                        callback($"无法连接到bandoristation.com");
+                        await args.Callback($"无法连接到bandoristation.com");
                     }
                     else if (res["status"].ToString() != "success" && res["status"].ToString() != "duplicate_number_submit")
                     {
-                        callback($"上传车牌时发生错误: {res["status"]}");
+                        await args.Callback($"上传车牌时发生错误: {res["status"]}");
                     }
                     return true;
                 case CarType.Sekai:

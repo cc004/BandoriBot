@@ -42,7 +42,7 @@ namespace BandoriBot.Handler
             public IMessageBase[] message;
         }
 
-        private static readonly List<IMessageHandler> functions = new List<IMessageHandler>();
+        private static readonly List<HandlerHolder> functions = new List<HandlerHolder>();
         private static readonly IMessageHandler instance = new MessageHandler();
         private static readonly Queue<Message> msgRecord = new Queue<Message>();
         private static readonly State head = new State();
@@ -51,7 +51,31 @@ namespace BandoriBot.Handler
         private class State
         {
             public State[] next = new State[256];
-            public Action<CommandArgs> cmd;
+            public BlockingDelegate<CommandArgs, Task> cmd;
+        }
+
+        private class HandlerHolder
+        {
+            public IMessageHandler handler;
+            public BlockingDelegate<HandlerArgs, Task<bool>> cmd;
+
+            public HandlerHolder(IMessageHandler handler)
+            {
+                this.handler = handler;
+                cmd = new BlockingDelegate<HandlerArgs, Task<bool>>(handler.OnMessage);
+            }
+        }
+
+        public static void Register<T>() where T : new()
+        {
+            var t = new T();
+            if (t is ICommand tcmd) Register(tcmd);
+            else if (t is IMessageHandler tmsg) Register(tmsg);
+        }
+
+        public static void Register(IMessageHandler t)
+        {
+            functions.Add(new HandlerHolder(t));
         }
 
         public static void Register(ICommand t)
@@ -64,20 +88,15 @@ namespace BandoriBot.Handler
                     if (node.next[b] == null) node.next[b] = new State();
                     node = node.next[b];
                 }
-                node.cmd = args =>
+                node.cmd = new BlockingDelegate<CommandArgs, Task>(async args =>
                 {
                     if (!Configuration.GetConfig<BlacklistF>().InBlacklist(args.Source.FromGroup, t))
-                        t.Run(args);
-                };
+                        await t.Run(args);
+                });
             }
         }
 
-        public static void Register(IMessageHandler t)
-        {
-            functions.Add(t);
-        }
-
-        private static long AdminQQ = 1176321897;
+        private static readonly long AdminQQ = 1176321897;
 
         public bool IgnoreCommandHandled => true;
 
@@ -86,9 +105,20 @@ namespace BandoriBot.Handler
             return false;
         }
 
-#pragma warning disable CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
-        protected static async Task OnMessage(MiraiHttpSession session, string message, Source Sender)
-#pragma warning restore CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
+        //provide api compatibility
+
+        public void OnMessage(string message, Source source, bool isAdmin, Action<string> callback)
+        {
+            OnMessage(new HandlerArgs
+            {
+                message = message,
+                IsAdmin = isAdmin,
+                Sender = source,
+                Callback = async s => callback(s)
+            }).Wait();
+        }
+
+        protected static void OnMessage(MiraiHttpSession session, string message, Source Sender)
         {
             if (!booted) return;
 
@@ -97,17 +127,17 @@ namespace BandoriBot.Handler
 
             if (IsIgnore(Sender)) return;
 
-            Action<string> callback = delegate (string s)
+            Func<string, Task> callback = async s =>
             {
                 try
                 {
                     Utils.Log(LoggerLevel.Debug, $"[{(DateTime.Now.Ticks - ticks) / 10000}ms] sent msg: " + s);
                     if (Sender.FromGroup != 0)
-                        session.SendGroupMessageAsync(Sender.FromGroup, Utils.GetMessageChain(s, p => session.UploadPictureAsync(UploadTarget.Group, p).Result)).Wait();
+                        await session.SendGroupMessageAsync(Sender.FromGroup, await Utils.GetMessageChain(s, async p => await session.UploadPictureAsync(UploadTarget.Group, p)));
                     else if (!Sender.IsTemp)
-                        session.SendFriendMessageAsync(Sender.FromQQ, Utils.GetMessageChain(s, p => session.UploadPictureAsync(UploadTarget.Temp, p).Result)).Wait();
+                        await session.SendFriendMessageAsync(Sender.FromQQ, await Utils.GetMessageChain(s, async p => await session.UploadPictureAsync(UploadTarget.Temp, p)));
                     else
-                        session.SendTempMessageAsync(Sender.FromQQ, Sender.FromGroup, Utils.GetMessageChain(s, p => session.UploadPictureAsync(UploadTarget.Friend, p).Result)).Wait();
+                        await session.SendTempMessageAsync(Sender.FromQQ, Sender.FromGroup, await Utils.GetMessageChain(s, async p => await session.UploadPictureAsync(UploadTarget.Friend, p)));
 
                 }
                 catch (Exception e)
@@ -118,13 +148,16 @@ namespace BandoriBot.Handler
 
             Utils.Log(LoggerLevel.Debug, "recv msg: " + message);
 
-            Task.Run(() =>
+            Task.Run(() => instance.OnMessage(new HandlerArgs
             {
-                instance.OnMessage(message, Sender, isAdmin, callback);
-            }).Start();
+                message = message,
+                IsAdmin = isAdmin,
+                Sender = Sender,
+                Callback = callback
+            })).Start();
         }
 
-        private void ProcessError(Action<string> callback, Exception e)
+        private void ProcessError(Func<string, Task> callback, Exception e)
         {
             Utils.Log(LoggerLevel.Error, e.ToString());
 
@@ -132,11 +165,11 @@ namespace BandoriBot.Handler
             if (e is ApiException) callback(e.Message);
         }
 
-        public bool OnMessage(string message, Source Sender, bool isAdmin, Action<string> callback)
+        public async Task<bool> OnMessage(HandlerArgs args)
         {
             var node = head;
             var i = 0;
-            var bytes = Encoding.UTF8.GetBytes(message);
+            var bytes = Encoding.UTF8.GetBytes(args.message);
 
             foreach (var b in bytes)
             {
@@ -152,38 +185,37 @@ namespace BandoriBot.Handler
             {
                 try
                 {
-                    lock (node)
-                        node.cmd(new CommandArgs
-                        {
-                            Arg = message.Substring(Encoding.UTF8.GetString(bytes.Take(i).ToArray()).Length),
-                            Source = Sender,
-                            IsAdmin = isAdmin,
-                            Callback = callback
-                        });
+                    await node.cmd.Run(new CommandArgs
+                    {
+                        Arg = args.message.Substring(Encoding.UTF8.GetString(bytes.Take(i).ToArray()).Length),
+                        Source = args.Sender,
+                        IsAdmin = args.IsAdmin,
+                        Callback = args.Callback
+                    });
                     cmdhandle = true;
                 }
                 catch (Exception e)
                 {
-                    ProcessError(callback, e);
+                    ProcessError(args.Callback, e);
                 }
             }
 
-            foreach (IMessageHandler function in functions)
+            foreach (HandlerHolder function in functions)
             {
                 try
                 {
-                    if ((!cmdhandle || function.IgnoreCommandHandled) && !Configuration.GetConfig<BlacklistF>().InBlacklist(Sender.FromGroup, function))
-                            lock (function)
-                                if (function.OnMessage(message, Sender, isAdmin, callback)) break;
+                    if ((!cmdhandle || function.handler.IgnoreCommandHandled) && !Configuration.GetConfig<BlacklistF>().InBlacklist(args.Sender.FromGroup, function))
+                         if (await await function.cmd.Run(args)) break;
                 }
                 catch (Exception e)
                 {
-                    ProcessError(callback, e);
+                    ProcessError(args.Callback, e);
                 }
             }
             return true;
         }
 
+#pragma warning disable CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
         public async Task<bool> GroupMessage(MiraiHttpSession session, IGroupMessageEventArgs e)
         {
             var source = e.Chain.First() as SourceMessage;
@@ -208,7 +240,7 @@ namespace BandoriBot.Handler
                 });
             }
 
-            await OnMessage(session, Utils.GetCQMessage(e.Chain), new Source
+            OnMessage(session, Utils.GetCQMessage(e.Chain), new Source
             {
                 FromGroup = e.Sender.Group.Id,
                 FromQQ = e.Sender.Id,
@@ -219,7 +251,7 @@ namespace BandoriBot.Handler
 
         public async Task<bool> FriendMessage(MiraiHttpSession session, IFriendMessageEventArgs e)
         {
-            await OnMessage(session, Utils.GetCQMessage(e.Chain), new Source
+            OnMessage(session, Utils.GetCQMessage(e.Chain), new Source
             {
                 FromGroup = 0,
                 FromQQ = e.Sender.Id,
@@ -262,7 +294,7 @@ namespace BandoriBot.Handler
 
         public async Task<bool> TempMessage(MiraiHttpSession session, ITempMessageEventArgs e)
         {
-            await OnMessage(session, Utils.GetCQMessage(e.Chain), new Source
+            OnMessage(session, Utils.GetCQMessage(e.Chain), new Source
             {
                 FromGroup = 0,
                 FromQQ = e.Sender.Id,
@@ -271,5 +303,6 @@ namespace BandoriBot.Handler
             });
             return false;
         }
+#pragma warning restore CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
     }
 }

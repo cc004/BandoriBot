@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace BandoriBot.Handler
 {
@@ -29,10 +30,10 @@ namespace BandoriBot.Handler
                 lastMessage.Remove(hash);
         }
 
-        public bool OnMessage(string message, Source Sender, bool isAdmin, Action<string> callback)
+        public async Task<bool> OnMessage(HandlerArgs args)
         {
-            int groupHash = Sender.FromGroup == 0 ? Sender.FromQQ.GetHashCode() : $"{Sender.FromGroup}".GetHashCode();
-            int messageHash = message.GetHashCode();
+            int groupHash = args.Sender.FromGroup == 0 ? args.Sender.FromQQ.GetHashCode() : $"{args.Sender.FromGroup}".GetHashCode();
+            int messageHash = args.message.GetHashCode();
 
             if (lastMessage.TryGetValue(groupHash, out GroupStatus status))
             {
@@ -42,11 +43,11 @@ namespace BandoriBot.Handler
                     {
                         string output =
                             new Random().NextDouble() < 0.5 ?
-                            (message == breakMessage ? breakMessage2 : breakMessage) :
-                            message;
-                        callback(output);
+                            (args.message == breakMessage ? breakMessage2 : breakMessage) :
+                            args.message;
+                        await args.Callback(output);
                         status.messageHash = output.GetHashCode();
-                        status.isRepeated = output == message;
+                        status.isRepeated = output == args.message;
                     }
                 }
                 else

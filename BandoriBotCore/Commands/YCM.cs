@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
@@ -26,7 +27,7 @@ namespace BandoriBot.Commands
             listener = new StationListener();
             listener.Start();
         }
-        public void Run(CommandArgs args)
+        public async Task Run(CommandArgs args)
         {
 
             if (!string.IsNullOrEmpty(args.Arg)) return;
@@ -49,7 +50,7 @@ namespace BandoriBot.Commands
                     $"({(int)(DateTime.Now - car.time).TotalSeconds}秒前)" +
                     "\n";
             }
-            args.Callback(string.IsNullOrEmpty(result) ? "myc" : result.Substring(0, result.Length - 1));
+            await args.Callback(string.IsNullOrEmpty(result) ? "myc" : result.Substring(0, result.Length - 1));
         }
     }
 }
