@@ -39,7 +39,7 @@ namespace BandoriBot.Handler
         {
             var qq = FromQQ;
             return IsAdmin || ((target == 0 ? new IGroupMemberInfo[0] : await Session.GetGroupMemberListAsync(target))
-                .SingleOrDefault(info => info.Id == qq)?.Permission ?? GroupPermission.Member) > required;
+                .SingleOrDefault(info => info.Id == qq)?.Permission ?? GroupPermission.Member) >= required;
         }
     }
 
