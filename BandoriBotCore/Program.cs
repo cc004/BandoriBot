@@ -21,6 +21,8 @@ namespace BandoriBot
 
         private static void PluginInitialize(MiraiHttpSession session)
         {
+            MessageHandler.session = session;
+
             Configuration.Register<Activation>();
             Configuration.Register<Delay>();
             Configuration.Register<MessageStatistic>();
@@ -41,6 +43,7 @@ namespace BandoriBot
             Configuration.Register<SetuConfig>();
             Configuration.Register<Save>();
             Configuration.Register<CarTypeConfig>();
+            Configuration.Register<SubscribeConfig>();
             //Configuration.Register<PeriodRank>();
 
             MessageHandler.Register<CarHandler>();
@@ -111,6 +114,7 @@ namespace BandoriBot
             MessageHandler.Register<SetuCommand>();
             MessageHandler.Register<ZMCCommand>();
             MessageHandler.Register<AntirevokeCommand>();
+            MessageHandler.Register<SubscribeCommand>();
 
             if (File.Exists("sekai"))
             {

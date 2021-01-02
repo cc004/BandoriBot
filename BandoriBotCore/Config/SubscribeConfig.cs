@@ -4,42 +4,35 @@ using System.Text;
 
 namespace BandoriBot.Config
 {
-    public enum CarType
+    public class SubscribeConfig : SerializableConfiguration<Dictionary<string, CarType>>
     {
-        Bandori,
-        Sekai,
-        None
-    }
-
-    public class CarTypeConfig : SerializableConfiguration<Dictionary<long, CarType>>
-    {
-        public override string Name => "cartype.json";
+        public override string Name => "subscribe.json";
 
         public override void LoadDefault()
         {
-            t = new Dictionary<long, CarType>();
+            t = new Dictionary<string, CarType>();
         }
 
-        public CarType this[long group]
+        public CarType this[string target]
         {
             get
             {
                 lock (this)
                 {
-                    if (t.TryGetValue(group, out var type))
+                    if (t.TryGetValue(target, out var type))
                         return type;
                     else
-                        return CarType.Bandori;
+                        return CarType.None;
                 }
             }
             set
             {
                 lock (this)
                 {
-                    t[group] = value;
+                    t[target] = value;
                     Save();
                 }
             }
         }
     }
-}
+    }

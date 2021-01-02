@@ -11,7 +11,10 @@ namespace BandoriBot.Commands
 {
     public class YCM : ICommand
     {
-        private StationListener listener;
+        private readonly StationListener listener;
+
+        public static event Action<Car> OnNewCar;
+
         public List<string> Alias => new List<string>
         {
             "ycm",
@@ -25,8 +28,10 @@ namespace BandoriBot.Commands
         public YCM()
         {
             listener = new StationListener();
+            listener.OnNewCar += car => OnNewCar?.Invoke(car);
             listener.Start();
         }
+
         public async Task Run(CommandArgs args)
         {
 
@@ -41,14 +46,13 @@ namespace BandoriBot.Commands
 
             string result = "";
             HashSet<int> indexes = new HashSet<int>();
+            var now = DateTime.Now;
+
             foreach (Car car in cars)
             {
                 if (indexes.Contains(car.index)) continue;
                 indexes.Add(car.index);
-                result +=
-                    car.rawmessage +
-                    $"({(int)(DateTime.Now - car.time).TotalSeconds}秒前)" +
-                    "\n";
+                result += car.ToString(now) + "\n";
             }
             await args.Callback(string.IsNullOrEmpty(result) ? "myc" : result.Substring(0, result.Length - 1));
         }

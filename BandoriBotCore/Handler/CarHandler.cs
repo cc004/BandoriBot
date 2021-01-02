@@ -13,9 +13,11 @@ namespace BandoriBot.Handler
 {
     public class CarHandler : IMessageHandler
     {
-        private static string source = HttpUtility.UrlEncode("冲冲");
-        private static string token = "2NmWeiklE";
+        private static readonly string source = HttpUtility.UrlEncode("冲冲");
+        private static readonly string token = "2NmWeiklE";
         private static List<Car> sekaicars = new List<Car>();
+
+        public static event Action<Car> OnNewCar;
 
         public bool IgnoreCommandHandled => false;
 
@@ -95,13 +97,15 @@ namespace BandoriBot.Handler
                     }
                     return true;
                 case CarType.Sekai:
+                    var caro = new Car
+                    {
+                        index = car,
+                        rawmessage = raw_message,
+                        time = DateTime.Now
+                    };
                     lock (sekaicars)
-                        sekaicars.Add(new Car
-                        {
-                            index = car,
-                            rawmessage = raw_message,
-                            time = DateTime.Now
-                        });
+                        sekaicars.Add(caro);
+                    OnNewCar?.Invoke(caro);
                     return true;
             }
 

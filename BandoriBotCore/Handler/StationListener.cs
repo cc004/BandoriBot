@@ -16,11 +16,15 @@ namespace BandoriBot.Handler
 {
     public class StationListener
     {
+
         private const string uri = "wss://api.bandoristation.com";
         private ClientWebSocket client;
         private List<Car> cars;
         public bool Running { get; private set; }
         public bool Active { get; private set; }
+
+        public event Action<Car> OnNewCar;
+
         public List<Car> Cars
         {
             get
@@ -44,8 +48,6 @@ namespace BandoriBot.Handler
             Active = false;
             cars = new List<Car>();
             Running = false;
-
-            OnMsg += StationListener_OnMsg;
         }
 
         private void StationListener_OnMsg(JObject obj)
@@ -60,10 +62,9 @@ namespace BandoriBot.Handler
                 var c = new Car(car);
                 lock (cars)
                     cars.Add(c);
+                OnNewCar?.Invoke(c);
             }
         }
-
-        private event Action<JObject> OnMsg;
 
         private async Task SendMsg(object json)
         {
@@ -171,7 +172,7 @@ namespace BandoriBot.Handler
                                 if (result.EndOfMessage) break;
                             }
 
-                            OnMsg?.Invoke(JObject.Parse(Encoding.UTF8.GetString(ms.ToArray())));
+                            StationListener_OnMsg(JObject.Parse(Encoding.UTF8.GetString(ms.ToArray())));
                         }
                     }
                     catch (Exception e)

@@ -26,5 +26,16 @@ namespace BandoriBot.DataStructures
             return other.time.CompareTo(time);
         }
 
+        public override string ToString()
+        {
+            return rawmessage +
+                   $"({(int)(DateTime.Now - time).TotalSeconds}취품)";
+        }
+
+        public string ToString(DateTime now)
+        {
+            return rawmessage +
+                   $"({(int)(now - time).TotalSeconds}취품)";
+        }
     }
 }

@@ -59,6 +59,8 @@ namespace BandoriBot.Handler
         private static readonly State head = new State();
         public static bool booted = false;
 
+        public static MiraiHttpSession session;
+
         private class State
         {
             public State[] next = new State[256];
@@ -80,6 +82,7 @@ namespace BandoriBot.Handler
         public static void Register<T>() where T : new()
         {
             var t = new T();
+            if (t is ISession session) session.Session = MessageHandler.session;
             if (t is ICommand tcmd) Register(tcmd);
             else if (t is IMessageHandler tmsg) Register(tmsg);
         }
