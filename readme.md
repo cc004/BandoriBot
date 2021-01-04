@@ -9,7 +9,7 @@ This plugin has a basic message handling framework and permission control. Some 
 - Priconne clanbattle management
 - Priconne period rank query and client api call
 - Priconne Schedule query
-- Priconne arena query (powered by www.bigfun.cn)
+- Priconne arena query (powered by www.pcrdfans.com)
 - Terraria Server Management
 - Custom Replies with regex or csharp code
 - Random Pixiv Images (powered by lolicon.app, pixiv.cat and api.imjad.cn)

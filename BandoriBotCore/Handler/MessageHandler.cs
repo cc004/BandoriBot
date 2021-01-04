@@ -156,7 +156,7 @@ namespace BandoriBot.Handler
                 message = message,
                 Sender = Sender,
                 Callback = callback
-            })).Start();
+            }));
         }
 
         private void ProcessError(Func<string, Task> callback, Exception e)

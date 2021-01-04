@@ -10,6 +10,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -154,6 +155,8 @@ namespace BandoriBot
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
+            AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
+
             var options = args.Length == 0 ?
                 new MiraiHttpSessionOptions("bothost", 8080, authkey) :
                 new MiraiHttpSessionOptions("localhost", 8080, authkey);
@@ -170,6 +173,11 @@ namespace BandoriBot
 
             Thread.Sleep(int.MaxValue);
 
+        }
+
+        private static void CurrentDomain_FirstChanceException(object sender, FirstChanceExceptionEventArgs e)
+        {
+            Console.WriteLine(e.Exception);
         }
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)

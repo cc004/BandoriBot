@@ -1,6 +1,7 @@
 using BandoriBot.Services;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ namespace BandoriBot.Commands
         public async Task Run(CommandArgs args)
         {
             var splits = args.Arg.Trim().Split(' ');
-            Team[] teams;
+            string code;
 
             if (splits.Length != 5)
             {
@@ -22,18 +23,8 @@ namespace BandoriBot.Commands
                 return;
             }
 
-            try
-            {
-                teams = await JJCManager.Instance.Callapi(splits);
-            }
-            catch (Exception e)
-            {
-                await args.Callback(e.Message);
-                return;
-            }
-
-            var img = JJCManager.Instance.GetImage(teams.Take(10).ToArray()).Resize(0.5f);
-            await args.Callback($"{args.Arg.Trim()}的解法：\n" + Utils.GetImageCode(img));
+            code = await JJCManager.Instance.Callapi(splits);
+            await args.Callback($"{args.Arg.Trim()}的解法：\n" + code);
         }
     }
 }
