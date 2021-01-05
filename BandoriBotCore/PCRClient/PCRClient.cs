@@ -1,3 +1,4 @@
+using BandoriBot.Handler;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
@@ -10,20 +11,6 @@ using System.Threading.Tasks;
 
 namespace PCRClient
 {
-    public class ApiException : Exception
-    {
-        public ApiException(string message) : base(message)
-        {
-        }
-
-        public ApiException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
-
-        public ApiException()
-        {
-        }
-    }
     public class PCRClient
     {
         private readonly HttpClient client;

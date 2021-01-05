@@ -151,6 +151,8 @@ namespace BandoriBot
 
         public static async Task Main(string[] args)
         {
+            await Testing();
+
             string authkey = File.ReadAllText("authkey.txt");
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -177,12 +179,21 @@ namespace BandoriBot
 
         private static void CurrentDomain_FirstChanceException(object sender, FirstChanceExceptionEventArgs e)
         {
+            var ex = e.Exception;
+            while (ex is AggregateException e2) ex = e2;
+            if (ex is ApiException) return;
+            if (ex is IOException) return;
+
             Console.WriteLine(e.Exception);
         }
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             Console.WriteLine(e.ExceptionObject);
+        }
+
+        private static async Task Testing()
+        {
         }
     }
 }

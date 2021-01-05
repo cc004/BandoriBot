@@ -1,15 +1,20 @@
+using BandoriBot.Handler;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using PCRClient;
+using SekaiClient;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BandoriBot.Services
@@ -17,6 +22,7 @@ namespace BandoriBot.Services
     public sealed class JJCManager : IDisposable
     {
         public static JJCManager Instance = new JJCManager(Path.Combine("jjc"));
+        private ProxyPool pool = new ProxyPool();
 
 #pragma warning disable CS0649
         class CommentModel
@@ -82,6 +88,13 @@ namespace BandoriBot.Services
 
         private HttpClient client;
 
+        private Trie<int> trie;
+
+        private static string Normalize(string text)
+        {
+            return text.ToLower().Replace('（', '(').Replace('）', ')');
+        }
+
         public JJCManager(string root)
         {
             textures = new Dictionary<string, Image>();
@@ -92,14 +105,21 @@ namespace BandoriBot.Services
                 if (file.EndsWith(".png"))
                     textures.Add(Path.GetFileNameWithoutExtension(file), Image.FromFile(file));
 
-            foreach (var line in File.ReadAllText(Path.Combine(root, "nickname.csv")).Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries))
+            trie = new Trie<int>();
+
+            foreach (Match match in Regex.Matches(File.ReadAllText(Path.Combine(root, "chara_names.py")),
+                @"(\d\d\d\d): \[(.*?)\],"))
             {
-                var splits = line.Split(',');
-                if (!int.TryParse(splits[0], out var res)) continue;
-                var id = 100 * res + 1;// characters.SingleOrDefault(c => c.name.EndsWith(splits[2]));
-                foreach (var nickname in splits.Skip(2))
+                var id = 100 * int.Parse(match.Groups[1].Value) + 1;// characters.SingleOrDefault(c => c.name.EndsWith(splits[2]));
+                foreach (Match match2 in Regex.Matches(match.Groups[2].Value, "\"(.*?)\","))
+                {
+                    var nickname = match2.Groups[1].Value;
                     if (!nicknames.ContainsKey(nickname))
+                    {
+                        trie.AddWord(Normalize(nickname), id);
                         nicknames.Add(nickname, id);
+                    }
+                }
             }
 
             client = new HttpClient();
@@ -115,8 +135,72 @@ namespace BandoriBot.Services
             //client.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
             client.DefaultRequestHeaders.Add("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6");
             client.DefaultRequestHeaders.Remove("Expect");
-        }
 
+            pool.GetProxysFromAPIs();
+        }
+        
+        private JObject ProxyPost(JObject json)
+        {
+            bool suc = false;
+            object suclock = new object();
+            JObject result = null;
+            using var evt = new ManualResetEvent(false);
+            this.Log(Models.LoggerLevel.Info, $"posting {json}");
+
+            pool.proxys.OrderBy(_ => Guid.NewGuid())
+                .AsParallel().WithDegreeOfParallelism(48).ForAll(s =>
+                {
+                    lock (suclock) if (suc) return;
+
+                    var client = new HttpClient(new HttpClientHandler
+                    {
+                        Proxy = new WebProxy(s.ToString())
+                    });
+
+                    client.Timeout = new TimeSpan(0, 0, 10);
+
+                    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66");
+                    client.DefaultRequestHeaders.Add("Referer", "https://pcrdfans.com/");
+                    client.DefaultRequestHeaders.Add("Origin", "https://pcrdfans.com");
+                    client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", "");
+                    client.DefaultRequestHeaders.Add("Sec-Fetch-Dest", "empty");
+                    client.DefaultRequestHeaders.Add("Sec-Fetch-Mode", "cors");
+                    client.DefaultRequestHeaders.Add("Sec-Fetch-Site", "same-site");
+                    client.DefaultRequestHeaders.Add("Accept", "*/*");
+                    //client.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
+                    client.DefaultRequestHeaders.Add("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6");
+                    client.DefaultRequestHeaders.Remove("Expect");
+
+                    try
+                    {
+                        var content = client.PostAsync($"https://api.pcrdfans.com/x/v1/search",
+                            new StringContent(json.ToString(Formatting.None)
+                        , Encoding.UTF8, "application/json")).Result;
+
+                        lock (suclock) if (suc) return;
+
+                        var res = JObject.Parse(content.Content.ReadAsStringAsync().Result);
+                        var code = res.Value<int>("code");
+                        if (code == -429 || code == 601) throw new ApiException();
+
+                        lock (suclock)
+                        {
+                            if (suc) return;
+
+                            suc = true;
+                            result = res;
+                            evt.Set();
+                        }
+                    }
+                    catch
+                    {
+
+                    }
+                });
+
+            evt.WaitOne();
+            return result;
+        }
         private Image GetTexture(Character c)
         {
             Image img;
@@ -142,8 +226,13 @@ namespace BandoriBot.Services
             for (int i = 0; i < 5; ++i)
             {
                 DrawToGraphics(canvas, t.atk[i], 110 * i + offx, offy);
-                DrawToGraphics(canvas, t.def[i], 110 * i + 590 + offx, offy);
+                //DrawToGraphics(canvas, t.def[i], 110 * i + 590 + offx, offy);
             }
+
+            int y = 0;
+            foreach (var cmt in t.comment.Take(5))
+                canvas.DrawString($"[{cmt.nickname}]{cmt.msg}", font, Brushes.Black, 590 + offx, offy + 20 * (y++));
+
             canvas.DrawString($"顶：{t.up} 踩：{t.down} ", font, Brushes.Black, offx, offy + 100);
         }
         
@@ -177,27 +266,22 @@ namespace BandoriBot.Services
         [DllImport("PCRDwasm.dll", EntryPoint = "getSign", CallingConvention = CallingConvention.Cdecl)]
         private static extern void GetSign(string text, string nonce, CallbackD callback);
 
-        public async Task<string> Callapi(string[] defs)
+        public async Task<string> Callapi(string text)
         {
-            int[] ids = new int[5];
-            int i = 0;
-            try
-            {
-                for (; i < 5; ++i) ids[i] = nicknames[defs[i]];
-            }
-            catch (KeyNotFoundException)
-            {
-                throw new Exception($"未能识别{defs[i]}");
-            }
-            JObject obj;
-
+            string prefix = "";
+            var indexes = trie.WordSplit(Normalize(text));
+            if (indexes.Item1.Length > 5)
+                throw new ApiException("角色数超过了五个！");
+            else if (indexes.Item1.Length < 5)
+                prefix = "**角色数少于五个**\n" +
+                    (indexes.Item2.Length > 0 ? $"未能识别的名字：{string.Join(',', indexes.Item2.Where(s => !string.IsNullOrWhiteSpace(s)))}\n" : "");
 
             var json = new JObject
             {
-                ["def"] = new JArray(ids),
+                ["def"] = new JArray(indexes.Item1),
                 ["nonce"] = GenNonce(),
                 ["page"] = 1,
-                ["region"] = 2,
+                ["region"] = 1,
                 ["sort"] = 1,
                 ["ts"] = GetTimeStamp()
             };
@@ -221,23 +305,30 @@ namespace BandoriBot.Services
 
 
             RespData result;
-
-            var resp = await client.PostAsync($"https://api.pcrdfans.com/x/v1/search",
-                new StringContent(json.ToString(Formatting.None)
-                    , Encoding.UTF8, "application/json"));
-
-            var raw = JObject.Parse(await resp.Content.ReadAsStringAsync());
+            JObject raw = null;
 
             try
             {
-                result = raw["data"].ToObject<RespData>();
+                try
+                {
+                    raw = JObject.Parse(client.PostAsync($"https://api.pcrdfans.com/x/v1/search",
+                        new StringContent(json.ToString(Formatting.None)
+                    , Encoding.UTF8, "application/json")).Result.Content.ReadAsStringAsync().Result);
+                    result = raw["data"].ToObject<RespData>();
+
+                }
+                catch
+                {
+                    raw = ProxyPost(json);
+                    result = raw["data"].ToObject<RespData>();
+                }
             }
             catch
             {
                 return $"pcrd err:{raw}";
             }
 
-            return Utils.GetImageCode(GetImage(result.result.Take(10).ToArray()).Resize(0.5f));
+            return prefix + Utils.GetImageCode(GetImage(result.result.Take(10).ToArray()).Resize(0.5f));
         }
 
         public void Dispose()

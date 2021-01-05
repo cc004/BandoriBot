@@ -20,13 +20,6 @@ using System.Xml;
 
 namespace SekaiClient
 {
-    public class ApiException : Exception
-    {
-        public ApiException(string message) : base(message)
-        {
-        }
-    }
-
     public class SekaiClient
     {
         public static Action<string> DebugWrite = text =>
