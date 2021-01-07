@@ -276,6 +276,7 @@ namespace BandoriBot.Services
                 prefix = "**角色数少于五个**\n" +
                     (indexes.Item2.Length > 0 ? $"未能识别的名字：{string.Join(',', indexes.Item2.Where(s => !string.IsNullOrWhiteSpace(s)))}\n" : "");
 
+            this.Log(Models.LoggerLevel.Debug, $"chara id = {string.Join(",", indexes.Item1)}");
             var json = new JObject
             {
                 ["def"] = new JArray(indexes.Item1),

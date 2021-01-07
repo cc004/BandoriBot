@@ -25,17 +25,21 @@ namespace BandoriBot.Services
             var length = 0;
             foreach (var c in text)
             {
-                ++length;
                 if (now.next.TryGetValue(c, out var newnode))
+                {
                     now = newnode;
-                else break;
+                    ++length;
+                }
+                else
+                    break;
             }
 
             if (now.hasValue)
                 value = now.value;
             else
                 value = default;
-            return now.hasValue ? length - 1 : 0;
+
+            return now.hasValue ? length : -1;
         }
 
         public Tuple<TValue[], string[]> WordSplit(string text)
@@ -48,7 +52,7 @@ namespace BandoriBot.Services
             {
                 var length = TrySearch(text.Substring(index), out TValue result);
 
-                if (length == 0)
+                if (length == -1)
                 {
                     ++index;
                 }
