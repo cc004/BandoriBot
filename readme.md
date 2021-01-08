@@ -12,7 +12,7 @@ This plugin has a basic message handling framework and permission control. Some 
 - Priconne arena query (powered by www.pcrdfans.com)
 - Terraria Server Management
 - Custom Replies with regex or csharp code
-- Random Pixiv Images (powered by lolicon.app, pixiv.cat and api.imjad.cn)
+- Random Pixiv Images (powered by lolicon.app, pixiv.cat and api.acgmx.com)
 - Anti-revoke
 - Sekai event rank query (realtime)
 - Sekai station (memory based database)
