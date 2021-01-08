@@ -39,7 +39,23 @@ namespace BandoriBot.Commands
     public class SetuCommand : ICommand
     {
         private readonly Random rand = new Random();
+        
+        private static readonly HttpClient client = new HttpClient();
 
+        static SetuCommand()
+        {
+            string apikey;
+            try
+            {
+                apikey = File.ReadAllText("acgmx_apikey.txt");
+            }
+            catch
+            {
+                apikey = null;
+            }
+
+            client.DefaultRequestHeaders.Add("token", apikey);
+        }
         private class SearchResult
         {
             public int pid, uid;
@@ -53,17 +69,17 @@ namespace BandoriBot.Commands
         private static async Task<JArray> CallApi(Dictionary<string, string> param)
         {
             var sb = new StringBuilder();
-            sb.Append("https://api.imjad.cn/pixiv/v2?");
+            sb.Append("https://api.acgmx.com/public/search?");
             foreach (var pair in param)
                 sb.Append($"{pair.Key}={HttpUtility.UrlEncode(pair.Value)}&");
             sb.Remove(sb.Length - 1, 1);
 
 
-            var resp = await WebRequest.CreateHttp(sb.ToString()).GetResponseAsync();
+            var resp = await client.GetAsync(sb.ToString());
 
             JObject result;
-            using (var sr = new StreamReader(resp.GetResponseStream()))
-                result = JObject.Parse(await sr.ReadToEndAsync());
+
+            result = JObject.Parse(await resp.Content.ReadAsStringAsync());
 
             return result["illusts"] as JArray;
         }
@@ -76,15 +92,14 @@ namespace BandoriBot.Commands
                 return await client.GetByteArrayAsync(uri);
         }
 
-        private static async Task<IEnumerable<SearchResult>> SearchOnePage(string keyword, int page)
+        private static async Task<IEnumerable<SearchResult>> SearchOnePage(string keyword, int offset)
         {
             try
             {
                 return (await CallApi(new Dictionary<string, string>
                 {
-                    ["type"] = "search",
-                    ["word"] = keyword,
-                    ["page"] = page.ToString()
+                    ["q"] = keyword,
+                    ["offset"] = offset.ToString()
                 })).Select(token => new SearchResult
                 {
                     bookmark = token.Value<int>("total_bookmarks"),
@@ -107,23 +122,26 @@ namespace BandoriBot.Commands
         private static async Task<List<SearchResult>> SearchAll(string keyword)
         {
             List<SearchResult> result = null;
+            const int page_limit = 250;
+            const int page_offset = 50;
+            const int bookmark_filter = 50;
 
             while (true)
             {
                 if (processing.TryGetValue(keyword, out var v))
                 {
-                    int i = v.Item2 + 1;
+                    int i = v.Item2 + page_offset;
                     var lst = v.Item1;
-                    if (i < 168)
+                    if (i < page_limit)
                     {
                         var t = (await SearchOnePage(keyword, i)).ToList();
-                        if (t.Count == 0) i = 168;
+                        if (t.Count == 0) i = page_limit;
                         else lst = lst.Concat(t);
                     }
 
-                    result = lst.Where(res => res.bookmark > 50).ToList();
+                    result = lst.Where(res => res.bookmark > bookmark_filter).ToList();
 
-                    if (i == 168)
+                    if (i == page_limit)
                     {
                         cache[keyword] = lst.ToList();
                         processing.Remove(keyword);
