@@ -263,7 +263,7 @@ public static string FixImage(string origin)
             {
                 using (HttpClient client = new HttpClient())
                 {
-                    client.Timeout = new TimeSpan(0, 0, 5);
+                    client.Timeout = new TimeSpan(0, 0, 10);
                     return JObject.Parse(await (await client.GetAsync(uri)).Content.ReadAsStringAsync());
                 }
             }

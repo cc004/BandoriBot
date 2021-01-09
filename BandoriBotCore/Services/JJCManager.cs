@@ -135,7 +135,7 @@ namespace BandoriBot.Services
             //client.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
             client.DefaultRequestHeaders.Add("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6");
             client.DefaultRequestHeaders.Remove("Expect");
-
+            client.Timeout = new TimeSpan(0, 0, 10);
             pool.GetProxysFromAPIs();
         }
         
@@ -152,7 +152,9 @@ namespace BandoriBot.Services
                 {
                     lock (suclock) if (suc) return;
 
-                    var client = new HttpClient(new HttpClientHandler
+                    var client = new HttpClient
+                    
+                    (new HttpClientHandler
                     {
                         Proxy = new WebProxy(s.ToString())
                     });
@@ -320,6 +322,7 @@ namespace BandoriBot.Services
                 }
                 catch
                 {
+                    throw;
                     raw = ProxyPost(json);
                     result = raw["data"].ToObject<RespData>();
                 }

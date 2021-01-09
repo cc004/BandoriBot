@@ -17,7 +17,9 @@ namespace Native.Csharp.App.Terraria
 
         private static JToken GetHttp(string uri)
         {
-            return JToken.Parse(new HttpClient().GetAsync(uri).Result.Content.ReadAsStringAsync().Result);
+            using var client = new HttpClient();
+            client.Timeout = new TimeSpan(0, 0, 10);
+            return JToken.Parse(client.GetAsync(uri).Result.Content.ReadAsStringAsync().Result);
         }
 
         public Server(string endpoint, int group)

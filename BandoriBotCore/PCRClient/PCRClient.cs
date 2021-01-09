@@ -58,7 +58,7 @@ namespace PCRClient
             }
 
             client.DefaultRequestHeaders.TryAddWithoutValidation("Connection", "Keep-Alive");
-
+            client.Timeout = new TimeSpan(0, 0, 10);
             environment = info;
             viewer_id = info.viewer_id;
         }

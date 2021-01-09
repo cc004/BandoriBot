@@ -85,6 +85,7 @@ namespace SekaiClient
             else
             {
                 client = new HttpClient();
+                client.Timeout = new TimeSpan(0, 0, 10);
                 typeof(HttpHeaders).GetField("_allowedHeaderTypes", BindingFlags.NonPublic | BindingFlags.Instance)
                     .SetValue(client.DefaultRequestHeaders, Enum.Parse(headertype, "All"));
                 SetupHeaders();
@@ -102,10 +103,19 @@ namespace SekaiClient
                 client.DefaultRequestHeaders.TryAddWithoutValidation("X-Session-Token", token);
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Request-Id", Guid.NewGuid().ToString());
 
-            var resp = await client.SendAsync(new HttpRequestMessage(method, (connected ? urlroot2 : urlroot) + apiurl)
+            HttpResponseMessage resp;
+
+            try
             {
-                Content = method == HttpMethod.Get ? null : new ByteArrayContent(PackHelper.Pack(content))
-            });
+                resp = await client.SendAsync(new HttpRequestMessage(method, (connected ? urlroot2 : urlroot) + apiurl)
+                {
+                    Content = method == HttpMethod.Get ? null : new ByteArrayContent(PackHelper.Pack(content))
+                });
+            }
+            catch (AggregateException)
+            {
+                throw new ApiException($"与服务器通信时发生错误, 请求超时");
+            }
 
             if (!resp.IsSuccessStatusCode)
                 throw new ApiException($"与服务器通信时发生错误, HTTP {(int)resp.StatusCode} {resp.StatusCode}");

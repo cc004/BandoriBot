@@ -54,6 +54,7 @@ namespace BandoriBot.Commands
                 apikey = null;
             }
 
+            client.Timeout = new TimeSpan(0, 0, 10);
             client.DefaultRequestHeaders.Add("token", apikey);
         }
         private class SearchResult
@@ -89,7 +90,10 @@ namespace BandoriBot.Commands
             uri = uri.Replace("i.pximg.net", "i.pixiv.cat");
 
             using (var client = new HttpClient())
+            {
+                client.Timeout = new TimeSpan(0, 0, 20);
                 return await client.GetByteArrayAsync(uri);
+            }
         }
 
         private static async Task<IEnumerable<SearchResult>> SearchOnePage(string keyword, int offset)
@@ -173,6 +177,7 @@ namespace BandoriBot.Commands
                 }
                 var pic = pics[rand.Next(pics.Length)];
                 var client = new HttpClient();
+                client.Timeout = new TimeSpan(0, 0, 20);
                 var imgres = Image.FromStream(client.GetStreamAsync(pic.url
                     .Replace("img-original", "c/540x540_70/img-master")
                     .Split("_p0.").First() + "_p0_master1200.jpg").Result);
