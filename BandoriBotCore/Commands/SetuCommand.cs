@@ -199,7 +199,7 @@ namespace BandoriBot.Commands
             await args.Callback($"{args.Arg.Trim()}:\n" +
                     $"作品id: {piece.pid}\n" +
                     $"画师id: {piece.uid}\n" +
-                    $"神秘链接: {piece.origin}\n" +
+                    $"神秘链接: {piece.origin.Replace("i.pximg.net", "i.pixiv.cat")}\n" +
                     Utils.GetImageCode(img));
         }
     }
