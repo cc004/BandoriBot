@@ -218,8 +218,10 @@ public static string FixImage(string origin)
                     LoggerLevel.Fatal => ConsoleColor.Magenta,
                     _ => ConsoleColor.White
                 };
-                Console.WriteLine($"[{o.GetType().Name}/{level}] {s}");
+                var text = $"[{o.GetType().Name}/{level}] {s}";
+                Console.WriteLine(text);
                 Console.ResetColor();
+                File.AppendAllText(DateTime.Now.ToString("yyyy-MM-dd") + ".log", text);
             }
         }
 
@@ -236,8 +238,10 @@ public static string FixImage(string origin)
                     LoggerLevel.Fatal => ConsoleColor.Magenta,
                     _ => ConsoleColor.White
                 };
-                Console.WriteLine($"[{new StackTrace().GetFrame(1).GetMethod().DeclaringType.Name}/{level}] {s}");
+                var text = $"[{new StackTrace().GetFrame(1).GetMethod().DeclaringType.Name}/{level}] {s}";
+                Console.WriteLine(text);
                 Console.ResetColor();
+                File.AppendAllText(DateTime.Now.ToString("yyyy-MM-dd") + ".log", text);
             }
         }
 

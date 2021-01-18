@@ -29,7 +29,7 @@ namespace BandoriBot.Config
                     if (t.TryGetValue(group, out var type))
                         return type;
                     else
-                        return CarType.Bandori;
+                        return CarType.None;
                 }
             }
             set

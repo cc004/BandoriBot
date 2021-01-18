@@ -111,9 +111,9 @@ namespace BandoriBot.Services
                 @"(\d\d\d\d): \[(.*?)\],"))
             {
                 var id = 100 * int.Parse(match.Groups[1].Value) + 1;// characters.SingleOrDefault(c => c.name.EndsWith(splits[2]));
-                foreach (Match match2 in Regex.Matches(match.Groups[2].Value, "\"(.*?)\","))
+                foreach (var text in match.Groups[2].Value.Split(','))
                 {
-                    var nickname = match2.Groups[1].Value;
+                    var nickname = text.Trim(' ').Trim('"');
                     if (!nicknames.ContainsKey(nickname))
                     {
                         trie.AddWord(Normalize(nickname), id);
@@ -228,12 +228,12 @@ namespace BandoriBot.Services
             for (int i = 0; i < 5; ++i)
             {
                 DrawToGraphics(canvas, t.atk[i], 110 * i + offx, offy);
-                //DrawToGraphics(canvas, t.def[i], 110 * i + 590 + offx, offy);
+                DrawToGraphics(canvas, t.def[i], 110 * i + 590 + offx, offy);
             }
 
             int y = 0;
             foreach (var cmt in t.comment.Take(5))
-                canvas.DrawString($"[{cmt.nickname}]{cmt.msg}", font, Brushes.Black, 590 + offx, offy + 20 * (y++));
+                canvas.DrawString($"[{cmt.nickname}]{cmt.msg}", font, Brushes.Black, 590 + 590 + offx, offy + 20 * (y++));
 
             canvas.DrawString($"顶：{t.up} 踩：{t.down} ", font, Brushes.Black, offx, offy + 100);
         }
@@ -241,7 +241,7 @@ namespace BandoriBot.Services
         private Image GetImage(Result[] teams)
         {
             var n = teams.Length;
-            var result = new Bitmap(1130, 120 * n + 20);
+            var result = new Bitmap(1130 + 590, 120 * n + 20);
             var canvas = Graphics.FromImage(result);
             canvas.Clear(Color.White);
             for (int i = 0; i < n; ++i) DrawToGraphics(canvas, teams[i], 0, i * 120);

@@ -194,6 +194,8 @@ namespace BandoriBot
 
         private static async Task Testing()
         {
+            //Console.WriteLine(await JJCManager.Instance.Callapi("环奈水黑布丁空花望"));
+            //Environment.Exit(0);
         }
     }
 }

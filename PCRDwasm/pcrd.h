@@ -5,12 +5,11 @@
 extern "C" {
 #endif
 
-#define __builtin_memcpy memcpy
-#define __builtin_expect(x, y) x
-
 #include <stdint.h>
 
 #include "wasm-rt.h"
+#define __builtin_memcpy memcpy
+#define __builtin_expect(x, y) (x)
 
 #ifndef WASM_RT_MODULE_PREFIX
 #define WASM_RT_MODULE_PREFIX
@@ -35,29 +34,29 @@ typedef double f64;
 extern void WASM_RT_ADD_PREFIX(init)(void);
 
 /* import: 'wasi_unstable' 'fd_write' */
-u32 Z_wasi_unstableZ_fd_writeZ_iiiii(u32, u32, u32, u32);
+extern u32 (*Z_wasi_unstableZ_fd_writeZ_iiiii)(u32, u32, u32, u32);
 /* import: 'env' 'syscall/js.valueCall' */
-void Z_envZ_syscallZ2FjsZ2EvalueCallZ_viiiiiiiii(u32, u32, u32, u32, u32, u32, u32, u32, u32);
+extern void (*Z_envZ_syscallZ2FjsZ2EvalueCallZ_viiiiiiiii)(u32, u32, u32, u32, u32, u32, u32, u32, u32);
 /* import: 'env' 'syscall/js.valueGet' */
-void Z_envZ_syscallZ2FjsZ2EvalueGetZ_viiiiii(u32, u32, u32, u32, u32, u32);
+extern void (*Z_envZ_syscallZ2FjsZ2EvalueGetZ_viiiiii)(u32, u32, u32, u32, u32, u32);
 /* import: 'env' 'syscall/js.valueIndex' */
-void Z_envZ_syscallZ2FjsZ2EvalueIndexZ_viiiii(u32, u32, u32, u32, u32);
+extern void (*Z_envZ_syscallZ2FjsZ2EvalueIndexZ_viiiii)(u32, u32, u32, u32, u32);
 /* import: 'env' 'syscall/js.valueNew' */
-void Z_envZ_syscallZ2FjsZ2EvalueNewZ_viiiiiii(u32, u32, u32, u32, u32, u32, u32);
+extern void (*Z_envZ_syscallZ2FjsZ2EvalueNewZ_viiiiiii)(u32, u32, u32, u32, u32, u32, u32);
 /* import: 'env' 'syscall/js.valueSet' */
-void Z_envZ_syscallZ2FjsZ2EvalueSetZ_viiiiii(u32, u32, u32, u32, u32, u32);
+extern void (*Z_envZ_syscallZ2FjsZ2EvalueSetZ_viiiiii)(u32, u32, u32, u32, u32, u32);
 /* import: 'env' 'syscall/js.valueSetIndex' */
-void Z_envZ_syscallZ2FjsZ2EvalueSetIndexZ_viiiii(u32, u32, u32, u32, u32);
+extern void (*Z_envZ_syscallZ2FjsZ2EvalueSetIndexZ_viiiii)(u32, u32, u32, u32, u32);
 /* import: 'env' 'syscall/js.stringVal' */
-void Z_envZ_syscallZ2FjsZ2EstringValZ_viiiii(u32, u32, u32, u32, u32);
+extern void (*Z_envZ_syscallZ2FjsZ2EstringValZ_viiiii)(u32, u32, u32, u32, u32);
 /* import: 'env' 'syscall/js.valueLength' */
-u32 Z_envZ_syscallZ2FjsZ2EvalueLengthZ_iiii(u32, u32, u32);
+extern u32 (*Z_envZ_syscallZ2FjsZ2EvalueLengthZ_iiii)(u32, u32, u32);
 /* import: 'env' 'syscall/js.valuePrepareString' */
-void Z_envZ_syscallZ2FjsZ2EvaluePrepareStringZ_viiii(u32, u32, u32, u32);
+extern void (*Z_envZ_syscallZ2FjsZ2EvaluePrepareStringZ_viiii)(u32, u32, u32, u32);
 /* import: 'env' 'syscall/js.valueLoadString' */
-void Z_envZ_syscallZ2FjsZ2EvalueLoadStringZ_viiiiii(u32, u32, u32, u32, u32, u32);
+extern void (*Z_envZ_syscallZ2FjsZ2EvalueLoadStringZ_viiiiii)(u32, u32, u32, u32, u32, u32);
 /* import: 'env' 'syscall/js.finalizeRef' */
-void Z_envZ_syscallZ2FjsZ2EfinalizeRefZ_viii(u32, u32, u32);
+extern void (*Z_envZ_syscallZ2FjsZ2EfinalizeRefZ_viii)(u32, u32, u32);
 
 /* export: 'memory' */
 extern wasm_rt_memory_t (*WASM_RT_ADD_PREFIX(Z_memory));
@@ -77,8 +76,8 @@ extern void (*WASM_RT_ADD_PREFIX(Z__startZ_vv))(void);
 extern u32 (*WASM_RT_ADD_PREFIX(Z___heap_baseZ_i));
 /* export: 'runtime.trackedGlobalsLength' */
 extern u32 (*WASM_RT_ADD_PREFIX(Z_runtimeZ2EtrackedGlobalsLengthZ_i));
-/* export: 'runtime.trackedGlobalsBitmap.196' */
-extern u32 (*WASM_RT_ADD_PREFIX(Z_runtimeZ2EtrackedGlobalsBitmapZ2E196Z_i));
+/* export: 'runtime.trackedGlobalsBitmap.212' */
+extern u32 (*WASM_RT_ADD_PREFIX(Z_runtimeZ2EtrackedGlobalsBitmapZ2E212Z_i));
 /* export: 'runtime.trackedGlobalsStart' */
 extern u32 (*WASM_RT_ADD_PREFIX(Z_runtimeZ2EtrackedGlobalsStartZ_i));
 /* export: 'go_scheduler' */
@@ -97,8 +96,7 @@ extern u32 (*WASM_RT_ADD_PREFIX(Z___global_baseZ_i));
 extern u32 (*WASM_RT_ADD_PREFIX(Z___memory_baseZ_i));
 /* export: '__table_base' */
 extern u32 (*WASM_RT_ADD_PREFIX(Z___table_baseZ_i));
-extern void _finalize();
-
+void _finalize();
 #ifdef __cplusplus
 }
 #endif

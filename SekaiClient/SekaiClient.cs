@@ -283,6 +283,7 @@ namespace SekaiClient
             environment.X_App_Version = myver.Value<string>("appVersion");
             environment.X_Asset_Version = myver.Value<string>("assetVersion");
             environment.X_Data_Version = myver.Value<string>("dataVersion");
+            DebugWrite($"using ver={myver}");
             SetupHeaders();
         }
 

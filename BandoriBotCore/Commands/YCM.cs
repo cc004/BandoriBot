@@ -37,7 +37,15 @@ namespace BandoriBot.Commands
 
             if (!string.IsNullOrEmpty(args.Arg)) return;
 
-            List<Car> cars = Configuration.GetConfig<CarTypeConfig>()[args.Source.FromGroup] switch
+            var cartype = Configuration.GetConfig<CarTypeConfig>()[args.Source.FromGroup];
+
+            if (cartype == CarType.None)
+            {
+                await args.Callback("你在的群尚未设置车牌类型！");
+                return;
+            }
+
+            List<Car> cars = cartype switch
             {
                 CarType.Bandori => listener.Cars,
                 CarType.Sekai => CarHandler.Cars,

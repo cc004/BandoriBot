@@ -10,6 +10,31 @@ using namespace std;
 #include "wasm-rt-impl.h"
 
 
+/* import: 'wasi_unstable' 'fd_write' */
+u32(*Z_wasi_unstableZ_fd_writeZ_iiiii)(u32, u32, u32, u32);
+/* import: 'env' 'syscall/js.valueCall' */
+void (*Z_envZ_syscallZ2FjsZ2EvalueCallZ_viiiiiiiii)(u32, u32, u32, u32, u32, u32, u32, u32, u32);
+/* import: 'env' 'syscall/js.valueGet' */
+void (*Z_envZ_syscallZ2FjsZ2EvalueGetZ_viiiiii)(u32, u32, u32, u32, u32, u32);
+/* import: 'env' 'syscall/js.valueIndex' */
+void (*Z_envZ_syscallZ2FjsZ2EvalueIndexZ_viiiii)(u32, u32, u32, u32, u32);
+/* import: 'env' 'syscall/js.valueNew' */
+void (*Z_envZ_syscallZ2FjsZ2EvalueNewZ_viiiiiii)(u32, u32, u32, u32, u32, u32, u32);
+/* import: 'env' 'syscall/js.valueSet' */
+void (*Z_envZ_syscallZ2FjsZ2EvalueSetZ_viiiiii)(u32, u32, u32, u32, u32, u32);
+/* import: 'env' 'syscall/js.valueSetIndex' */
+void (*Z_envZ_syscallZ2FjsZ2EvalueSetIndexZ_viiiii)(u32, u32, u32, u32, u32);
+/* import: 'env' 'syscall/js.stringVal' */
+void (*Z_envZ_syscallZ2FjsZ2EstringValZ_viiiii)(u32, u32, u32, u32, u32);
+/* import: 'env' 'syscall/js.valueLength' */
+u32(*Z_envZ_syscallZ2FjsZ2EvalueLengthZ_iiii)(u32, u32, u32);
+/* import: 'env' 'syscall/js.valuePrepareString' */
+void (*Z_envZ_syscallZ2FjsZ2EvaluePrepareStringZ_viiii)(u32, u32, u32, u32);
+/* import: 'env' 'syscall/js.valueLoadString' */
+void (*Z_envZ_syscallZ2FjsZ2EvalueLoadStringZ_viiiiii)(u32, u32, u32, u32, u32, u32);
+/* import: 'env' 'syscall/js.finalizeRef' */
+void (*Z_envZ_syscallZ2FjsZ2EfinalizeRefZ_viii)(u32, u32, u32);
+
 int myhash(const char* text);
 
 enum typeflag
@@ -112,7 +137,7 @@ public:
 dataview *view;
 
 /* import: 'wasi_unstable' 'fd_write' */
-u32 Z_wasi_unstableZ_fd_writeZ_iiiii(u32 fd, u32 iovs_ptr, u32 iovs_len, u32 nwritten_ptr)
+u32 _Z_wasi_unstableZ_fd_writeZ_iiiii(u32 fd, u32 iovs_ptr, u32 iovs_len, u32 nwritten_ptr)
 {
     int nwritten = 0;
 
@@ -135,7 +160,7 @@ u32 Z_wasi_unstableZ_fd_writeZ_iiiii(u32 fd, u32 iovs_ptr, u32 iovs_len, u32 nwr
 }
 
 /* import: 'env' 'syscall/js.valueCall' */
-void Z_envZ_syscallZ2FjsZ2EvalueCallZ_viiiiiiiii(u32 ret_addr, u32 v_addr, u32 m_ptr, u32 m_len, u32 args_ptr, u32 args_len, u32 args_cap, u32 syscall, u32 js)
+void _Z_envZ_syscallZ2FjsZ2EvalueCallZ_viiiiiiiii(u32 ret_addr, u32 v_addr, u32 m_ptr, u32 m_len, u32 args_ptr, u32 args_len, u32 args_cap, u32 syscall, u32 js)
 {
     auto type = view->getValue(v_addr);
     auto method = view->loadString(m_ptr, m_len);
@@ -153,7 +178,7 @@ void Z_envZ_syscallZ2FjsZ2EvalueCallZ_viiiiiiiii(u32 ret_addr, u32 v_addr, u32 m
 }
 
 /* import: 'env' 'syscall/js.valueGet' */
-void Z_envZ_syscallZ2FjsZ2EvalueGetZ_viiiiii(u32 retval, u32 v_addr, u32 p_ptr, u32 p_len, u32 syscall, u32 js)
+void _Z_envZ_syscallZ2FjsZ2EvalueGetZ_viiiiii(u32 retval, u32 v_addr, u32 p_ptr, u32 p_len, u32 syscall, u32 js)
 {
     auto type = view->getValue(v_addr);
     auto prop = view->loadString(p_ptr, p_len);
@@ -181,7 +206,7 @@ int hash;
 const char* result;
 
 /* import: 'env' 'syscall/js.valueIndex' */
-void Z_envZ_syscallZ2FjsZ2EvalueIndexZ_viiiii(u32 ret_addr, u32 v_addr, u32 i, u32 syscall, u32 js)
+void _Z_envZ_syscallZ2FjsZ2EvalueIndexZ_viiiii(u32 ret_addr, u32 v_addr, u32 i, u32 syscall, u32 js)
 {
     auto type = view->getValue(v_addr);
     //printf("valueIndex:%s[%d]\n", type, i);
@@ -199,7 +224,7 @@ void Z_envZ_syscallZ2FjsZ2EvalueIndexZ_viiiii(u32 ret_addr, u32 v_addr, u32 i, u
 
 
 /* import: 'env' 'syscall/js.valueNew' */
-void Z_envZ_syscallZ2FjsZ2EvalueNewZ_viiiiiii(u32 ret_addr, u32 v_addr, u32 args_ptr, u32 args_len, u32 args_cap, u32 syscall, u32 js)
+void _Z_envZ_syscallZ2FjsZ2EvalueNewZ_viiiiiii(u32 ret_addr, u32 v_addr, u32 args_ptr, u32 args_len, u32 args_cap, u32 syscall, u32 js)
 {
     auto type = view->getValue(v_addr);
     //printf("valueNew:new %s()\n", type);
@@ -209,7 +234,7 @@ void Z_envZ_syscallZ2FjsZ2EvalueNewZ_viiiiiii(u32 ret_addr, u32 v_addr, u32 args
 
 
 /* import: 'env' 'syscall/js.valueSet' */
-void Z_envZ_syscallZ2FjsZ2EvalueSetZ_viiiiii(u32 v_addr, u32 p_ptr, u32 p_len, u32 x_addr, u32 syscall, u32 js)
+void _Z_envZ_syscallZ2FjsZ2EvalueSetZ_viiiiii(u32 v_addr, u32 p_ptr, u32 p_len, u32 x_addr, u32 syscall, u32 js)
 {
     auto type = view->getValue(v_addr);
     auto prop = view->loadString(p_ptr, p_len);
@@ -224,14 +249,14 @@ void Z_envZ_syscallZ2FjsZ2EvalueSetZ_viiiiii(u32 v_addr, u32 p_ptr, u32 p_len, u
 
 
 /* import: 'env' 'syscall/js.valueSetIndex' */
-void Z_envZ_syscallZ2FjsZ2EvalueSetIndexZ_viiiii(u32 syscall, u32 js, u32 v_addr, u32 i, u32 x_addr)
+void _Z_envZ_syscallZ2FjsZ2EvalueSetIndexZ_viiiii(u32 syscall, u32 js, u32 v_addr, u32 i, u32 x_addr)
 {
     //printf("FUNCINFO:%s\n", __FUNCSIG__);
 }
 
 
 /* import: 'env' 'syscall/js.stringVal' */
-void Z_envZ_syscallZ2FjsZ2EstringValZ_viiiii(u32 ret_ptr, u32 value_ptr, u32 value_len, u32 syscall, u32 js)
+void _Z_envZ_syscallZ2FjsZ2EstringValZ_viiiii(u32 ret_ptr, u32 value_ptr, u32 value_len, u32 syscall, u32 js)
 {
     auto value = view->loadString(value_ptr, value_len);
     // auto value = loadValue(v_addr);
@@ -244,7 +269,7 @@ void Z_envZ_syscallZ2FjsZ2EstringValZ_viiiii(u32 ret_ptr, u32 value_ptr, u32 val
 
 
 /* import: 'env' 'syscall/js.valueLength' */
-u32 Z_envZ_syscallZ2FjsZ2EvalueLengthZ_iiii(u32 v_addr, u32 syscall, u32 js)
+u32 _Z_envZ_syscallZ2FjsZ2EvalueLengthZ_iiii(u32 v_addr, u32 syscall, u32 js)
 {
     auto type = view->getValue(v_addr);
     //printf("valueLength:%s\n", type);
@@ -256,7 +281,7 @@ u32 Z_envZ_syscallZ2FjsZ2EvalueLengthZ_iiii(u32 v_addr, u32 syscall, u32 js)
 
 
 /* import: 'env' 'syscall/js.valuePrepareString' */
-void Z_envZ_syscallZ2FjsZ2EvaluePrepareStringZ_viiii(u32 ret_addr, u32 v_addr, u32 syscall, u32 js)
+void _Z_envZ_syscallZ2FjsZ2EvaluePrepareStringZ_viiii(u32 ret_addr, u32 v_addr, u32 syscall, u32 js)
 {
     auto type = view->getValue(v_addr);
     //printf("prepareString:%s\n", type);
@@ -266,7 +291,7 @@ void Z_envZ_syscallZ2FjsZ2EvaluePrepareStringZ_viiii(u32 ret_addr, u32 v_addr, u
 }
 
 /* import: 'env' 'syscall/js.valueLoadString' */
-void Z_envZ_syscallZ2FjsZ2EvalueLoadStringZ_viiiiii(u32 v_addr, u32 slice_ptr, u32 slice_len, u32 slice_cap, u32 syscall, u32 js)
+void _Z_envZ_syscallZ2FjsZ2EvalueLoadStringZ_viiiiii(u32 v_addr, u32 slice_ptr, u32 slice_len, u32 slice_cap, u32 syscall, u32 js)
 {
     auto type = view->getValue(v_addr);
     //printf("loadString:%s\n", type);
@@ -276,7 +301,7 @@ void Z_envZ_syscallZ2FjsZ2EvalueLoadStringZ_viiiiii(u32 v_addr, u32 slice_ptr, u
 
 
 /* import: 'env' 'syscall/js.finalizeRef' */
-void Z_envZ_syscallZ2FjsZ2EfinalizeRefZ_viii(u32 v_addr, u32 syscall, u32 js)
+void _Z_envZ_syscallZ2FjsZ2EfinalizeRefZ_viii(u32 v_addr, u32 syscall, u32 js)
 {
     auto type = view->getValue(v_addr);
     //printf("finalizeRef:%s\n", type);
@@ -324,6 +349,31 @@ extern "C"
 {
     _declspec(dllexport) void __cdecl getSign(const char* text, const char* nonce, void (*callback)(char*))
     {
+Z_wasi_unstableZ_fd_writeZ_iiiii = &_Z_wasi_unstableZ_fd_writeZ_iiiii;
+        /* import: 'env' 'syscall/js.valueCall' */
+Z_envZ_syscallZ2FjsZ2EvalueCallZ_viiiiiiiii = &_Z_envZ_syscallZ2FjsZ2EvalueCallZ_viiiiiiiii;
+        /* import: 'env' 'syscall/js.valueGet' */
+Z_envZ_syscallZ2FjsZ2EvalueGetZ_viiiiii = &_Z_envZ_syscallZ2FjsZ2EvalueGetZ_viiiiii;
+        /* import: 'env' 'syscall/js.valueIndex' */
+Z_envZ_syscallZ2FjsZ2EvalueIndexZ_viiiii = &_Z_envZ_syscallZ2FjsZ2EvalueIndexZ_viiiii;
+        /* import: 'env' 'syscall/js.valueNew' */
+Z_envZ_syscallZ2FjsZ2EvalueNewZ_viiiiiii = &_Z_envZ_syscallZ2FjsZ2EvalueNewZ_viiiiiii;
+        /* import: 'env' 'syscall/js.valueSet' */
+Z_envZ_syscallZ2FjsZ2EvalueSetZ_viiiiii = &_Z_envZ_syscallZ2FjsZ2EvalueSetZ_viiiiii;
+        /* import: 'env' 'syscall/js.valueSetIndex' */
+Z_envZ_syscallZ2FjsZ2EvalueSetIndexZ_viiiii = &_Z_envZ_syscallZ2FjsZ2EvalueSetIndexZ_viiiii;
+        /* import: 'env' 'syscall/js.stringVal' */
+Z_envZ_syscallZ2FjsZ2EstringValZ_viiiii = &_Z_envZ_syscallZ2FjsZ2EstringValZ_viiiii;
+        /* import: 'env' 'syscall/js.valueLength' */
+Z_envZ_syscallZ2FjsZ2EvalueLengthZ_iiii = &_Z_envZ_syscallZ2FjsZ2EvalueLengthZ_iiii;
+        /* import: 'env' 'syscall/js.valuePrepareString' */
+Z_envZ_syscallZ2FjsZ2EvaluePrepareStringZ_viiii = &_Z_envZ_syscallZ2FjsZ2EvaluePrepareStringZ_viiii;
+        /* import: 'env' 'syscall/js.valueLoadString' */
+Z_envZ_syscallZ2FjsZ2EvalueLoadStringZ_viiiiii = &_Z_envZ_syscallZ2FjsZ2EvalueLoadStringZ_viiiiii;
+        /* import: 'env' 'syscall/js.finalizeRef' */
+Z_envZ_syscallZ2FjsZ2EfinalizeRefZ_viii = &_Z_envZ_syscallZ2FjsZ2EfinalizeRefZ_viii;
+
+
         init();
         view = new dataview;
         view->mem = Z_memory;

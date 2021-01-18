@@ -51,6 +51,33 @@ namespace BandoriBot.Handler
 
         private static readonly Regex codereg = new Regex(@"\[.*?\]", RegexOptions.Compiled);
 
+        private static string CheckIgnored(int index, string message)
+        {
+            var text = index.ToString();
+            if (text.StartsWith("233")) return "";
+            if (text.StartsWith("666")) return "";
+            if (text.StartsWith("11451")) return "恶臭车牌爬";
+            if (text.EndsWith("000")) return "";
+            if (text.StartsWith("12345") || text.StartsWith("23456")) return "";
+            var trimed = message.Trim().ToLower();
+
+            if (trimed.IndexOf("大分") > 0) return null;
+            if (trimed.IndexOf("自由") > 0) return null;
+            if (trimed.IndexOf("q4") > 0) return null;
+            if (trimed.IndexOf("q3") > 0) return null;
+            if (trimed.IndexOf("q2") > 0) return null;
+            if (trimed.IndexOf("q1") > 0) return null;
+            if (trimed.IndexOf("m") > 0) return null;
+            if (trimed.IndexOf("18w") > 0) return null;
+            if (trimed.IndexOf("12w") > 0) return null;
+            if (trimed.IndexOf("7w") > 0) return null;
+
+            if (trimed.Length < 4)
+            {
+                return "描述信息过少将被视作无意义车牌，请增加描述如q2,18w等";
+            }
+            return null;
+        }
         public async Task<bool> OnMessage(HandlerArgs args)
         {
             var message = args.message;
@@ -86,6 +113,13 @@ namespace BandoriBot.Handler
             {
 
                 case CarType.Bandori:
+                    var ignore = CheckIgnored(car, message.Substring(split));
+                    if (ignore != null)
+                    {
+                        if (ignore != "")
+                            await args.Callback(ignore);
+                        break;
+                    }
                     JObject res = await Utils.GetHttp($"http://api.bandoristation.com/?function=submit_room_number&number={car}&source={source}&token={token}&raw_message={raw_message}&user_id={args.Sender.FromQQ}");
                     if (res == null)
                     {
@@ -97,6 +131,7 @@ namespace BandoriBot.Handler
                     }
                     return true;
                 case CarType.Sekai:
+                    if (CheckIgnored(car, message.Substring(split)) == "") break;
                     var caro = new Car
                     {
                         index = car,
