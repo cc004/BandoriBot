@@ -96,6 +96,7 @@ namespace BandoriBot.Config
         public override void LoadDefault()
         {
             data = new JsonConfig();
+            bossInfo = JsonConvert.DeserializeObject<List<Boss>>(File.ReadAllText("bossinfo.json"));
             Update();
         }
 

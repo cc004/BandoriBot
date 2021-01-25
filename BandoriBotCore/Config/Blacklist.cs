@@ -1,4 +1,5 @@
 using BandoriBot.Commands;
+using BandoriBot.Handler;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,7 @@ namespace BandoriBot.Config
 
         public bool InBlacklist(long group, object function)
         {
+            if (function is HandlerHolder holder) function = holder.handler;
             return hash.Contains($"{group}.{function.GetType().Name}");
         }
     }

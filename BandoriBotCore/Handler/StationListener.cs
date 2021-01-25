@@ -52,13 +52,10 @@ namespace BandoriBot.Handler
 
         private void StationListener_OnMsg(JObject obj)
         {
-            this.Log(LoggerLevel.Info, obj);
-
             if (obj["status"].ToString() != "success" || obj["action"].ToString() != "sendRoomNumberList") return;
 
             foreach (JObject car in (JArray)obj["response"])
             {
-                this.Log(LoggerLevel.Info, car);
                 var c = new Car(car);
                 lock (cars)
                     cars.Add(c);

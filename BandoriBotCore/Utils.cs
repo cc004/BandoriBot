@@ -221,7 +221,7 @@ public static string FixImage(string origin)
                 var text = $"[{o.GetType().Name}/{level}] {s}";
                 Console.WriteLine(text);
                 Console.ResetColor();
-                File.AppendAllText(DateTime.Now.ToString("yyyy-MM-dd") + ".log", text);
+                File.AppendAllText(DateTime.Now.ToString("yyyy-MM-dd") + ".log", text + "\n");
             }
         }
 
@@ -241,7 +241,7 @@ public static string FixImage(string origin)
                 var text = $"[{new StackTrace().GetFrame(1).GetMethod().DeclaringType.Name}/{level}] {s}";
                 Console.WriteLine(text);
                 Console.ResetColor();
-                File.AppendAllText(DateTime.Now.ToString("yyyy-MM-dd") + ".log", text);
+                File.AppendAllText(DateTime.Now.ToString("yyyy-MM-dd") + ".log", text + "\n");
             }
         }
 

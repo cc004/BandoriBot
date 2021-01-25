@@ -22,12 +22,7 @@ namespace SekaiClient
 {
     public class SekaiClient
     {
-        public static Action<string> DebugWrite = text =>
-        {
-            var stack = new StackTrace();
-            var method = stack.GetFrame(1).GetMethod();
-            Console.WriteLine($"[{method.DeclaringType.Name}::{method.Name}]".PadRight(32) + text);
-        };
+        public Action<string> DebugWrite = text => { };
 
         private const string urlroot = "http://production-game-api.sekai.colorfulpalette.org/api";
         private const string urlroot2 = "https://production-game-api.sekai.colorfulpalette.org/api";
@@ -85,7 +80,7 @@ namespace SekaiClient
             else
             {
                 client = new HttpClient();
-                client.Timeout = new TimeSpan(0, 0, 10);
+                client.Timeout = new TimeSpan(0, 10, 0);
                 typeof(HttpHeaders).GetField("_allowedHeaderTypes", BindingFlags.NonPublic | BindingFlags.Instance)
                     .SetValue(client.DefaultRequestHeaders, Enum.Parse(headertype, "All"));
                 SetupHeaders();
@@ -98,6 +93,7 @@ namespace SekaiClient
         public async Task<JToken> CallApi(string apiurl, HttpMethod method, JObject content)
         {
             var tick = DateTime.Now.Ticks;
+
 
             if (token != null)
                 client.DefaultRequestHeaders.TryAddWithoutValidation("X-Session-Token", token);

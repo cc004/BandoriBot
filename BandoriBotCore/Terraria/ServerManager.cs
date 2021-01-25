@@ -57,6 +57,7 @@ namespace Native.Csharp.App.Terraria
                 {
                     var svr = new Server((string)obj.Value["endpoint"], (int)obj.Value["group"]);
                     svr.Login((string)obj.Value["username"], (string)obj.Value["password"]);
+                    svr.RunCommand("/csreload");
                     servers.Add(obj.Name, svr);
                 }
                 catch (Exception e)

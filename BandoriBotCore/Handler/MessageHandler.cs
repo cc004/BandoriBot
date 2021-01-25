@@ -14,6 +14,18 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Handler
 {
+    public class HandlerHolder
+    {
+        public IMessageHandler handler;
+        public BlockingDelegate<HandlerArgs, Task<bool>> cmd;
+
+        public HandlerHolder(IMessageHandler handler)
+        {
+            this.handler = handler;
+            cmd = new BlockingDelegate<HandlerArgs, Task<bool>>(handler.OnMessage);
+        }
+    }
+
     public struct Source
     {
         public long FromGroup, FromQQ;
@@ -67,17 +79,6 @@ namespace BandoriBot.Handler
             public BlockingDelegate<CommandArgs, Task> cmd;
         }
 
-        private class HandlerHolder
-        {
-            public IMessageHandler handler;
-            public BlockingDelegate<HandlerArgs, Task<bool>> cmd;
-
-            public HandlerHolder(IMessageHandler handler)
-            {
-                this.handler = handler;
-                cmd = new BlockingDelegate<HandlerArgs, Task<bool>>(handler.OnMessage);
-            }
-        }
 
         public static void Register<T>() where T : new()
         {

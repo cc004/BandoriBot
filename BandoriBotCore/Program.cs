@@ -25,6 +25,7 @@ namespace BandoriBot
             MessageHandler.session = session;
 
             Configuration.Register<Activation>();
+            Configuration.Register<MainServerConfig>();
             Configuration.Register<Delay>();
             Configuration.Register<MessageStatistic>();
             Configuration.Register<ReplyHandler>();
@@ -52,6 +53,7 @@ namespace BandoriBot
             MessageHandler.Register<WhitelistHandler>();
             MessageHandler.Register<RepeatHandler>();
             MessageHandler.Register(Configuration.GetConfig<MessageStatistic>());
+            MessageHandler.Register(Configuration.GetConfig<MainServerConfig>());
 
             MessageHandler.Register<YCM>();
             MessageHandler.Register<QueryCommand>();
@@ -159,17 +161,17 @@ namespace BandoriBot
 
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 
-            var options = args.Length == 0 ?
-                new MiraiHttpSessionOptions("bothost", 8080, authkey) :
-                new MiraiHttpSessionOptions("localhost", 8080, authkey);
-
             await using var session = new MiraiHttpSession();
 
             session.AddPlugin(new MessageHandler());
             
-            await session.ConnectAsync(options, long.Parse(args.Length == 0 ? "2025551588" : args[0]));
-
             PluginInitialize(session);
+
+            var options = args.Length == 0 ?
+                new MiraiHttpSessionOptions("bothost", 8080, authkey) :
+                new MiraiHttpSessionOptions("localhost", 8080, authkey);
+
+            await session.ConnectAsync(options, long.Parse(args.Length == 0 ? "2025551588" : args[0]));
 
             Console.WriteLine("connected to server");
 

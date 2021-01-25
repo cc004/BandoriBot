@@ -40,6 +40,15 @@ namespace BandoriBot.Config
         }
         public void Load()
         {
+            try
+            {
+                this.Dispose();
+            }
+            catch
+            {
+
+            }
+
             using (FileStream fs = new FileStream(Path.Combine("", Name), FileMode.Open))
             using (BinaryReader br = new BinaryReader(fs))
                 LoadFrom(br);
@@ -74,5 +83,7 @@ namespace BandoriBot.Config
                 }
             }
         }
+
+        public virtual void Dispose() { }
     }
 }

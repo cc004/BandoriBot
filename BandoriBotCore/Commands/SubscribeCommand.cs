@@ -35,6 +35,7 @@ namespace BandoriBot.Commands
                 {
                     new PlainMessage(obj.ToString())
                 };
+                if (!targets.ContainsKey(type)) return;
 
                 foreach (var target in targets[type])
                 {

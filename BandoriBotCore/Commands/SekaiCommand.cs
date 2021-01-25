@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using SekaiClient.Datas;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -84,7 +85,16 @@ namespace BandoriBot.Commands
             {
                 try
                 {
-                    client = new SekaiClient.SekaiClient(new SekaiClient.EnvironmentInfo(), false);
+                    client = new SekaiClient.SekaiClient(new SekaiClient.EnvironmentInfo(), false)
+                    {
+                        DebugWrite = text =>
+                        {
+                            var stack = new StackTrace();
+                            var method = stack.GetFrame(1).GetMethod();
+                            this.Log(LoggerLevel.Debug, $"[{method.DeclaringType.Name}::{method.Name}]".PadRight(32) + text);
+                        }
+                    };
+
                     await client.UpgradeEnvironment();
                     await client.Login(await client.Register());
                     await MasterData.Initialize(client);
@@ -94,6 +104,7 @@ namespace BandoriBot.Commands
                 catch (Exception e)
                 {
                     this.Log(LoggerLevel.Error, e.ToString());
+                    await Task.Delay(10000);
                 }
             }
             eventId = MasterData.Instance.events.Last().id;

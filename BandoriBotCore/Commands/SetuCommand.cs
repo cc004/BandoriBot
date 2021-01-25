@@ -114,8 +114,9 @@ namespace BandoriBot.Commands
                     origin = token["image_urls"].Value<string>("large")
                 });
             }
-            catch
+            catch (Exception e)
             {
+                Utils.Log(LoggerLevel.Warn, $"failed in search: {e}");
                 return new List<SearchResult>();
             }
         }
