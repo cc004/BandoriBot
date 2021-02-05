@@ -82,10 +82,14 @@ namespace SekaiClient.Datas
         public MusicVocal[] musicVocals;
         public Event[] events;
 
+        private static long Timestamp => (DateTime.Now.ToUniversalTime().Ticks - 621355968000000000) / 10000;
+
         [JsonIgnore]
         public GachaBehaviour[] gachaBehaviours;
 
         public static MasterData Instance { get; private set; }
+
+        public Event CurrentEvent => events.LastOrDefault(e => e.startAt < Timestamp) ?? events.Last();
 
         public static async Task Initialize(SekaiClient client)
         {

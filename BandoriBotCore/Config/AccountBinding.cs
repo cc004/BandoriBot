@@ -7,7 +7,14 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Config
 {
-    class AccountBinding : JConfiguration<JObject>
+    public class Binding
+    {
+        public string username;
+        public long qq;
+        public int group;
+    }
+
+    class AccountBinding : SerializableConfiguration<List<Binding>>
     {
         public override string Name => "account.json";
     }

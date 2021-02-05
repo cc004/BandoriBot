@@ -166,7 +166,7 @@ public static string FixImage(string origin)
                 case JsonMessage json:
                     return $"[mirai:json={json.Json.Encode()}]";
                 case XmlMessage xml:
-                    return $"[mirai:xml={xml.Xml.Encode()}";
+                    return $"[mirai:xml={xml.Xml.Encode()}]";
                 case AtMessage at:
                     return $"[mirai:at={at.Target}]";
                 case ImageMessage img:

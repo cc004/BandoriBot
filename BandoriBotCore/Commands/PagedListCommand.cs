@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
+    
     public abstract class PagedListCommand : ICommand
     {
         protected string[] ItemList;

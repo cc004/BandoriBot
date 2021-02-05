@@ -1,5 +1,7 @@
 ﻿using BandoriBot.Models;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SekaiClient;
 using SekaiClient.Datas;
 using System;
 using System.Collections.Generic;
@@ -18,7 +20,7 @@ namespace BandoriBot.Commands
 
         public async Task Run(CommandArgs args)
         {
-            var track = await Utils.GetHttp($"https://bitbucket.org/sekai-world/sekai-event-track/raw/main/event{MasterData.Instance.events.Last().id}.json");
+            var track = await Utils.GetHttp($"https://bitbucket.org/sekai-world/sekai-event-track/raw/main/event{MasterData.Instance.CurrentEvent.id}.json");
             await args.Callback(string.Join('\n', new int[] { 100, 500, 1000, 2000, 5000, 10000, 50000 }.Select(i => $"rank{i} pt={track[$"rank{i}"].Single()["score"]}")));
         }
     }
@@ -46,7 +48,7 @@ namespace BandoriBot.Commands
 
         public async Task Run(CommandArgs args)
         {
-            var evt = MasterData.Instance.events.Last();
+            var evt = MasterData.Instance.CurrentEvent;
 
             RankData data;
             
@@ -96,9 +98,21 @@ namespace BandoriBot.Commands
                     };
 
                     await client.UpgradeEnvironment();
-                    await client.Login(await client.Register());
-                    await MasterData.Initialize(client);
-                    await client.PassTutorial(true);
+                    User user;
+                    try
+                    {
+                        user = JsonConvert.DeserializeObject<User>(File.ReadAllText("sekaiuser.json"));
+                        await client.Login(user);
+                        await MasterData.Initialize(client);
+                    }
+                    catch
+                    {
+                        user = await client.Register();
+                        await client.Login(user);
+                        await MasterData.Initialize(client);
+                        await client.PassTutorial(true);
+                    }
+                    File.WriteAllText("sekaiuser.json", JsonConvert.SerializeObject(user));
                     break;
                 }
                 catch (Exception e)
@@ -107,7 +121,7 @@ namespace BandoriBot.Commands
                     await Task.Delay(10000);
                 }
             }
-            eventId = MasterData.Instance.events.Last().id;
+            eventId = MasterData.Instance.CurrentEvent.id;
         }
 
         public SekaiCommand()

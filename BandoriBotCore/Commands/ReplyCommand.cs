@@ -91,7 +91,7 @@ namespace BandoriBot.Commands
                             t.Item2.Add(reply);
                         }
                         else
-                            data.Add(ReplyHandler.D2T(new KeyValuePair<string, List<Reply>>(splits[1], new List<Reply> { reply })));
+                            data.Add(ReplyHandler.D2T(new KeyValuePair<string, List<Reply>>(Utils.FixRegex(splits[1]), new List<Reply> { reply })));
 
                         if (splits[0] == "add4")
                         {
@@ -139,7 +139,7 @@ namespace BandoriBot.Commands
 
                             if (string.IsNullOrEmpty(result2))
                             {
-                                if (reply.qq == qq || !await args.Source.CheckPermission())
+                                if (reply.qq == qq || await args.Source.CheckPermission())
                                 {
                                     list.Item2.Remove(reply);
                                     if (list.Item2.Count == 0)

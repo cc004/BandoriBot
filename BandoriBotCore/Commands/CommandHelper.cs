@@ -1,6 +1,7 @@
 using BandoriBot.Handler;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -8,7 +9,16 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
-    public sealed class AdminAttribute : Attribute
+    public class PermissionAttribute : Attribute
+    {
+        public string permission;
+        public PermissionAttribute(string permission)
+        {
+            this.permission = permission;
+        }
+    }
+
+    public sealed class SuperadminAttribute : Attribute
     {
 
     }
@@ -75,7 +85,8 @@ namespace BandoriBot.Commands
 
                 if (error || index != lst.Count) continue;
 
-                if (method.IsDefined(typeof(AdminAttribute)) && !arg.Source.CheckPermission().Result)
+                if (method.IsDefined(typeof(SuperadminAttribute)) && !arg.Source.CheckPermission().Result ||
+                    method.IsDefined(typeof(PermissionAttribute)) && !arg.Source.HasPermission(method.GetCustomAttribute<PermissionAttribute>().permission))
                 {
                     arg.Callback(noperm);
                     return true;
@@ -85,11 +96,28 @@ namespace BandoriBot.Commands
                 method.Invoke(null, objs.ToArray());
                 return true;
             }
+
+            var method2 = t.GetMethod("Default", BindingFlags.Public | BindingFlags.Static);
+            if (method2 != null)
+            {
+                if (method2.IsDefined(typeof(SuperadminAttribute)) && !arg.Source.CheckPermission().Result ||
+                    method2.IsDefined(typeof(PermissionAttribute)) && !arg.Source.HasPermission(method2.GetCustomAttribute<PermissionAttribute>().permission))
+                {
+                    arg.Callback(noperm);
+                    return true;
+                }
+
+                method2.Invoke(null, new object[] { arg });
+                return true;
+            }
             return false;
         }
 
-        public static void Register<T>(string name = null, string prefix = "#")
+        private static readonly string prefix = File.Exists("prefix.txt") ? File.ReadAllText("prefix.txt") : "";
+        public static void Register<T>(string name = null, string prefix = null)
         {
+            if (prefix == null)
+                prefix = CommandHelper.prefix;
             MessageHandler.Register(new LegacyCommand(prefix + (name ?? typeof(T).Name.ToLower()),
                 (args) => ParseCommand(typeof(T), args, args.Arg.Split(' ').Where((s) => !string.IsNullOrWhiteSpace(s)).ToList())));
         }

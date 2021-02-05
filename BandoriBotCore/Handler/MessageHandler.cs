@@ -17,12 +17,12 @@ namespace BandoriBot.Handler
     public class HandlerHolder
     {
         public IMessageHandler handler;
-        public BlockingDelegate<HandlerArgs, Task<bool>> cmd;
+        public BlockingDelegate<HandlerArgs, bool> cmd;
 
         public HandlerHolder(IMessageHandler handler)
         {
             this.handler = handler;
-            cmd = new BlockingDelegate<HandlerArgs, Task<bool>>(handler.OnMessage);
+            cmd = new BlockingDelegate<HandlerArgs, bool>(handler.OnMessage);
         }
     }
 
@@ -53,6 +53,11 @@ namespace BandoriBot.Handler
             return IsAdmin || ((target == 0 ? new IGroupMemberInfo[0] : await Session.GetGroupMemberListAsync(target))
                 .SingleOrDefault(info => info.Id == qq)?.Permission ?? GroupPermission.Member) >= required;
         }
+
+        public bool HasPermission(string perm) =>
+            perm == null || IsAdmin ||
+            Configuration.GetConfig<PermissionConfig>().t[FromQQ].Contains(perm) ||
+            perm.Contains('.') && HasPermission(perm.Substring(0, perm.LastIndexOf('.')));
     }
 
     public class MessageHandler : IMessageHandler, IFriendMessage, IGroupMessage, IBotInvitedJoinGroup, INewFriendApply, IGroupMessageRevoked, ITempMessage
@@ -76,7 +81,7 @@ namespace BandoriBot.Handler
         private class State
         {
             public State[] next = new State[256];
-            public BlockingDelegate<CommandArgs, Task> cmd;
+            public BlockingDelegate<CommandArgs> cmd;
         }
 
 
@@ -95,6 +100,17 @@ namespace BandoriBot.Handler
 
         public static void Register(ICommand t)
         {
+            var @delegate = new BlockingDelegate<CommandArgs>(async args =>
+            {
+                if (!args.Source.HasPermission(t.Permission))
+                {
+                    await args.Callback("access denied.");
+                    return;
+                }
+                if (!Configuration.GetConfig<BlacklistF>().InBlacklist(args.Source.FromGroup, t))
+                    await t.Run(args);
+            });
+
             foreach (var alias in t.Alias)
             {
                 var node = head;
@@ -103,11 +119,7 @@ namespace BandoriBot.Handler
                     if (node.next[b] == null) node.next[b] = new State();
                     node = node.next[b];
                 }
-                node.cmd = new BlockingDelegate<CommandArgs, Task>(async args =>
-                {
-                    if (!Configuration.GetConfig<BlacklistF>().InBlacklist(args.Source.FromGroup, t))
-                        await t.Run(args);
-                });
+                node.cmd = @delegate;
             }
         }
 
@@ -207,7 +219,7 @@ namespace BandoriBot.Handler
                 try
                 {
                     if ((!cmdhandle || function.handler.IgnoreCommandHandled) && !Configuration.GetConfig<BlacklistF>().InBlacklist(args.Sender.FromGroup, function))
-                         if (await await function.cmd.Run(args)) break;
+                         if (await function.cmd.Run(args)) break;
                 }
                 catch (Exception e)
                 {

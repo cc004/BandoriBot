@@ -19,7 +19,7 @@ namespace BandoriBot.Commands
         {
             MessageStatistic data = Configuration.GetConfig<MessageStatistic>();
 
-            if (!await args.Source.CheckPermission())
+            if (!args.Source.HasPermission("management.query"))
             {
                 string[] splits = args.Arg.Trim().Split(' ');
                 if (splits.Length > 0)

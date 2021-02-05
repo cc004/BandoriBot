@@ -12,6 +12,11 @@ namespace BandoriBot.Config
     {
         public T t;
 
+        public override void LoadDefault()
+        {
+            t = Activator.CreateInstance<T>();
+        }
+
         public override void LoadFrom(BinaryReader br)
         {
             using var sr = new StreamReader(br.BaseStream);

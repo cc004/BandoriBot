@@ -87,16 +87,17 @@ namespace BandoriBot
             CommandHelper.Register<AdditionalCommands.泰拉在线>();
             CommandHelper.Register<AdditionalCommands.泰拉资料>();
             CommandHelper.Register<AdditionalCommands.封>();
-            CommandHelper.Register<AdditionalCommands.注册>();
-            CommandHelper.Register<AdditionalCommands.在线排行>();
-            CommandHelper.Register<AdditionalCommands.物品排行>();
-            CommandHelper.Register<AdditionalCommands.财富排行>();
-            CommandHelper.Register<AdditionalCommands.渔夫排行>();
-            CommandHelper.Register<AdditionalCommands.死亡排行>();
-            CommandHelper.Register<AdditionalCommands.用户>();
+            CommandHelper.Register<AdditionalCommands.泰拉注册>();
+            CommandHelper.Register<AdditionalCommands.泰拉在线排行>();
+            CommandHelper.Register<AdditionalCommands.泰拉物品排行>();
+            CommandHelper.Register<AdditionalCommands.泰拉财富排行>();
+            CommandHelper.Register<AdditionalCommands.泰拉渔夫排行>();
+            CommandHelper.Register<AdditionalCommands.泰拉重生排行>();
+            CommandHelper.Register<AdditionalCommands.泰拉玩家>();
+            CommandHelper.Register<AdditionalCommands.泰拉背包>();
             CommandHelper.Register<AdditionalCommands.解>();
             CommandHelper.Register<AdditionalCommands.重置>();
-            CommandHelper.Register<AdditionalCommands.切换>();
+            CommandHelper.Register<AdditionalCommands.泰拉切换>();
             CommandHelper.Register<AdditionalCommands.绑定>();
             CommandHelper.Register<AdditionalCommands.执行>();
             CommandHelper.Register<AdditionalCommands.解绑>();
@@ -121,19 +122,6 @@ namespace BandoriBot
 
             if (File.Exists("sekai"))
             {
-                ScheduleManager.QueueTimed(async () =>
-                {
-                    var id = MasterData.Instance.events.Last().id;
-                    var data = await Utils.GetHttp($"https://bitbucket.org/sekai-world/sekai-event-track/raw/main/event{id}.json");
-                    var fn = $"sekai_event{id}.csv";
-
-                    lock (SekaiFile)
-                    {
-                        if (!File.Exists(fn)) File.WriteAllText(fn, $"time,{string.Join(",", data.Properties().Where(p => p.Name.StartsWith("rank")).Select(p => p.Name))}\n");
-
-                        File.AppendAllText(fn, $"{data["time"]},{string.Join(",", data.Properties().Where(p => p.Name.StartsWith("rank")).Select(p => p.Value.Single()["score"]))}\n");
-                    }
-                }, 60);
             }
 
             Configuration.LoadAll();

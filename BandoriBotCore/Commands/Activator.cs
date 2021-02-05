@@ -23,36 +23,6 @@ namespace BandoriBot.Commands
                 Configuration.GetConfig<Activation>()[args.Source.FromQQ] = Status;
                 await args.Callback($"个人车牌转发已{GetTrans(Status)}");
             }
-            else
-            {
-                long group;
-                try
-                {
-                    if (args.Arg == "~" && args.Source.FromGroup > 0)
-                        group = args.Source.FromGroup;
-                    else
-                    {
-                        List<GroupMemberInfo> source;
-                        group = long.Parse(args.Arg);
-                        if (!await args.Source.CheckPermission())
-                        {
-                            source = (await args.Source.Session.GetMemberList(group)).Where((GroupMemberInfo info) => (info.QQId == args.Source.FromQQ)).ToList();
-                            if (source.Count == 0 || source[0].PermitType == PermitType.None)
-                            {
-                                await args.Callback("权限不足");
-                                return;
-                            }
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                    await args.Callback("群号错误");
-                    return;
-                }
-                Configuration.GetConfig<Activation>()[group] = Status;
-                await args.Callback($"{group}的车牌转发已{GetTrans(Status)}");
-            }
         }
 
     }

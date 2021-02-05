@@ -32,6 +32,9 @@
         - `/reply add2 苹果 鸭梨` 机器人会在收到`@机器人 苹果`的时候回复鸭梨
     - `/reply list数字 内容` 列出某个指定规则的所有回复
     - `/reply search数字 内容` 列出该内容可能匹配的所有规则
+- sekai预测线(使用[sekai viewer](https://sekai.best)的api)
+    - `predsekai` 查询所有预测线
+    - `predsekai排名` 查询特定排名的预测线，只支持分档排名，如`predsekai1000`，注意没有空格。
 ## 功能
 
 - 复读/打断，需开启群白名单

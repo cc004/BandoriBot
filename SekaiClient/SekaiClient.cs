@@ -114,7 +114,13 @@ namespace SekaiClient
             }
 
             if (!resp.IsSuccessStatusCode)
+            {
+                if (resp.StatusCode == HttpStatusCode.UpgradeRequired)
+                {
+                    DebugWrite($"api failed with header = {string.Join("\n", client.DefaultRequestHeaders.Select(pair => $"{pair.Key}={string.Join(",", pair.Value)}"))}");
+                }
                 throw new ApiException($"与服务器通信时发生错误, HTTP {(int)resp.StatusCode} {resp.StatusCode}");
+            }
 
             var nextToken = resp.Headers.Contains("X-Session-Token") ? resp.Headers.GetValues("X-Session-Token").Single() : null;
             if (nextToken != null) token = nextToken;

@@ -50,7 +50,7 @@ namespace BandoriBot.Handler
         }
 
         public static Tuple<Regex, List<Reply>> D2T(KeyValuePair<string, List<Reply>> pair)
-            => new Tuple<Regex, List<Reply>>(new Regex(@$"^{Utils.FixRegex(pair.Key)}$", RegexOptions.Compiled), pair.Value);
+            => new Tuple<Regex, List<Reply>>(new Regex(@$"^{pair.Key}$", RegexOptions.Compiled), pair.Value);
 
         private static KeyValuePair<string, List<Reply>> T2D(Tuple<Regex, List<Reply>> tuple)
             => new KeyValuePair<string, List<Reply>>(tuple.Item1.ToString()[1..^1], tuple.Item2);

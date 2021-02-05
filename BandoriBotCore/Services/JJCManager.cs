@@ -323,8 +323,8 @@ namespace BandoriBot.Services
                 catch
                 {
                     throw;
-                    raw = ProxyPost(json);
-                    result = raw["data"].ToObject<RespData>();
+                    //raw = ProxyPost(json);
+                    //result = raw["data"].ToObject<RespData>();
                 }
             }
             catch

@@ -16,19 +16,11 @@ namespace BandoriBot.Commands
         public Source Source;
     }
 
-    public class PermissionAttribute : Attribute
-    {
-        public GroupPermission permission;
-        public PermissionAttribute(GroupPermission permission)
-        {
-            this.permission = permission;
-        }
-    }
-
     public interface ICommand
     {
         List<string> Alias { get; }
 
+        string Permission => null;
         Task Run(CommandArgs args);
     }
 }

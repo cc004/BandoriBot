@@ -18,6 +18,8 @@ namespace BandoriBot.Commands
             "/find"
         };
 
+        string ICommand.Permission => "management.find";
+
         public async Task Run(CommandArgs args)
         {
             string[] splits = args.Arg.Trim().Split(' ');

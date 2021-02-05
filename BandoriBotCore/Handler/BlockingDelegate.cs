@@ -5,25 +5,59 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Handler
 {
-    public class BlockingDelegate<T, TResult> where TResult : Task
+    public sealed class BlockingDelegate<T, TResult> : IDisposable
     {
-        private readonly Func<T, TResult> cmd;
-        private Task task;
+        private readonly SemaphoreSlim sema = new SemaphoreSlim(1, 1);
+        private readonly Func<T, Task<TResult>> cmd;
 
         public async Task<TResult> Run(T args)
         {
-            Task<TResult> mytask;
-            lock (this)
+            try
             {
-                mytask = task.ContinueWith(_ => cmd(args));
-                task = mytask;
+                await sema.WaitAsync();
+                return await cmd(args);
             }
-            return await mytask;
+            finally
+            {
+                sema.Release();
+            }
         }
 
-        public BlockingDelegate(Func<T, TResult> command)
+        public void Dispose()
         {
-            task = Task.CompletedTask;
+            sema.Dispose();
+        }
+
+        public BlockingDelegate(Func<T, Task<TResult>> command)
+        {
+            cmd = command;
+        }
+    }
+    public sealed class BlockingDelegate<T> : IDisposable
+    {
+        private readonly SemaphoreSlim sema = new SemaphoreSlim(1, 1);
+        private readonly Func<T, Task> cmd;
+
+        public async Task Run(T args)
+        {
+            try
+            {
+                await sema.WaitAsync();
+                await cmd(args);
+            }
+            finally
+            {
+                sema.Release();
+            }
+        }
+
+        public void Dispose()
+        {
+            sema.Dispose();
+        }
+
+        public BlockingDelegate(Func<T, Task> command)
+        {
             cmd = command;
         }
     }
