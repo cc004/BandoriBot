@@ -86,6 +86,7 @@ namespace BandoriBot
                     case "mirai:face": result.Add(new FaceMessage(int.Parse(val), "")); break;
                     case "CQ:at,qq": result.Add(new AtMessage(long.Parse(val))); break;
                     case "CQ:face,id": result.Add(new FaceMessage(int.Parse(val), "")); break;
+                    default: result.Add(new PlainMessage($"[{match.Groups[2].Value}={match.Groups[3].Value}]")); break;
                 }
                 msg = match.Groups[4].Value;
             }

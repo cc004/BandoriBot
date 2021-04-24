@@ -48,6 +48,8 @@ namespace BandoriBot.Commands
 
         public async Task Run(CommandArgs args)
         {
+            await args.Callback("本功能已弃用，请使用predsekai获取分数线");
+            return;
             var evt = MasterData.Instance.CurrentEvent;
 
             RankData data;
@@ -130,6 +132,49 @@ namespace BandoriBot.Commands
                 ClientReady().Wait();
         }
 
+        private Dictionary<int, int> scoreCache;
+        private DateTime lastref;
+        private async Task RefreshCache()
+        {
+            var now = DateTime.Now;
+            if (now - lastref < new TimeSpan(0, 1, 0)) return;
+            scoreCache = (await Utils.GetHttp("https://api.sekai.best/event/pred"))["data"].ToObject<Dictionary<string, long>>()
+                .Where(pair => int.TryParse(pair.Key, out var _)).ToDictionary(pair => int.Parse(pair.Key), pair => (int)pair.Value);
+            lastref = now;
+        }
+
+        private async Task<string> GetDesc(int rankacc)
+        {
+            if (rankacc == 0) return string.Empty;
+            var score = (await client.CallUserApi($"/event/{eventId}/ranking?targetRank={rankacc}", HttpMethod.Get, null))["rankings"][0]["score"];
+
+            return $"排名{rankacc}当前分数{score}，预测{scoreCache[rankacc]}";
+        }
+
+        private static readonly int[] ranks = new int[]
+        {
+            100, 500, 1000, 5000, 10000, 50000, 100000
+        };
+
+        private async Task<string> GetPred(int rank)
+        {
+            try
+            {
+                var sb = new StringBuilder();
+                var up = ranks.LastOrDefault(r => r < rank);
+                if (up != 0)
+                    sb.Append($"\n上一档{await GetDesc(up)}");
+                var down = ranks.FirstOrDefault(r => r >= rank);
+                if (down != 0)
+                    sb.Append($"\n下一档{await GetDesc(down)}");
+                return sb.ToString();
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
         public async Task Run(CommandArgs args)
         {
             long arg;
@@ -149,7 +194,8 @@ namespace BandoriBot.Commands
                     client.CallUserApi($"/event/{eventId}/ranking?targetRank={arg}", HttpMethod.Get, null));
                 var rank = result["rankings"]?.SingleOrDefault();
 
-                await args.Callback(rank == null ? "找不到玩家" : $"排名为{rank["rank"]}的玩家是`{rank["name"]}`(uid={rank["userId"]})，分数为{rank["score"]}");
+                await args.Callback(rank == null ? "找不到玩家" : $"排名为{rank["rank"]}的玩家是`{rank["name"]}`(uid={rank["userId"]})，分数为{rank["score"]}" + await GetPred((int)rank["rank"]));
+                await RefreshCache();
             }
             catch (Exception e)
             {

@@ -42,7 +42,7 @@ namespace BandoriBot.Config
         {
             try
             {
-                this.Dispose();
+                Dispose();
             }
             catch
             {
@@ -78,7 +78,11 @@ namespace BandoriBot.Config
                 catch (Exception e)
                 {
                     if (!(e is FileNotFoundException))
-                    Utils.Log(LoggerLevel.Error, e.ToString());
+                    {
+                        Utils.Log(LoggerLevel.Error, e.ToString());
+                        //backup error file
+                        File.Copy(config.Value.Name, config.Value.Name + ".errbak");
+                    }
                     config.Value.LoadDefault();
                 }
             }

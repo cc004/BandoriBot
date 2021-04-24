@@ -22,7 +22,7 @@ namespace BandoriBot.Commands
             public static void Default(CommandArgs args)
             {
                 args.Callback(string.Join("\n", Configuration.GetConfig<ServerManager>().GetServer(args)
-                    .RunCommand(args.Arg[3..])["response"].Select(s => s.ToString())));
+                    .RunCommand(args.Arg)["response"].Select(s => s.ToString())));
             }
         }
         public class 随机禁言
@@ -269,7 +269,7 @@ namespace BandoriBot.Commands
             }
 
             #endregion
-            [Superadmin]
+            [Permission("terraria.admin")]
             public static void Main(CommandArgs args, string name)
             {
                 JObject data;
@@ -345,6 +345,7 @@ namespace BandoriBot.Commands
                 ++rank;
                 return selfpredict(s);
             });
+            sb.AppendLine();
             if (self != null)
                 sb.AppendLine($"{nameFormatter(self)}当前的排行为{rank}");
             sb.Append($"===页码[{page}/{Math.Ceiling((double)(list.Count() / 10))}]");
@@ -355,7 +356,7 @@ namespace BandoriBot.Commands
             public static void Main(CommandArgs args, int id, int page)
             {
                 var name = GetUsername(args);
-                args.Callback(RankFormat($"当前物品ID{id}的排行如下: ", Configuration.GetConfig<ServerManager>().GetServer(args).RunRest($"/v1/itemrank/rankboard?&id={id}"),
+                args.Callback(RankFormat($"当前物品ID{id}的排行如下: ", Configuration.GetConfig<ServerManager>().GetServer(args).RunRest($"/v1/itemrank/rankboard?&id={id}").Where(t => (int)t["count"] > 0),
                     rank => $"共拥有{rank["count"]}个", page, rank => rank.Value<string>("name") == name, rank => $"[{rank["name"]}]"));
             }
         }
@@ -520,7 +521,7 @@ namespace BandoriBot.Commands
 
         public class 泰拉资料
         {
-            [Superadmin]
+            [Permission("terraria.admin")]
             public static void Main(CommandArgs args, string name)
             {
                 JObject data;

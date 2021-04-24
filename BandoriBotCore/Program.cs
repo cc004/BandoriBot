@@ -46,6 +46,8 @@ namespace BandoriBot
             Configuration.Register<Save>();
             Configuration.Register<CarTypeConfig>();
             Configuration.Register<SubscribeConfig>();
+            Configuration.Register<PermissionConfig>();
+            Configuration.Register<Pipe>();
             //Configuration.Register<PeriodRank>();
 
             MessageHandler.Register<CarHandler>();
@@ -73,6 +75,8 @@ namespace BandoriBot
             MessageHandler.Register<PCRRunCommand>();
             MessageHandler.Register<CarTypeCommand>();
             MessageHandler.Register<SekaiLineCommand>();
+            MessageHandler.Register<PermCommand>();
+            MessageHandler.Register<SendCommand>();
 
             MessageHandler.Register<DDCommand>();
             MessageHandler.Register<CDCommand>();
@@ -141,8 +145,6 @@ namespace BandoriBot
 
         public static async Task Main(string[] args)
         {
-            await Testing();
-
             string authkey = File.ReadAllText("authkey.txt");
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -155,11 +157,9 @@ namespace BandoriBot
             
             PluginInitialize(session);
 
-            var options = args.Length == 0 ?
-                new MiraiHttpSessionOptions("bothost", 8080, authkey) :
-                new MiraiHttpSessionOptions("localhost", 8080, authkey);
+            var options = new MiraiHttpSessionOptions("localhost", int.Parse(args[1]), authkey);
 
-            await session.ConnectAsync(options, long.Parse(args.Length == 0 ? "2025551588" : args[0]));
+            await session.ConnectAsync(options, long.Parse(args[0]));
 
             Console.WriteLine("connected to server");
 
@@ -184,8 +184,8 @@ namespace BandoriBot
 
         private static async Task Testing()
         {
-            //Console.WriteLine(await JJCManager.Instance.Callapi("环奈水黑布丁空花望"));
-            //Environment.Exit(0);
+            Console.WriteLine(await JJCManager.Instance.Callapi("环奈水黑布丁空花望"));
+            Environment.Exit(0);
         }
     }
 }
