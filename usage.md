@@ -6,7 +6,7 @@
 
 ## 指令
 - ycm: 查询两分钟内所有车牌（是bandori还是sekai取决于群车牌类型）
-- 车牌号 + 描述: 上传车牌，如 `12345 15w melt` ，本机器人同时支持bandori和sekai的车牌，私聊机器人默认为sekai的车牌，新进的群默认是bandori的车牌，如果想更改群车牌类型，可以使用指令`/cartype`（需要管理员/群主），`/cartype 12345 Bandori`可以把群12345的车牌类型改为bandori，同样`/cartype 12345 Sekai`可以把群12345类型改成sekai
+- 车牌号 + 描述: 上传车牌，如 `12345 15w melt` ，本机器人同时支持bandori和sekai的车牌，私聊机器人默认为sekai的车牌，新进的群默认是bandori的车牌，如果想更改群车牌类型，可以使用指令`/cartype`（需要管理员/群主），`/cartype 12345 Bandori`可以把群12345的车牌类型改为bandori，同样`/cartype 12345 Sekai`可以把群12345类型改成sekai，使用的时候把12345改成你自己群的群号！
 - 来点颜色: 随机涩图，图库:lolicon.app，此功能可以通过`/normal add 群号`和`/normal del 群号`指令进行开启/关闭（需要管理员/群主）
 - 来点颜色 + 关键字，如 `来点颜色 可可萝` 返回pixiv内关键字相关的随机图片，此功能可以通过`/normal add 群号`和`/normal del 群号`指令进行开启/关闭（需要管理员/群主）
 - sekai + 排名/uid，如 `sekai 1000` 查询sekai活动排行榜某个名次/玩家的排行
