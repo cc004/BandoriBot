@@ -289,7 +289,7 @@ namespace SekaiClient
             SetupHeaders();
         }
 
-        public async Task<Account> Serialize(string[] cards, string password = "1176321897") => new Account
+        public async Task<Account> Serialize(string[] cards, string password = "") => new Account
         {
             inheritId = await Inherit(password),
             password = password,
