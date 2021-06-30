@@ -32,7 +32,7 @@ namespace BandoriBot.Handler
         public MiraiHttpSession Session;
         public bool IsTemp;
 
-        private static readonly long AdminQQ = 1176321897;
+        internal static readonly long AdminQQ = 1176321897;
 
         private bool IsAdmin => AdminQQ == FromQQ || Configuration.GetConfig<Admin>().hash.Contains(FromQQ);
 
@@ -147,7 +147,7 @@ namespace BandoriBot.Handler
             {
                 try
                 {
-                    Utils.Log(LoggerLevel.Debug, $"[{(DateTime.Now.Ticks - ticks) / 10000}ms] sent msg: " + s);
+                    Utils.Log(LoggerLevel.Debug, $"[{ Sender.FromGroup}::{ Sender.FromQQ}] [{ (DateTime.Now.Ticks - ticks) / 10000}ms] sent msg: " + s);
                     if (Sender.FromGroup != 0)
                         await session.SendGroupMessageAsync(Sender.FromGroup, await Utils.GetMessageChain(s, async p => await session.UploadPictureAsync(UploadTarget.Group, p)));
                     else if (!Sender.IsTemp)
@@ -162,7 +162,7 @@ namespace BandoriBot.Handler
                 }
             };
 
-            Utils.Log(LoggerLevel.Debug, "recv msg: " + message);
+            Utils.Log(LoggerLevel.Debug, $"[{Sender.FromGroup}::{Sender.FromQQ}]recv msg: " + message);
 
             Task.Run(() => instance.OnMessage(new HandlerArgs
             {
@@ -233,7 +233,8 @@ namespace BandoriBot.Handler
         public async Task<bool> GroupMessage(MiraiHttpSession session, IGroupMessageEventArgs e)
         {
             var source = e.Chain.First() as SourceMessage;
-            if (source != null && (Configuration.GetConfig<Antirevoke>().hash.Contains(e.Sender.Group.Id) || e.Sender.Group.Id == 708647018))
+            if (source != null && (Configuration.GetConfig<Antirevoke>().hash.Contains(e.Sender.Group.Id) ||
+                Configuration.GetConfig<AntirevokePlus>().hash.Contains(e.Sender.Group.Id)))
             {
                 var now = DateTime.Now;
                 while (msgRecord.Count > 0)
@@ -292,11 +293,21 @@ namespace BandoriBot.Handler
             if (record == null || e.Operator.Id != record.qq) return false;
             try
             {
-                await session.SendGroupMessageAsync(record.group, (new IMessageBase[]
+                if (Configuration.GetConfig<AntirevokePlus>().hash.Contains(record.group))
                 {
-                    new AtMessage(e.Operator.Id),
-                    new PlainMessage("尝试撤回一条消息：")
-                }).Concat(record.message).ToArray());
+                    await session.SendFriendMessageAsync(Source.AdminQQ, (new IMessageBase[]
+                    {
+                        new PlainMessage($"群{record.group}的{record.qq}尝试撤回一条消息：")
+                    }).Concat(record.message).ToArray());
+                }
+                else
+                {
+                    await session.SendGroupMessageAsync(record.group, (new IMessageBase[]
+                    {
+                        new AtMessage(e.Operator.Id),
+                        new PlainMessage("尝试撤回一条消息：")
+                    }).Concat(record.message).ToArray());
+                }
                 return true;
             }
             catch (Exception e2)

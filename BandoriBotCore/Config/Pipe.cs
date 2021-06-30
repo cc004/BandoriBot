@@ -24,7 +24,7 @@ namespace BandoriBot.Config
             writer?.Flush();
         }
 
-        private readonly TcpClient client;
+        private TcpClient client;
         private BinaryReader reader;
         private BinaryWriter writer;
         private IPEndPoint ep;
@@ -33,7 +33,6 @@ namespace BandoriBot.Config
         {
             var s = host.Split(':');
             ep = new(IPAddress.Parse(s[0]), int.Parse(s[1]));
-            client = new TcpClient();
 
             new Thread(Listen).Start();
             new Thread(() =>
@@ -61,6 +60,7 @@ namespace BandoriBot.Config
             {
                 try
                 {
+                    client = new TcpClient();
                     client.Connect(ep);
                     reader = new BinaryReader(client.GetStream());
                     writer = new BinaryWriter(client.GetStream());

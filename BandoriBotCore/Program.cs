@@ -24,6 +24,7 @@ namespace BandoriBot
         {
             MessageHandler.session = session;
 
+            Configuration.Register<AntirevokePlus>();
             Configuration.Register<Activation>();
             Configuration.Register<MainServerConfig>();
             Configuration.Register<Delay>();
@@ -63,6 +64,7 @@ namespace BandoriBot
             MessageHandler.Register<FindCommand>();
             MessageHandler.Register<DelayCommand>();
             MessageHandler.Register<AdminCommand>();
+            MessageHandler.Register<AntirevokePlusCommand>();
             MessageHandler.Register<SekaiCommand>();
             MessageHandler.Register<SekaiPCommand>();
             MessageHandler.Register<WhitelistCommand>();
@@ -75,6 +77,7 @@ namespace BandoriBot
             MessageHandler.Register<PCRRunCommand>();
             MessageHandler.Register<CarTypeCommand>();
             MessageHandler.Register<SekaiLineCommand>();
+            MessageHandler.Register<SekaiGachaCommand>();
             MessageHandler.Register<PermCommand>();
             MessageHandler.Register<SendCommand>();
 
@@ -145,7 +148,7 @@ namespace BandoriBot
 
         public static async Task Main(string[] args)
         {
-            string authkey = File.ReadAllText("authkey.txt");
+            string authkey = File.ReadAllText("authkey.txt"
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 

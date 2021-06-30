@@ -202,6 +202,7 @@ namespace BandoriBot.Handler
             int func = 0;
             var sb = new StringBuilder();
 
+            _ = typeof(SekaiClient.SekaiClient);
             var usings = new string[]
             {
                 "BandoriBot",

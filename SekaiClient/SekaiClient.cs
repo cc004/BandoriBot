@@ -32,6 +32,10 @@ namespace SekaiClient
         private string adid, uid, token;
         internal readonly EnvironmentInfo environment;
 
+        [ThreadStatic]
+        private static SekaiClient _staticClient;
+        public static SekaiClient StaticClient => _staticClient ??= new SekaiClient(new EnvironmentInfo()) { DebugWrite = Console.WriteLine };
+
         public string AssetHash { get; private set; }
 
         private void SetupHeaders()
@@ -235,7 +239,8 @@ namespace SekaiClient
 
             var rolls = MasterData.Instance.gachaBehaviours
                 .GroupBy(b => b.costResourceQuantity)
-                .Select(g => g.OrderByDescending(b => MasterData.Instance.gachas.Single(ga => ga.id == b.gachaId).endAt).First());
+                .Select(g => g.Where(b => b.Gacha.IsAvailable).OrderByDescending(b => b.Gacha.endAt).FirstOrDefault())
+                .Where(g => g != null).ToArray();
 
             var roll10 = rolls.Single(b => b.costResourceQuantity == 3000);
             var roll1 = rolls.Single(b => b.costResourceQuantity == 300);
@@ -260,9 +265,7 @@ namespace SekaiClient
                 {
                     var character = MasterData.Instance.gameCharacters.Single(gc => gc.id == card.characterId);
                     var skill = MasterData.Instance.skills.Single(s => s.id == card.skillId);
-                    return $"[{card.prefix}]".PadRightEx(30) + $"[{card.attr}]".PadRightEx(12) +
-                        $"({character.gender.First()}){character.firstName}{character.givenName}".PadRightEx(20) +
-                        skill.descriptionSpriteName.PadRightEx(20) + new string(Enumerable.Range(0, card.rarity).Select(_ => '*').ToArray());
+                    return $"[{card.prefix}]{character.firstName}{character.givenName} " + new string(Enumerable.Range(0, card.rarity).Select(_ => '*').ToArray());
                 }).ToArray();
 
             DebugWrite($"gacha result:\n" + string.Join('\n', desc));
@@ -270,7 +273,7 @@ namespace SekaiClient
             foreach (var card in cards) ++rares[card.rarity];
             if (rares[4] > 1)
                 Console.WriteLine($"gacha result: {rares[4]}, {rares[3]}, {rares[2]}");
-            return cards.Sum(card => card.rarity == 4 ? 1 : 0) > 2 ? desc : null;
+            return desc;
         }
 
         public async Task<string> Inherit(string password)

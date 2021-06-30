@@ -8,4 +8,8 @@ namespace BandoriBot.Config
     {
         public override string Name => "antirevoke.json";
     }
+    public class AntirevokePlus : HashConfiguration<long>
+    {
+        public override string Name => "antirevokeplus.json";
+    }
 }

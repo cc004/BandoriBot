@@ -14,6 +14,47 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
+    public class SekaiGachaCommand : ICommand
+    {
+        public List<string> Alias => new List<string> { "pjsk抽卡" };
+
+        public async Task Run(CommandArgs args)
+        {
+            if (args.Arg != "") return;
+            var callback = args.Callback;
+            var source = args.Source;
+            new System.Threading.Thread(() =>
+            {
+                try
+                {
+                    try
+                    {
+                        callback("抽卡进行中，不要着急哦");
+                        var client = SekaiClient.SekaiClient.StaticClient;
+                        client.InitializeAdid();
+                        client.UpgradeEnvironment().Wait();
+                        var user = client.Register().Result;
+                        client.Login(user).Wait();
+                        var currency = client.PassTutorial().Result;
+                        var result = string.Join("\n", client.Gacha(currency).Result);
+                        var inherit = client.Inherit(source.FromQQ.ToString()).Result;
+                        callback($"[mirai:at={source.FromQQ}]抽卡结果：\n{result}\n引继码已经私聊你了，密码是你的qq哦（加好友才可以私聊）");
+                        try
+                        {
+                            source.Session.SendFriendMessageAsync(source.FromQQ, new Mirai_CSharp.Models.PlainMessage($"引继id: {inherit}"));
+                        }
+                        catch { }
+                    }
+                    catch
+                    {
+                        callback("抽卡出错了哦，可能是服务器网络不好");
+                    }
+                }
+                catch { }
+            }).Start();
+        }
+    }
+
     public class SekaiLineCommand : ICommand
     {
         public List<string> Alias => new List<string> { "sekai线" };

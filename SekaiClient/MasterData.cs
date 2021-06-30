@@ -56,18 +56,36 @@ namespace SekaiClient.Datas
         public string descriptionSpriteName;
     }
 
+    public enum GachaType
+    {
+        normal = 0,
+        beginner = 2,
+        ceil = 1
+    }
+
     [JsonObject]
     public class Gacha
     {
         public long startAt, endAt;
         public int id;
         public GachaBehaviour[] gachaBehaviors;
+        public GachaType gachaType;
+        public bool IsAvailable
+        {
+            get
+            {
+                var ts = DateTime.Now.GetTimestamp();
+                return ts >= startAt && ts <= endAt && gachaType != GachaType.beginner;
+            }
+        }
     }
 
     [JsonObject]
     public class GachaBehaviour
     {
         public int id, gachaId, costResourceQuantity;
+
+        public Gacha Gacha => MasterData.Instance.gachas.Single(ga => ga.id == gachaId);
     }
 
     [JsonObject]
