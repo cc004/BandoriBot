@@ -32,7 +32,7 @@ namespace BandoriBot.Handler
         public MiraiHttpSession Session;
         public bool IsTemp;
 
-        internal static readonly long AdminQQ = 1176321897;
+        private static readonly long AdminQQ = 0;
 
         private bool IsAdmin => AdminQQ == FromQQ || Configuration.GetConfig<Admin>().hash.Contains(FromQQ);
 
