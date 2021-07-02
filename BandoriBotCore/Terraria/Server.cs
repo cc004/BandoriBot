@@ -14,6 +14,8 @@ namespace Native.Csharp.App.Terraria
     {
         private string token, endpoint;
         public int group;
+        public bool display;
+        public string noRegister;
 
         private static JToken GetHttp(string uri)
         {

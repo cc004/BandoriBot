@@ -65,6 +65,13 @@ namespace BandoriBot.Commands
             {
                 var binding = Configuration.GetConfig<AccountBinding>().t;
                 var serverbinding = Configuration.GetConfig<ServerManager>().bindings;
+                var noreg = Configuration.GetConfig<ServerManager>().GetServer(args)?.noRegister;
+
+                if (!string.IsNullOrEmpty(noreg))
+                {
+                    args.Callback(noreg);
+                    return;
+                }
 
                 if (args.Source.FromGroup != 0)
                 {
@@ -648,7 +655,7 @@ namespace BandoriBot.Commands
         {
             public static void Main(CommandArgs args)
             {
-                args.Callback(string.Join("\n", Configuration.GetConfig<ServerManager>().servers.Select(pair => pair.Key)));
+                args.Callback(string.Join("\n", Configuration.GetConfig<ServerManager>().servers.Where(pair => pair.Value.display).Select(pair => pair.Key)));
             }
         }
 
