@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using SekaiClient;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,7 +33,7 @@ namespace BandoriBot.Handler
         public MiraiHttpSession Session;
         public bool IsTemp;
 
-        private static readonly long AdminQQ = 0;
+        internal static readonly long AdminQQ = long.Parse(File.ReadAllText("adminqq.txt"));
 
         private bool IsAdmin => AdminQQ == FromQQ || Configuration.GetConfig<Admin>().hash.Contains(FromQQ);
 
@@ -161,6 +162,19 @@ namespace BandoriBot.Handler
                     Utils.Log(LoggerLevel.Error, "error in msg: " + s + "\n" + e.ToString());
                 }
             };
+
+            lock (ChatRecordContext.Context)
+            {
+                ChatRecordContext.Context.Records.Add(new Record
+                {
+                    Group = Sender.FromGroup,
+                    QQ = Sender.FromQQ,
+                    Message = message,
+                    Time = DateTime.Now
+                });
+
+                ChatRecordContext.Context.SaveChanges();
+            }
 
             Utils.Log(LoggerLevel.Debug, $"[{Sender.FromGroup}::{Sender.FromQQ}]recv msg: " + message);
 

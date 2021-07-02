@@ -148,7 +148,7 @@ namespace BandoriBot
 
         public static async Task Main(string[] args)
         {
-            string authkey = File.ReadAllText("authkey.txt"
+            string authkey = File.ReadAllText("authkey.txt");
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 

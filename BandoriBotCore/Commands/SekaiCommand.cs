@@ -41,6 +41,7 @@ namespace BandoriBot.Commands
                         callback($"[mirai:at={source.FromQQ}]抽卡结果：\n{result}\n引继码已经私聊你了，密码是你的qq哦（加好友才可以私聊）");
                         try
                         {
+                            this.Log(LoggerLevel.Info, $"gacha inherit for user {source.FromQQ}: {inherit}");
                             source.Session.SendFriendMessageAsync(source.FromQQ, new Mirai_CSharp.Models.PlainMessage($"引继id: {inherit}"));
                         }
                         catch { }
@@ -118,19 +119,23 @@ namespace BandoriBot.Commands
     }
 
 
-    public class SekaiCommand : ICommand
+    public partial class SekaiCommand : ICommand
     {
+
         public List<string> Alias => new List<string> { "sekai" };
         private SekaiClient.SekaiClient client;
+        private SekaiClient.SekaiClient clientForManager;
+        private PPHManager manager;
         private int eventId;
 
-        private async Task ClientReady()
+        private async Task<SekaiClient.SekaiClient> CacheGetClient(string filename)
         {
+            SekaiClient.SekaiClient client;
             while (true)
             {
                 try
                 {
-                    client = new SekaiClient.SekaiClient(new SekaiClient.EnvironmentInfo(), false)
+                    client = new SekaiClient.SekaiClient(new EnvironmentInfo(), false)
                     {
                         DebugWrite = text =>
                         {
@@ -144,7 +149,7 @@ namespace BandoriBot.Commands
                     User user;
                     try
                     {
-                        user = JsonConvert.DeserializeObject<User>(File.ReadAllText("sekaiuser.json"));
+                        user = JsonConvert.DeserializeObject<User>(File.ReadAllText(filename));
                         await client.Login(user);
                         await MasterData.Initialize(client);
                     }
@@ -155,7 +160,7 @@ namespace BandoriBot.Commands
                         await MasterData.Initialize(client);
                         await client.PassTutorial(true);
                     }
-                    File.WriteAllText("sekaiuser.json", JsonConvert.SerializeObject(user));
+                    File.WriteAllText(filename, JsonConvert.SerializeObject(user));
                     break;
                 }
                 catch (Exception e)
@@ -164,13 +169,28 @@ namespace BandoriBot.Commands
                     await Task.Delay(10000);
                 }
             }
+            return client;
+        }
+
+        private async Task ClientReady()
+        {
+            client = await CacheGetClient("sekaiuser.json");
             eventId = MasterData.Instance.CurrentEvent.id;
+        }
+        private async Task ManagerClientReady()
+        {
+            clientForManager = await CacheGetClient("sekaiuser2.json");
         }
 
         public SekaiCommand()
         {
             if (File.Exists("sekai"))
+            {
                 ClientReady().Wait();
+                ManagerClientReady().Wait();
+                manager = new PPHManager(this);
+                manager.Initialize();
+            }
         }
 
         private Dictionary<int, int> scoreCache;
@@ -189,7 +209,9 @@ namespace BandoriBot.Commands
             if (rankacc == 0) return string.Empty;
             var score = (await client.CallUserApi($"/event/{eventId}/ranking?targetRank={rankacc}", HttpMethod.Get, null))["rankings"][0]["score"];
 
-            return $"排名{rankacc}当前分数{score}，预测{scoreCache[rankacc]}";
+            return $"排名{rankacc}当前分数{score}" +
+                $"{(manager.hourSpeed.TryGetValue(rankacc, out var val) ? $"({val}pt/h)" : string.Empty)}，" +
+                $"预测{scoreCache[rankacc]}";
         }
 
         private static readonly int[] ranks = new int[]

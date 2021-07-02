@@ -68,6 +68,7 @@ namespace SekaiClient.Datas
     {
         public long startAt, endAt;
         public int id;
+        public float rarity4Rate;
         public GachaBehaviour[] gachaBehaviors;
         public GachaType gachaType;
         public bool IsAvailable
@@ -111,7 +112,7 @@ namespace SekaiClient.Datas
 
         public static async Task Initialize(SekaiClient client)
         {
-            var fn = client.environment.X_Data_Version + ".json";
+            var fn = $"Data\\{client.environment.X_Data_Version}.json";
 
             try
             {

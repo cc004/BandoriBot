@@ -219,10 +219,11 @@ public static string FixImage(string origin)
                     LoggerLevel.Fatal => ConsoleColor.Magenta,
                     _ => ConsoleColor.White
                 };
-                var text = $"[{o.GetType().Name}/{level}] {s}";
+                var now = DateTime.Now;
+                var text = $"[{now:HH:mm:ss}] [{o.GetType().Name}/{level}] {s}";
                 Console.WriteLine(text);
                 Console.ResetColor();
-                File.AppendAllText(DateTime.Now.ToString("yyyy-MM-dd") + ".log", text + "\n");
+                File.AppendAllText($"Data\\{now:yyyy-MM-dd}.log", text + "\n");
             }
         }
 
@@ -239,10 +240,11 @@ public static string FixImage(string origin)
                     LoggerLevel.Fatal => ConsoleColor.Magenta,
                     _ => ConsoleColor.White
                 };
-                var text = $"[{new StackTrace().GetFrame(1).GetMethod().DeclaringType.Name}/{level}] {s}";
+                var now = DateTime.Now;
+                var text = $"[{now:HH:mm:ss}] [{new StackTrace().GetFrame(1).GetMethod().DeclaringType.Name}/{level}] {s}";
                 Console.WriteLine(text);
                 Console.ResetColor();
-                File.AppendAllText(DateTime.Now.ToString("yyyy-MM-dd") + ".log", text + "\n");
+                File.AppendAllText($"Data\\{now:yyyy-MM-dd}.log", text + "\n");
             }
         }
 

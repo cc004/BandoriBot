@@ -96,6 +96,10 @@ namespace SekaiClient
 
         public async Task<JToken> CallApi(string apiurl, HttpMethod method, JObject content)
         {
+            lock (this)
+            {
+
+            }
             var tick = DateTime.Now.Ticks;
 
 
@@ -239,26 +243,30 @@ namespace SekaiClient
 
             var rolls = MasterData.Instance.gachaBehaviours
                 .GroupBy(b => b.costResourceQuantity)
-                .Select(g => g.Where(b => b.Gacha.IsAvailable).OrderByDescending(b => b.Gacha.endAt).FirstOrDefault())
+                .Select(g => g.Where(b => b.Gacha.IsAvailable)
+                    .OrderByDescending(b => b.Gacha.rarity4Rate)
+                    .ThenByDescending(b => b.Gacha.endAt).FirstOrDefault())
                 .Where(g => g != null).ToArray();
 
             var roll10 = rolls.Single(b => b.costResourceQuantity == 3000);
             var roll1 = rolls.Single(b => b.costResourceQuantity == 300);
             var roll3 = rolls.Single(b => b.costResourceQuantity == 1);
 
-            icards = await Gacha(roll3);
+            //icards = await Gacha(roll3);
+            
+            icards = Array.Empty<Card>();
 
             while (currency > 3000)
             {
                 currency -= 3000;
                 icards = icards.Concat(await Gacha(roll10));
             }
-
+            /*
             while (currency > 300)
             {
                 currency -= 300;
                 icards = icards.Concat(await Gacha(roll1));
-            }
+            }*/
             var cards = icards.ToArray();
             var desc = cards
                 .Select(card =>
