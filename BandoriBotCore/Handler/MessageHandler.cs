@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BandoriBot.Handler
@@ -138,6 +139,8 @@ namespace BandoriBot.Handler
             }).Wait();
         }
 
+        private static int num = 0;
+
         protected static void OnMessage(MiraiHttpSession session, string message, Source Sender)
         {
             if (!booted) return;
@@ -163,18 +166,16 @@ namespace BandoriBot.Handler
                 }
             };
 
-            lock (ChatRecordContext.Context)
+            ChatRecordContext.Context.Records.Add(new Record
             {
-                ChatRecordContext.Context.Records.Add(new Record
-                {
-                    Group = Sender.FromGroup,
-                    QQ = Sender.FromQQ,
-                    Message = message,
-                    Time = DateTime.Now
-                });
+                Group = Sender.FromGroup,
+                QQ = Sender.FromQQ,
+                Message = message,
+                Time = DateTime.Now
+            });
 
+            if (Interlocked.Increment(ref num) % 100 == 0)
                 ChatRecordContext.Context.SaveChanges();
-            }
 
             Utils.Log(LoggerLevel.Debug, $"[{Sender.FromGroup}::{Sender.FromQQ}]recv msg: " + message);
 

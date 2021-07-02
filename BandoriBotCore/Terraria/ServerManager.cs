@@ -57,8 +57,8 @@ namespace Native.Csharp.App.Terraria
                 {
                     var svr = new Server((string)obj.Value["endpoint"], (int)obj.Value["group"])
                     {
-                        display = obj.Value<bool>("display"),
-                        noRegister = obj.Value<string>("noRegister")
+                        display = obj.Value.Value<bool>("display"),
+                        noRegister = obj.Value.Value<string>("noRegister")
                     };
                     svr.Login((string)obj.Value["username"], (string)obj.Value["password"]);
                     svr.RunCommand("/csreload");
