@@ -28,9 +28,9 @@ namespace BandoriBot.Commands
     public class LegacyCommand : ICommand
     {
         private string Command;
-        private Action<CommandArgs> Action;
+        private Func<CommandArgs, Task> Action;
 
-        public LegacyCommand(string Command, Action<CommandArgs> Action)
+        public LegacyCommand(string Command, Func<CommandArgs, Task> Action)
         {
             this.Command = Command;
             this.Action = Action;
@@ -42,7 +42,7 @@ namespace BandoriBot.Commands
         {
             try
             {
-                Action(args);
+                await Action(args);
             }
             
             catch (TargetInvocationException e)

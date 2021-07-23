@@ -33,9 +33,9 @@ namespace BandoriBot.Handler
         public MiraiHttpSession Session;
         public bool IsTemp;
 
-        internal static readonly long AdminQQ = long.Parse(File.ReadAllText("adminqq.txt"));
+        internal static readonly HashSet<long> AdminQQs = new (File.ReadAllText("adminqq.txt").Split('\n').Select(long.Parse));
 
-        private bool IsAdmin => AdminQQ == FromQQ || Configuration.GetConfig<Admin>().hash.Contains(FromQQ);
+        public bool IsSuperadmin => AdminQQs.Contains(FromQQ);
 
         public JObject GetSave()
         {
@@ -48,17 +48,29 @@ namespace BandoriBot.Handler
             return result;
         }
 
-        public async Task<bool> CheckPermission(long target = 0, GroupPermission required = GroupPermission.Administrator)
+        private static PermissionConfig cfg = Configuration.GetConfig<PermissionConfig>();
+        private async Task<bool> CheckPermission(long target = 0, GroupPermission required = GroupPermission.Administrator)
         {
             var qq = FromQQ;
-            return IsAdmin || ((target == 0 ? new IGroupMemberInfo[0] : await Session.GetGroupMemberListAsync(target))
+            return ((target == 0 ? new IGroupMemberInfo[0] : await Session.GetGroupMemberListAsync(target))
                 .SingleOrDefault(info => info.Id == qq)?.Permission ?? GroupPermission.Member) >= required;
         }
 
-        public bool HasPermission(string perm) =>
-            perm == null || IsAdmin ||
-            Configuration.GetConfig<PermissionConfig>().t[FromQQ].Contains(perm) ||
-            perm.Contains('.') && HasPermission(perm.Substring(0, perm.LastIndexOf('.')));
+        public async Task<bool> HasPermission(string perm) =>
+            IsSuperadmin || perm == null || FromGroup > 0 && await CheckPermission(FromGroup) ||
+            cfg.t.ContainsKey(FromQQ) && (
+            cfg.t[FromQQ].Contains($"*.{perm}") ||
+            cfg.t[FromQQ].Contains($"{FromGroup}.{perm}")) ||
+            perm.Contains('.') && await HasPermission(perm.Substring(0, perm.LastIndexOf('.'))) ||
+            perm != "*" && await HasPermission("*", FromGroup);
+
+        public async Task<bool> HasPermission(string perm, long group) =>
+            IsSuperadmin || perm == null || group > 0  && await CheckPermission(group) ||
+            cfg.t.ContainsKey(FromQQ) && (
+            cfg.t[FromQQ].Contains($"*.{perm}") ||
+            cfg.t[FromQQ].Contains($"{group}.{perm}")) ||
+            perm.Contains('.') && await HasPermission(perm.Substring(0, perm.LastIndexOf('.')), group) ||
+            perm != "*" && await HasPermission("*", group);
     }
 
     public class MessageHandler : IMessageHandler, IFriendMessage, IGroupMessage, IBotInvitedJoinGroup, INewFriendApply, IGroupMessageRevoked, ITempMessage
@@ -103,7 +115,7 @@ namespace BandoriBot.Handler
         {
             var @delegate = new BlockingDelegate<CommandArgs>(async args =>
             {
-                if (!args.Source.HasPermission(t.Permission))
+                if (!await args.Source.HasPermission(t.Permission, args.Source.FromGroup))
                 {
                     await args.Callback("access denied.");
                     return;
@@ -138,6 +150,7 @@ namespace BandoriBot.Handler
             }).Wait();
         }
 
+        private static int recordnum = 0;
         protected static void OnMessage(MiraiHttpSession session, string message, Source Sender)
         {
             if (!booted) return;
@@ -163,17 +176,23 @@ namespace BandoriBot.Handler
                 }
             };
 
-            lock (ChatRecordContext.Context)
+            ChatRecordContext.context.Records.Add(new Record
             {
-                ChatRecordContext.Context.Records.Add(new Record
-                {
-                    Group = Sender.FromGroup,
-                    QQ = Sender.FromQQ,
-                    Message = message,
-                    Time = DateTime.Now
-                });
+                Group = Sender.FromGroup,
+                QQ = Sender.FromQQ,
+                Message = message,
+                Time = DateTime.Now
+            });
 
-                ChatRecordContext.Context.SaveChanges();
+            foreach (var keyword in KeywordRecordContext.context.Records)
+            {
+                if (message.Contains(keyword.Keyword)) ++keyword.Count;
+            }
+
+            if (++recordnum % 100 == 0)
+            {
+                ChatRecordContext.context.SaveChanges();
+                KeywordRecordContext.context.SaveChanges();
             }
 
             Utils.Log(LoggerLevel.Debug, $"[{Sender.FromGroup}::{Sender.FromQQ}]recv msg: " + message);
@@ -186,12 +205,13 @@ namespace BandoriBot.Handler
             }));
         }
 
-        private void ProcessError(Func<string, Task> callback, Exception e)
+        private void ProcessError(Func<string, Task> callback, Exception e, bool senderr)
         {
             Utils.Log(LoggerLevel.Error, e.ToString());
 
             while (e is AggregateException) e = e.InnerException;
             if (e is ApiException) callback(e.Message);
+            else if (senderr) callback(e.ToString());
         }
 
         public async Task<bool> OnMessage(HandlerArgs args)
@@ -224,7 +244,7 @@ namespace BandoriBot.Handler
                 }
                 catch (Exception e)
                 {
-                    ProcessError(args.Callback, e);
+                    ProcessError(args.Callback, e, await args.Sender.HasPermission("ignore.noerr", -1));
                 }
             }
 
@@ -237,7 +257,7 @@ namespace BandoriBot.Handler
                 }
                 catch (Exception e)
                 {
-                    ProcessError(args.Callback, e);
+                    ProcessError(args.Callback, e, await args.Sender.HasPermission("ignore.noerr", -1));
                 }
             }
             return true;
@@ -309,7 +329,7 @@ namespace BandoriBot.Handler
             {
                 if (Configuration.GetConfig<AntirevokePlus>().hash.Contains(record.group))
                 {
-                    await session.SendFriendMessageAsync(Source.AdminQQ, (new IMessageBase[]
+                    await session.SendFriendMessageAsync(Source.AdminQQs.First(), (new IMessageBase[]
                     {
                         new PlainMessage($"群{record.group}的{record.qq}尝试撤回一条消息：")
                     }).Concat(record.message).ToArray());

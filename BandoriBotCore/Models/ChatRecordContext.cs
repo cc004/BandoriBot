@@ -18,7 +18,10 @@ namespace BandoriBot.Models
 
     public class ChatRecordContext : DbContext
     {
-        public static ChatRecordContext Context = new();
+        [ThreadStatic]
+        public static ChatRecordContext _context;
+        public static ChatRecordContext Context => _context ??= new();
+        public static ChatRecordContext context = new();
 
         public virtual DbSet<Record> Records { get; set; }
 
@@ -30,6 +33,32 @@ namespace BandoriBot.Models
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlite("data source=records.db");
+        }
+    }
+    public class KeywordRecord
+    {
+        public string Keyword { get; set; }
+        public int Count { get; set; }
+    }
+
+    public class KeywordRecordContext : DbContext
+    {
+        public static KeywordRecordContext context = new();
+
+        public virtual DbSet<KeywordRecord> Records { get; set; }
+
+        public KeywordRecordContext()
+        {
+            Database.EnsureCreated();
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<KeywordRecord>().HasKey(x => x.Keyword);
+        }
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseSqlite("data source=keywordrecord.db");
         }
     }
 }

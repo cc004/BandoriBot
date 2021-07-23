@@ -13,7 +13,8 @@ namespace BandoriBot.Commands
     {
         public abstract List<string> Alias { get; }
 
-        protected virtual async Task<bool> HasPermission(Source op, TKey key, TValue val) => await op.CheckPermission();
+        protected abstract string Permission { get; }
+        protected virtual async Task<bool> HasPermission(Source op, TKey key, TValue val) => await op.HasPermission(Permission, op.FromGroup);
 
         public virtual async Task Run(CommandArgs args)
         {
@@ -50,7 +51,7 @@ namespace BandoriBot.Commands
                     }
                     break;
                 case "list":
-                    if (!await args.Source.CheckPermission())
+                    if (!await args.Source.HasPermission(Permission, -1))
                     {
                         await args.Callback("access denied.");
                         break;

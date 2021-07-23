@@ -31,7 +31,6 @@ namespace BandoriBot
             Configuration.Register<MessageStatistic>();
             Configuration.Register<ReplyHandler>();
             Configuration.Register<Whitelist>();
-            Configuration.Register<Admin>();
             Configuration.Register<Blacklist>();
             Configuration.Register<BlacklistF>();
             Configuration.Register<TitleCooldown>();
@@ -63,7 +62,6 @@ namespace BandoriBot
             MessageHandler.Register<ReplyCommand>();
             MessageHandler.Register<FindCommand>();
             MessageHandler.Register<DelayCommand>();
-            MessageHandler.Register<AdminCommand>();
             MessageHandler.Register<AntirevokePlusCommand>();
             MessageHandler.Register<SekaiCommand>();
             MessageHandler.Register<SekaiPCommand>();
@@ -74,21 +72,16 @@ namespace BandoriBot
             MessageHandler.Register<Deactivate>();
             MessageHandler.Register<BlacklistCommand>();
             MessageHandler.Register<TitleCommand>();
-            MessageHandler.Register<PCRRunCommand>();
             MessageHandler.Register<CarTypeCommand>();
             MessageHandler.Register<SekaiLineCommand>();
             MessageHandler.Register<SekaiGachaCommand>();
             MessageHandler.Register<PermCommand>();
             MessageHandler.Register<SendCommand>();
 
-            MessageHandler.Register<DDCommand>();
-            MessageHandler.Register<CDCommand>();
-            MessageHandler.Register<CCDCommand>();
-            MessageHandler.Register<SLCommand>();
-            MessageHandler.Register<SCCommand>();
-            MessageHandler.Register<TBCommand>();
             MessageHandler.Register<RCCommand>();
             MessageHandler.Register<CPMCommand>();
+
+            MessageHandler.Register<KeywordCommand>();
 
             CommandHelper.Register<AdditionalCommands.随机禁言>();
             CommandHelper.Register<AdditionalCommands.泰拉在线>();
@@ -148,6 +141,7 @@ namespace BandoriBot
 
         public static async Task Main(string[] args)
         {
+
             string authkey = File.ReadAllText("authkey.txt");
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;

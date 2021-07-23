@@ -32,14 +32,14 @@ namespace BandoriBot.Commands
             switch (splits[0])
             {
                 case "reload":
-                    if (!await args.Source.CheckPermission())
+                    if (!await args.Source.HasPermission("reply.reload", -1))
                     {
                         config.Load();
                         await args.Callback("configuration has been reloaded successfully.");
                     }
                     break;
                 case "save":
-                    if (!await args.Source.CheckPermission())
+                    if (!await args.Source.HasPermission("reply.save", -1))
                     {
                         config.Save();
                         await args.Callback("configuration has been saved successfully.");
@@ -73,7 +73,7 @@ namespace BandoriBot.Commands
 
                         var data = config[int.Parse(splits[0].Substring(3))];
 
-                        if (splits[0] == "add4" && !await args.Source.CheckPermission())
+                        if (splits[0] == "add4" && !await args.Source.HasPermission("reply.add4", -1))
                         {
                             await args.Callback("Access denied!");
                             return;
@@ -139,7 +139,7 @@ namespace BandoriBot.Commands
 
                             if (string.IsNullOrEmpty(result2))
                             {
-                                if (reply.qq == qq || await args.Source.CheckPermission())
+                                if (reply.qq == qq || await args.Source.HasPermission("reply.deloverride", -1))
                                 {
                                     list.Item2.Remove(reply);
                                     if (list.Item2.Count == 0)
@@ -165,7 +165,7 @@ namespace BandoriBot.Commands
                         var data = config[int.Parse(splits[0].Substring(4))];
                         if (splits.Length == 1)
                         {
-                            if (!await args.Source.CheckPermission())
+                            if (!await args.Source.HasPermission("reply.list", -1))
                             {
                                 await args.Callback("Access denied.");
                                 return;

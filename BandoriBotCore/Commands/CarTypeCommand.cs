@@ -20,7 +20,7 @@ namespace BandoriBot.Commands
             var arg = args.Arg.Trim().Split(' ');
             var group = long.Parse(arg[0]);
 
-            if (!await args.Source.CheckPermission(group))
+            if (!await args.Source.HasPermission("management.cartype", group))
             {
                 await args.Callback("access denied.");
                 return;

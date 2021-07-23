@@ -36,6 +36,7 @@
 - sekai预测线(使用[sekai viewer](https://sekai.best)的api)
     - `predsekai` 查询所有预测线
     - `predsekai排名` 查询特定排名的预测线，只支持分档排名，如`predsekai1000`，注意没有空格。
+- 给成员头衔（必须群主才可以）： `/title 头衔`
 ## 功能
 
 - 复读/打断，需开启群白名单
@@ -45,3 +46,15 @@
     - Sekai: sekai车牌
     - Bandori: bandori车牌
     - None: 关闭订阅
+
+## 权限系统
+
+增加了权限系统后，可以对群权限进行细分，权限一般为`群号.权限名`或者`*.权限名`的形式，如果具有`*`的权限，则可以使用当前群号下所有权限，群管理和群主有该群的`*`权限，通过`/perm add/del qq号 群号.权限名`可以给普通成员某些权限，以下为一些常用权限名：
+- `management.antirevoke`: 开启/关闭群的反撤回
+- `management.blacklist`: 开启/关闭群内功能的黑名单
+- `management.cartype`: 更改群内车牌类型
+- `management.subscribe`: 更改群内订阅类型
+- `management.perm`: 更改其他人群内权限（不能用来删除管理员的权限）
+- `management.whitelist`: 开启/关闭群白名单
+- `ignore.cooldown`: 忽略冷却指令的冷却
+- `pic.normal`: 开启/关闭涩图

@@ -14,8 +14,8 @@ namespace BandoriBot.Commands
 
         protected virtual GroupPermission AddPermission => GroupPermission.Administrator;
         protected virtual GroupPermission DelPermission => GroupPermission.Administrator;
+        protected abstract string Permission { get; }
         protected virtual long GetTarget(TValue value) => 0;
-
         public virtual async Task Run(CommandArgs args)
         {
             var splits = args.Arg.Trim().Split(' ');
@@ -26,7 +26,7 @@ namespace BandoriBot.Commands
             {
                 case "add":
                     val = splits[1].ParseTo<TValue>();
-                    if (!await args.Source.CheckPermission(GetTarget(val)))
+                    if (!await args.Source.HasPermission(Permission + ".add", GetTarget(val)))
                     {
                         await args.Callback("access denied.");
                         break;
@@ -38,7 +38,7 @@ namespace BandoriBot.Commands
                     break;
                 case "del":
                     val = splits[1].ParseTo<TValue>();
-                    if (!await args.Source.CheckPermission(GetTarget(val)))
+                    if (!await args.Source.HasPermission(Permission + ".del", GetTarget(val)))
                     {
                         await args.Callback("access denied.");
                         break;
@@ -49,7 +49,7 @@ namespace BandoriBot.Commands
                     await args.Callback($"successfully removed {splits[1]}");
                     break;
                 case "list":
-                    if (!await args.Source.CheckPermission())
+                    if (!await args.Source.HasPermission(Permission, -1))
                     {
                         await args.Callback("access denied.");
                         break;

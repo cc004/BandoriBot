@@ -22,9 +22,11 @@ namespace BandoriBot.Commands
             }
             catch
             {
-                return 0;
+                return -1;
             }
         }
+
+        protected override string Permission => "management.blacklist";
 
         public override async Task Run(CommandArgs args)
         {

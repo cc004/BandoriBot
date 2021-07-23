@@ -1,8 +1,10 @@
 using BandoriBot.Commands;
 using BandoriBot.Config;
 using BandoriBot.DataStructures;
+using BandoriBot.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic.CompilerServices;
 using Mirai_CSharp;
 using MsgPack;
@@ -116,7 +118,7 @@ namespace BandoriBot.Handler
         public async Task<bool> OnMessage(HandlerArgs args)
         {
             var raw = Utils.FindAtMe(args.message, out var isme, args.Sender.Session.QQNumber ?? 0).Trim();
-            var isadmin = await args.Sender.CheckPermission();
+            var isadmin = await args.Sender.HasPermission("*", -1);
 
             if (!GetConfig<Whitelist>().hash.Contains(args.Sender.FromGroup) && !isadmin)
             {
@@ -160,7 +162,14 @@ namespace BandoriBot.Handler
 
                 if (pa.Length > 0)
                 {
-                    await args.Callback(pa[new Random().Next(pa.Length)]());
+                    try
+                    {
+                        await args.Callback(pa[new Random().Next(pa.Length)]());
+                    }
+                    catch
+                    {
+                        return true;
+                    }
                     return true;
                 }
                 return false;
@@ -176,7 +185,9 @@ namespace BandoriBot.Handler
 
         private void ResolveAssemblies()
         {
-            typeof(HttpUtility).GetType();
+            _ = typeof(HttpUtility);
+            _ = typeof(SekaiClient.SekaiClient);
+            _ = ChatRecordContext.Context;
         }
 
         public async Task ReloadAssembly()
@@ -202,7 +213,6 @@ namespace BandoriBot.Handler
             int func = 0;
             var sb = new StringBuilder();
 
-            _ = typeof(SekaiClient.SekaiClient);
             var usings = new string[]
             {
                 "BandoriBot",

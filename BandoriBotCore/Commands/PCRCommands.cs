@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
+    /*
     public class CCDCommand : ICommand
     {
         public List<string> Alias => new List<string> { "查出刀" };
@@ -178,7 +179,7 @@ namespace BandoriBot.Commands
                 PCRManager.Instance.Do_Login();
             }
         }
-    }
+    }*/
 
     public class RCCommand : ICommand
     {

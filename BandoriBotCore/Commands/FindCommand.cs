@@ -18,8 +18,6 @@ namespace BandoriBot.Commands
             "/find"
         };
 
-        string ICommand.Permission => "management.find";
-
         public async Task Run(CommandArgs args)
         {
             string[] splits = args.Arg.Trim().Split(' ');
@@ -31,7 +29,7 @@ namespace BandoriBot.Commands
             switch (splits[0])
             {
                 case "refresh":
-                    if (!await args.Source.CheckPermission())
+                    if (!await args.Source.HasPermission("management.find.refresh", -1))
                     {
                         await args.Callback("Access denied!");
                         return;
@@ -104,7 +102,7 @@ namespace BandoriBot.Commands
                     }
                     if (long.TryParse(splits[1], out long qq))
                     {
-                        if (!await args.Source.CheckPermission())
+                        if (!await args.Source.HasPermission("management.find.id", -1))
                         {
                             await args.Callback("Access denied.");
                             return;

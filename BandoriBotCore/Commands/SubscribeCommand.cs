@@ -81,7 +81,7 @@ namespace BandoriBot.Commands
             }
             else
             {
-                if (!await args.Source.CheckPermission(args.Source.FromGroup))
+                if (!await args.Source.HasPermission("management.subscribe", args.Source.FromGroup))
                 {
                     await args.Callback("access denied.");
                     return;
