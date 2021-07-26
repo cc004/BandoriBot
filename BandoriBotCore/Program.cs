@@ -151,7 +151,7 @@ namespace BandoriBot
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
-
+            
             await using var session = new MiraiHttpSession();
 
             session.AddPlugin(new MessageHandler());

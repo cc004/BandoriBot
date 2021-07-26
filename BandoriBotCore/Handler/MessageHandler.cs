@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BandoriBot.Handler
@@ -151,7 +152,12 @@ namespace BandoriBot.Handler
             }).Wait();
         }
 
+<<<<<<< HEAD
         private static int recordnum = 0;
+=======
+        private static int num = 0;
+
+>>>>>>> 47d6c6580ae5bc64c936401d1be9da8cfa36ba35
         protected static void OnMessage(MiraiHttpSession session, string message, Source Sender)
         {
             if (!booted) return;
