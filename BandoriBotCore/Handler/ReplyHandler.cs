@@ -4,7 +4,6 @@ using BandoriBot.DataStructures;
 using BandoriBot.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic.CompilerServices;
 using Mirai_CSharp;
 using MsgPack;
@@ -187,7 +186,6 @@ namespace BandoriBot.Handler
         {
             _ = typeof(HttpUtility);
             _ = typeof(SekaiClient.SekaiClient);
-            _ = ChatRecordContext.Context;
         }
 
         public async Task ReloadAssembly()

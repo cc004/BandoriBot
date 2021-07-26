@@ -1,6 +1,7 @@
 using BandoriBot.Commands;
 using BandoriBot.Config;
 using BandoriBot.Models;
+using BandoriBot.Services;
 using Mirai_CSharp;
 using Mirai_CSharp.Models;
 using Mirai_CSharp.Plugin.Interfaces;
@@ -176,24 +177,7 @@ namespace BandoriBot.Handler
                 }
             };
 
-            ChatRecordContext.context.Records.Add(new Record
-            {
-                Group = Sender.FromGroup,
-                QQ = Sender.FromQQ,
-                Message = message,
-                Time = DateTime.Now
-            });
-
-            foreach (var keyword in KeywordRecordContext.context.Records)
-            {
-                if (message.Contains(keyword.Keyword)) ++keyword.Count;
-            }
-
-            if (++recordnum % 100 == 0)
-            {
-                ChatRecordContext.context.SaveChanges();
-                KeywordRecordContext.context.SaveChanges();
-            }
+            RecordDatabaseManager.AddRecord(Sender.FromQQ, Sender.FromGroup, DateTime.Now, message);
 
             Utils.Log(LoggerLevel.Debug, $"[{Sender.FromGroup}::{Sender.FromQQ}]recv msg: " + message);
 

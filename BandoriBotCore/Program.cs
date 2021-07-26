@@ -1,6 +1,7 @@
 using BandoriBot.Commands;
 using BandoriBot.Config;
 using BandoriBot.Handler;
+using BandoriBot.Models;
 using BandoriBot.Services;
 using Mirai_CSharp;
 using Mirai_CSharp.Models;
@@ -48,8 +49,10 @@ namespace BandoriBot
             Configuration.Register<SubscribeConfig>();
             Configuration.Register<PermissionConfig>();
             Configuration.Register<Pipe>();
+            Configuration.Register<TokenConfig>();
             //Configuration.Register<PeriodRank>();
 
+            MessageHandler.Register<SetTokenCommand>();
             MessageHandler.Register<CarHandler>();
             MessageHandler.Register(Configuration.GetConfig<ReplyHandler>());
             MessageHandler.Register<WhitelistHandler>();
@@ -80,8 +83,7 @@ namespace BandoriBot
 
             MessageHandler.Register<RCCommand>();
             MessageHandler.Register<CPMCommand>();
-
-            MessageHandler.Register<KeywordCommand>();
+            MessageHandler.Register<RecordCommand>();
 
             CommandHelper.Register<AdditionalCommands.随机禁言>();
             CommandHelper.Register<AdditionalCommands.泰拉在线>();
@@ -119,6 +121,7 @@ namespace BandoriBot
             MessageHandler.Register<ZMCCommand>();
             MessageHandler.Register<AntirevokeCommand>();
             MessageHandler.Register<SubscribeCommand>();
+            RecordDatabaseManager.InitDatabase();
 
             if (File.Exists("sekai"))
             {
@@ -137,6 +140,7 @@ namespace BandoriBot
 
             GC.Collect();
             MessageHandler.booted = true;
+
         }
 
         public static async Task Main(string[] args)
@@ -160,8 +164,7 @@ namespace BandoriBot
 
             Console.WriteLine("connected to server");
 
-            Thread.Sleep(int.MaxValue);
-
+            Apis.Program.Main2(args);
         }
 
         private static void CurrentDomain_FirstChanceException(object sender, FirstChanceExceptionEventArgs e)
