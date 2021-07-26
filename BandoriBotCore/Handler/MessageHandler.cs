@@ -85,7 +85,7 @@ namespace BandoriBot.Handler
         }
 
         private static readonly List<HandlerHolder> functions = new List<HandlerHolder>();
-        private static readonly IMessageHandler instance = new MessageHandler();
+        internal static readonly IMessageHandler instance = new MessageHandler();
         private static readonly Queue<Message> msgRecord = new Queue<Message>();
         private static readonly State head = new State();
         public static bool booted = false;

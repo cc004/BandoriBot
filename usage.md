@@ -58,3 +58,8 @@
 - `management.whitelist`: 开启/关闭群白名单
 - `ignore.cooldown`: 忽略冷却指令的冷却
 - `pic.normal`: 开启/关闭涩图
+
+## 网页API
+
+网页API统一使用GET方法，根url为`http://150.138.72.83:4/`，参数uid填执行者的qq，token填qq对应的token，token需要执行者使用指令`/token <token>`自行设置（具体值可以自己选），token错误或者无api权限返回400，目前公开的api（权限找我申请）：
+- GET /execute 用于模拟私聊，返回执行结果 参数：message为消息内容，需求`*.rest.execute`权限 如`http://150.138.72.83:4/execute?uid=114514&token=1919810&message=ycm`
