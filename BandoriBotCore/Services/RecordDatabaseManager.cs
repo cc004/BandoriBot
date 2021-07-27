@@ -25,8 +25,11 @@ namespace BandoriBot.Services
         private static extern void FreeCache(IntPtr cache);
         [DllImport("database.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern void OpenFile(string datafile, string indexfile);
+        [DllImport("database.dll", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void CloseFile();
         public static int Length => RecordLength();
-        private static object @lock = new object();
+        private static readonly object @lock = new ();
+        public static void Close() => CloseFile();
         public static void InitDatabase()
         {
             OpenFile("record.dat", "index.dat");
@@ -34,13 +37,20 @@ namespace BandoriBot.Services
 
         // increase seplen will increase speed, at the cost of memory usage
         private const int seplen = 1000000;
+        private const int cacheLength = 100;
+
+        private static int n = 0;
 
         public static void AddRecord(long qq, long group, DateTime time, string message)
         {
             lock (@lock)
             {
                 AddRecord(qq, group, time.ToTimestamp(), message);
-                FlushFile();
+                if (++n == cacheLength)
+                {
+                    n = 0;
+                    FlushFile();
+                }
             }
         }
 

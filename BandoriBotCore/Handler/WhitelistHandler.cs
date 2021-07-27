@@ -14,7 +14,7 @@ namespace BandoriBot.Handler
         public async Task<bool> OnMessage(HandlerArgs args)
         {
             return !Configuration.GetConfig<Whitelist>().hash.Contains(args.Sender.FromGroup) &&
-                !await args.Sender.HasPermission("ignore.whitelist");
+                !await args.Sender.HasPermission("ignore.whitelist", -1);
         }
     }
 }

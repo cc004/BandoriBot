@@ -145,7 +145,6 @@ namespace BandoriBot
 
         public static async Task Main(string[] args)
         {
-
             string authkey = File.ReadAllText("authkey.txt");
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -164,7 +163,17 @@ namespace BandoriBot
 
             Console.WriteLine("connected to server");
 
-            Apis.Program.Main2(args);
+            new Thread(() => Apis.Program.Main2(args)).Start();
+
+            while (true)
+            {
+                var r = Console.ReadLine();
+                if (r == "exit")
+                {
+                    RecordDatabaseManager.Close();
+                    Environment.Exit(0);
+                }
+            }
         }
 
         private static void CurrentDomain_FirstChanceException(object sender, FirstChanceExceptionEventArgs e)
@@ -179,6 +188,7 @@ namespace BandoriBot
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
+            RecordDatabaseManager.Close();
             Console.WriteLine(e.ExceptionObject);
         }
 

@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -27,5 +28,9 @@
     <ProjectReference Include="..\MsgPack\MsgPack.csproj" />
     <ProjectReference Include="..\SekaiClient\SekaiClient.csproj" />
   </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="database.cpp -o" />
+  </Target>
 
 </Project>
