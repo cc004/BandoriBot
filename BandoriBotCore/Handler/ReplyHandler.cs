@@ -12,6 +12,7 @@ using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -22,7 +23,6 @@ using System.Web;
 
 namespace BandoriBot.Handler
 {
-    using DataType = List<Tuple<Regex, List<Reply>>>;
     using DataTypeS = Dictionary<string, List<Reply>>;
     using Function = Func<Match, Source, string, bool, Action<string>, string>;
 
@@ -32,9 +32,9 @@ namespace BandoriBot.Handler
 
         private const int version = 2;
         public override string Name => "reply.json";
-        public DataType data2, data3, data4;
+        public DataTypeS data2, data3, data4;
 
-        public DataType this[int index] =>
+        public DataTypeS this[int index] =>
             index switch
             {
                 2 => data2,
@@ -45,9 +45,9 @@ namespace BandoriBot.Handler
 
         public override void LoadDefault()
         {
-            data2 = new DataType();
-            data3 = new DataType();
-            data4 = new DataType();
+            data2 = new DataTypeS();
+            data3 = new DataTypeS();
+            data4 = new DataTypeS();
         }
 
         public static Tuple<Regex, List<Reply>> D2T(KeyValuePair<string, List<Reply>> pair)
@@ -59,36 +59,27 @@ namespace BandoriBot.Handler
         public override void LoadFrom(BinaryReader br)
         {
             base.LoadFrom(br);
-            data2 = t[1].Select(D2T).ToList();
-            data3 = t[2].Select(D2T).ToList();
-            data4 = t[3].Select(D2T).ToList();
-
+            data2 = t[1];
+            data3 = t[2];
+            data4 = t[3];
+            regexCache = new HashSet<string>(t.Where(t => t != null)
+                .SelectMany(dict => dict.Select(pair => pair.Key)))
+               .ToDictionary(t => t, t => new Regex($"^{Utils.FixRegex(t)}$", RegexOptions.Multiline | RegexOptions.Compiled));
             ReloadAssembly().Wait();
         }
 
-        public override void SaveTo(BinaryWriter bw)
-        {
-            t = new List<DataTypeS>
-            {
-                null,
-                new DataTypeS(data2.Select(T2D)),
-                new DataTypeS(data3.Select(T2D)),
-                new DataTypeS(data4.Select(T2D))
-            };
-            base.SaveTo(bw);
-        }
-
         private static Regex replace = new Regex(@"\$((?!&).|&...;)", RegexOptions.Compiled);
+        internal static Dictionary<string, Regex> regexCache = new();
 
-        public static IEnumerable<(Match, Reply)> FitRegex(DataType data, string content)
+        public static IEnumerable<(Match, Reply)> FitRegex(DataTypeS data, string content)
         {
             IEnumerable<(Match, Reply)> result = new List<(Match, Reply)>();
 
             foreach (var tuple in data)
             {
-                var match = tuple.Item1.Match(content);
+                var match = regexCache[tuple.Key].Match(content);
                 if (match.Success)
-                    result = result.Concat(tuple.Item2.Select(reply => (match, reply)));
+                    result = result.Concat(tuple.Value.Select(reply => (match, reply)));
             }
 
             return result;
@@ -186,8 +177,10 @@ namespace BandoriBot.Handler
         {
             _ = typeof(HttpUtility);
             _ = typeof(SekaiClient.SekaiClient);
+            _ = typeof(Process);
         }
 
+        private static Regex codeReg = new Regex(@"/\* ref:(.*?) \*/", RegexOptions.Compiled | RegexOptions.Singleline);
         public async Task ReloadAssembly()
         {
             await Task.Yield();
@@ -249,7 +242,7 @@ namespace BandoriBot.Handler
 
             foreach (var pair in data4)
             {
-                foreach (var reply in pair.Item2)
+                foreach (var reply in pair.Value)
                 {
                     if (dict.ContainsKey(reply.reply)) continue;
 
@@ -262,9 +255,15 @@ namespace BandoriBot.Handler
 
             sb.Append("\n}\n");
 
+            var codeText = sb.ToString();
+
+            foreach (Match match in codeReg.Matches(codeText))
+            {
+                refs.Add(Assembly.Load(new AssemblyName(match.Groups[1].Value)).Location);
+            }
+
             var references = refs.Where(r => !string.IsNullOrEmpty(r)).Select(r => MetadataReference.CreateFromFile(r));
 
-            var codeText = sb.ToString();
             File.WriteAllText("debug.cs", codeText);
 
             var syntaxTree = SyntaxFactory.ParseSyntaxTree(codeText, options2, "code.cs", Encoding.UTF8, default);

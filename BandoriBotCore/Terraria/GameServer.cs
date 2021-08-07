@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
+/*
 namespace BandoriBot.Terraria
 {
     public sealed class GameServer : IDisposable
@@ -157,3 +157,4 @@ namespace BandoriBot.Terraria
     }
 
 }
+*/

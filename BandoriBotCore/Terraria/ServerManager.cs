@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using BandoriBot;
 using BandoriBot.Models;
 using BandoriBot.Commands;
-
+/*
 namespace Native.Csharp.App.Terraria
 {
     public class ServerManager : JsonConfiguration
@@ -72,3 +72,4 @@ namespace Native.Csharp.App.Terraria
         }
     }
 }
+*/

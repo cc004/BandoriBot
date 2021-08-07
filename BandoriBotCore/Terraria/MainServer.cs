@@ -11,7 +11,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-
+/*
 namespace BandoriBot.Terraria
 {
     public sealed class MainServer : IDisposable
@@ -100,3 +100,4 @@ namespace BandoriBot.Terraria
         }
     }
 }
+*/

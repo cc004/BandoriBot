@@ -1,5 +1,4 @@
 using BandoriBot.Config;
-using Native.Csharp.App.Terraria;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -11,7 +10,7 @@ using System.Threading.Tasks;
 using System.Web;
 
 #pragma warning disable CS0028
-
+/*
 namespace BandoriBot.Commands
 {
     public static class AdditionalCommands
@@ -696,3 +695,4 @@ namespace BandoriBot.Commands
         }
     }
 }
+*/

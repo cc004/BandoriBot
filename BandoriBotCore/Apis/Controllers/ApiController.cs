@@ -45,7 +45,7 @@ namespace BandoriBot.Apis.Controllers
         }
 
         [HttpGet("get")]
-        public async Task<ActionResult<Record[]>> Get(string keyword =null, long qq=0, long group=0, long starttime=0, long endtime=0)
+        public async Task<ActionResult<Record[]>> Get(string keyword = null, long qq = 0, long group = 0, long starttime = 0, long endtime = 0, int limit = 100)
         {
             if (!await CheckPermission("get")) return BadRequest();
             var result = RecordDatabaseManager.GetRecords();
@@ -54,7 +54,20 @@ namespace BandoriBot.Apis.Controllers
             if (starttime > 0) result = result.Where(r => r.timestamp >= starttime);
             if (endtime > 0) result = result.Where(r => r.timestamp <= endtime);
             if (!string.IsNullOrEmpty(keyword)) result = result.Where(r => r.message.Contains(keyword));
-            return result.ToArray();
+            return result.Take(limit).ToArray();
+        }
+
+        [HttpGet("countv2")]
+        public async Task<ActionResult<string>> Countv2(string keyword = null, long qq = 0, long group = 0, long starttime = 0, long endtime = 0)
+        {
+            if (!await CheckPermission("get")) return BadRequest();
+            var result = RecordDatabaseManager.GetRecords();
+            if (qq > 0) result = result.Where(r => r.qq == qq);
+            if (group > 0) result = result.Where(r => r.group == group);
+            if (starttime > 0) result = result.Where(r => r.timestamp >= starttime);
+            if (endtime > 0) result = result.Where(r => r.timestamp <= endtime);
+            if (!string.IsNullOrEmpty(keyword)) result = result.Where(r => r.message.Contains(keyword));
+            return result.Count().ToString();
         }
     }
 }

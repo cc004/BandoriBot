@@ -1,4 +1,5 @@
-﻿using BandoriBot.Models;
+﻿using BandoriBot.Config;
+using BandoriBot.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SekaiClient;
@@ -243,7 +244,13 @@ namespace BandoriBot.Commands
             long arg;
             try
             {
-                arg = long.Parse(args.Arg.Trim());
+                if (string.IsNullOrEmpty(args.Arg)) arg = Configuration.GetConfig<SekaiCache>().t[args.Source.FromQQ];
+                else
+                {
+                    arg = long.Parse(args.Arg.Trim());
+                    Configuration.GetConfig<SekaiCache>().t[args.Source.FromQQ] = arg;
+                    Configuration.GetConfig<SekaiCache>().Save();
+                }
             }
             catch
             {

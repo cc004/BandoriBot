@@ -29,7 +29,7 @@ namespace BandoriBot
         }
 
         public static string TryGetValueStart<T>(IEnumerable<T> dict, Func<T, string> conv, string start, out T value)
-        {
+            {
             var matches = new List<Tuple<string, T>>();
             foreach (var pair in dict)
             {

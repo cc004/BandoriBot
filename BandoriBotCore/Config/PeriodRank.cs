@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace BandoriBot.Config
-{
+{/*
     public class PeriodRank : Configuration
     {
         public override string Name => "periodrank.csv";
@@ -59,5 +59,5 @@ namespace BandoriBot.Config
             using (var sw = new StreamWriter(bw.BaseStream))
                 sw.Write(filebuf);
         }
-    }
+    }*/
 }

@@ -5,7 +5,6 @@ using BandoriBot.Models;
 using BandoriBot.Services;
 using Mirai_CSharp;
 using Mirai_CSharp.Models;
-using Native.Csharp.App.Terraria;
 using SekaiClient.Datas;
 using System;
 using System.Diagnostics;
@@ -27,7 +26,7 @@ namespace BandoriBot
 
             Configuration.Register<AntirevokePlus>();
             Configuration.Register<Activation>();
-            Configuration.Register<MainServerConfig>();
+           // Configuration.Register<MainServerConfig>();
             Configuration.Register<Delay>();
             Configuration.Register<MessageStatistic>();
             Configuration.Register<ReplyHandler>();
@@ -35,11 +34,11 @@ namespace BandoriBot
             Configuration.Register<Blacklist>();
             Configuration.Register<BlacklistF>();
             Configuration.Register<TitleCooldown>();
-            Configuration.Register<PCRConfig>();
+            //Configuration.Register<PCRConfig>();
             Configuration.Register<R18Allowed>();
             Configuration.Register<NormalAllowed>();
             Configuration.Register<AccountBinding>();
-            Configuration.Register<ServerManager>();
+            //Configuration.Register<ServerManager>();
             Configuration.Register<TimeConfiguration>();
             Configuration.Register<GlobalConfiguration>();
             Configuration.Register<Antirevoke>();
@@ -50,6 +49,7 @@ namespace BandoriBot
             Configuration.Register<PermissionConfig>();
             Configuration.Register<Pipe>();
             Configuration.Register<TokenConfig>();
+            Configuration.Register<SekaiCache>();
             //Configuration.Register<PeriodRank>();
 
             MessageHandler.Register<SetTokenCommand>();
@@ -58,7 +58,7 @@ namespace BandoriBot
             MessageHandler.Register<WhitelistHandler>();
             MessageHandler.Register<RepeatHandler>();
             MessageHandler.Register(Configuration.GetConfig<MessageStatistic>());
-            MessageHandler.Register(Configuration.GetConfig<MainServerConfig>());
+            //MessageHandler.Register(Configuration.GetConfig<MainServerConfig>());
 
             MessageHandler.Register<YCM>();
             MessageHandler.Register<QueryCommand>();
@@ -80,10 +80,10 @@ namespace BandoriBot
             MessageHandler.Register<SekaiGachaCommand>();
             MessageHandler.Register<PermCommand>();
             MessageHandler.Register<SendCommand>();
-
+            MessageHandler.Register<RecordCommand>();
+            /*
             MessageHandler.Register<RCCommand>();
             MessageHandler.Register<CPMCommand>();
-            MessageHandler.Register<RecordCommand>();
 
             CommandHelper.Register<AdditionalCommands.随机禁言>();
             CommandHelper.Register<AdditionalCommands.泰拉在线>();
@@ -114,7 +114,7 @@ namespace BandoriBot
             CommandHelper.Register<AdditionalCommands.解ip>();
             CommandHelper.Register<AdditionalCommands.封ip>();
             CommandHelper.Register<AdditionalCommands.saveall>();
-
+            */
             MessageHandler.Register<R18AllowedCommand>();
             MessageHandler.Register<NormalAllowedCommand>();
             MessageHandler.Register<SetuCommand>();

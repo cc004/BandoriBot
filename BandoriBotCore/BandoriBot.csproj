@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="database.cpp -o" />
+    <Exec Command="g++ database.cpp -o $(OutDir)database.dll --static --shared -fPIC" />
   </Target>
 
 </Project>

@@ -1,5 +1,4 @@
 ﻿using BandoriBot.Handler;
-using BandoriBot.Terraria;
 using Mirai_CSharp.Models;
 using Newtonsoft.Json;
 using System;
@@ -9,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
+/*
 namespace BandoriBot.Config
 {
     [JsonObject]
@@ -62,3 +61,4 @@ namespace BandoriBot.Config
         }
     }
 }
+*/

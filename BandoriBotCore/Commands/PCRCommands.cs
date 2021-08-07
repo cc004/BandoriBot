@@ -179,7 +179,7 @@ namespace BandoriBot.Commands
                 PCRManager.Instance.Do_Login();
             }
         }
-    }*/
+    }
 
     public class RCCommand : ICommand
     {
@@ -308,5 +308,5 @@ namespace BandoriBot.Commands
         {
             await args.Callback(PCRManager.Instance.GetRankStatistic(int.Parse(args.Arg.Trim())));
         }
-    }
+    }*/
 }
