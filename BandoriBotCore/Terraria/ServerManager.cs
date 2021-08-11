@@ -1,14 +1,3 @@
-using BandoriBot.Config;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using BandoriBot;
-using BandoriBot.Models;
-using BandoriBot.Commands;
 /*
 namespace Native.Csharp.App.Terraria
 {

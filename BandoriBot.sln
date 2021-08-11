@@ -12,8 +12,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MsgPack", "MsgPack\MsgPack.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SekaiClient", "SekaiClient\SekaiClient.csproj", "{15C2B7D6-FAC3-4746-A1C8-87FDF927C70C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mirai-CSharp", "Mirai-CSharp\Mirai-CSharp\Mirai-CSharp.csproj", "{43D3C9F1-88BA-4962-A9F8-19893FE325DC}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{25A46F5D-484D-402F-A928-EF3C1C80C05E}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
@@ -67,18 +65,6 @@ Global
 		{15C2B7D6-FAC3-4746-A1C8-87FDF927C70C}.Release|x64.Build.0 = Release|Any CPU
 		{15C2B7D6-FAC3-4746-A1C8-87FDF927C70C}.Release|x86.ActiveCfg = Release|Any CPU
 		{15C2B7D6-FAC3-4746-A1C8-87FDF927C70C}.Release|x86.Build.0 = Release|Any CPU
-		{43D3C9F1-88BA-4962-A9F8-19893FE325DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{43D3C9F1-88BA-4962-A9F8-19893FE325DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{43D3C9F1-88BA-4962-A9F8-19893FE325DC}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{43D3C9F1-88BA-4962-A9F8-19893FE325DC}.Debug|x64.Build.0 = Debug|Any CPU
-		{43D3C9F1-88BA-4962-A9F8-19893FE325DC}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{43D3C9F1-88BA-4962-A9F8-19893FE325DC}.Debug|x86.Build.0 = Debug|Any CPU
-		{43D3C9F1-88BA-4962-A9F8-19893FE325DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{43D3C9F1-88BA-4962-A9F8-19893FE325DC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{43D3C9F1-88BA-4962-A9F8-19893FE325DC}.Release|x64.ActiveCfg = Release|Any CPU
-		{43D3C9F1-88BA-4962-A9F8-19893FE325DC}.Release|x64.Build.0 = Release|Any CPU
-		{43D3C9F1-88BA-4962-A9F8-19893FE325DC}.Release|x86.ActiveCfg = Release|Any CPU
-		{43D3C9F1-88BA-4962-A9F8-19893FE325DC}.Release|x86.Build.0 = Release|Any CPU
 		{EE84567E-8C55-428D-A67D-26289657005D}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{EE84567E-8C55-428D-A67D-26289657005D}.Debug|x64.ActiveCfg = Debug|x64
 		{EE84567E-8C55-428D-A67D-26289657005D}.Debug|x64.Build.0 = Debug|x64

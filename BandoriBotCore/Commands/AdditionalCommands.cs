@@ -1,13 +1,3 @@
-using BandoriBot.Config;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
 
 #pragma warning disable CS0028
 /*

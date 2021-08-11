@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
@@ -36,7 +35,7 @@ namespace BandoriBot.Commands
                     }
                     infos.Clear();
                     await args.Callback($"refreshing...please wait.");
-                    foreach (var group in groups = await args.Source.Session.GetGroupList())
+                    foreach (var group in groups = await args.Source.Session.GetGroupList0())
                         foreach (var member in await args.Source.Session.GetMemberList(group.Id) ?? new List<GroupMemberInfo>())
                             infos.Add(member);
                     var idhash = new HashSet<long>(groups.Select((group) => group.Id));
@@ -122,7 +121,7 @@ namespace BandoriBot.Commands
                         await args.Callback($"{qq}所在的群(共{total}个):\n{list}");
                     }
                     break;
-                    
+
             }
         }
     }

@@ -2,18 +2,17 @@ using BandoriBot.Commands;
 using BandoriBot.Config;
 using BandoriBot.Models;
 using BandoriBot.Services;
-using Mirai_CSharp;
-using Mirai_CSharp.Models;
-using Mirai_CSharp.Plugin.Interfaces;
 using Newtonsoft.Json.Linq;
-using SekaiClient;
+using Sora.Entities.Base;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+using Sora.Entities;
+using Sora.Entities.CQCodes;
+using Sora.Enumeration.EventParamsType;
 
 namespace BandoriBot.Handler
 {
@@ -32,10 +31,10 @@ namespace BandoriBot.Handler
     public struct Source
     {
         public long FromGroup, FromQQ;
-        public MiraiHttpSession Session;
+        public SoraApi Session;
         public bool IsTemp;
 
-        internal static readonly HashSet<long> AdminQQs = new (File.ReadAllText("adminqq.txt").Split('\n').Select(long.Parse));
+        internal static readonly HashSet<long> AdminQQs = new(File.ReadAllText("adminqq.txt").Split('\n').Select(long.Parse));
 
         public bool IsSuperadmin => AdminQQs.Contains(FromQQ);
 
@@ -51,11 +50,12 @@ namespace BandoriBot.Handler
         }
 
         private static PermissionConfig cfg = Configuration.GetConfig<PermissionConfig>();
-        private async Task<bool> CheckPermission(long target = 0, GroupPermission required = GroupPermission.Administrator)
+
+        private async Task<bool> CheckPermission(long target = 0,
+            MemberRoleType required = MemberRoleType.Admin)
         {
             var qq = FromQQ;
-            return ((target == 0 ? new IGroupMemberInfo[0] : await Session.GetGroupMemberListAsync(target))
-                .SingleOrDefault(info => info.Id == qq)?.Permission ?? GroupPermission.Member) >= required;
+            return (await Session.GetGroupMemberInfo(target, FromQQ)).memberInfo.Role <= required;
         }
 
         public async Task<bool> HasPermission(string perm) =>
@@ -67,7 +67,7 @@ namespace BandoriBot.Handler
             perm != "*" && await HasPermission("*", FromGroup);
 
         public async Task<bool> HasPermission(string perm, long group) =>
-            IsSuperadmin || perm == null || group > 0  && await CheckPermission(group) ||
+            IsSuperadmin || perm == null || group > 0 && await CheckPermission(group) ||
             cfg.t.ContainsKey(FromQQ) && (
             cfg.t[FromQQ].Contains($"*.{perm}") ||
             cfg.t[FromQQ].Contains($"{group}.{perm}")) ||
@@ -75,23 +75,24 @@ namespace BandoriBot.Handler
             perm != "*" && await HasPermission("*", group);
     }
 
-    public class MessageHandler : IMessageHandler, IFriendMessage, IGroupMessage, IBotInvitedJoinGroup, INewFriendApply, IGroupMessageRevoked, ITempMessage
+    public class MessageHandler : IMessageHandler
     {
+        /*
         private class Message
         {
             public DateTime time;
             public int id;
             public long group, qq;
-            public IMessageBase[] message;
-        }
+            public CQCode[] message;
+        }*/
 
         private static readonly List<HandlerHolder> functions = new List<HandlerHolder>();
         internal static readonly IMessageHandler instance = new MessageHandler();
-        private static readonly Queue<Message> msgRecord = new Queue<Message>();
+       // private static readonly Queue<Message> msgRecord = new Queue<Message>();
         private static readonly State head = new State();
         public static bool booted = false;
 
-        public static MiraiHttpSession session;
+        public static SoraApi session;
 
         private class State
         {
@@ -152,7 +153,7 @@ namespace BandoriBot.Handler
             }).Wait();
         }
 
-        protected static void OnMessage(MiraiHttpSession session, string message, Source Sender)
+        public static async Task OnMessage(SoraApi session, string message, Source Sender)
         {
             if (!booted) return;
 
@@ -164,11 +165,9 @@ namespace BandoriBot.Handler
                 {
                     Utils.Log(LoggerLevel.Debug, $"[{ Sender.FromGroup}::{ Sender.FromQQ}] [{ (DateTime.Now.Ticks - ticks) / 10000}ms] sent msg: " + s);
                     if (Sender.FromGroup != 0)
-                        await session.SendGroupMessageAsync(Sender.FromGroup, await Utils.GetMessageChain(s, async p => await session.UploadPictureAsync(UploadTarget.Group, p)));
-                    else if (!Sender.IsTemp)
-                        await session.SendFriendMessageAsync(Sender.FromQQ, await Utils.GetMessageChain(s, async p => await session.UploadPictureAsync(UploadTarget.Temp, p)));
+                        await session.SendGroupMessage(Sender.FromGroup, Utils.GetMessageChain(s));
                     else
-                        await session.SendTempMessageAsync(Sender.FromQQ, Sender.FromGroup, await Utils.GetMessageChain(s, async p => await session.UploadPictureAsync(UploadTarget.Friend, p)));
+                        await session.SendPrivateMessage(Sender.FromQQ, Utils.GetMessageChain(s));
 
                 }
                 catch (Exception e)
@@ -181,7 +180,7 @@ namespace BandoriBot.Handler
 
             Utils.Log(LoggerLevel.Debug, $"[{Sender.FromGroup}::{Sender.FromQQ}]recv msg: " + message);
 
-            Task.Run(() => instance.OnMessage(new HandlerArgs
+            await Task.Run(() => instance.OnMessage(new HandlerArgs
             {
                 message = message,
                 Sender = Sender,
@@ -237,7 +236,7 @@ namespace BandoriBot.Handler
                 try
                 {
                     if ((!cmdhandle || function.handler.IgnoreCommandHandled) && !Configuration.GetConfig<BlacklistF>().InBlacklist(args.Sender.FromGroup, function))
-                         if (await function.cmd.Run(args)) break;
+                        if (await function.cmd.Run(args)) break;
                 }
                 catch (Exception e)
                 {
@@ -246,9 +245,9 @@ namespace BandoriBot.Handler
             }
             return true;
         }
-
+        /*
 #pragma warning disable CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
-        public async Task<bool> GroupMessage(MiraiHttpSession session, IGroupMessageEventArgs e)
+        public async Task<bool> GroupMessage(SoraApi session, IGroupMessageEventArgs e)
         {
             var source = e.Chain.First() as SourceMessage;
             if (source != null && (Configuration.GetConfig<Antirevoke>().hash.Contains(e.Sender.Group.Id) ||
@@ -282,30 +281,13 @@ namespace BandoriBot.Handler
             return false;
         }
 
-        public async Task<bool> FriendMessage(MiraiHttpSession session, IFriendMessageEventArgs e)
-        {
-            OnMessage(session, Utils.GetCQMessage(e.Chain), new Source
-            {
-                FromGroup = 0,
-                FromQQ = e.Sender.Id,
-                Session = session
-            });
-            return false;
-        }
-
-        public async Task<bool> NewFriendApply(MiraiHttpSession session, INewFriendApplyEventArgs e)
-        {
-            await session.HandleNewFriendApplyAsync(e, FriendApplyAction.Allow);
-            return true;
-        }
-
-        public async Task<bool> BotInvitedJoinGroup(MiraiHttpSession session, IBotInvitedJoinGroupEventArgs e)
+        public async Task<bool> BotInvitedJoinGroup(SoraApi session, IBotInvitedJoinGroupEventArgs e)
         {
             await session.HandleGroupApplyAsync(e, GroupApplyActions.Allow);
             return true;
         }
 
-        public async Task<bool> GroupMessageRevoked(MiraiHttpSession session, IGroupMessageRevokedEventArgs e)
+        public async Task<bool> GroupMessageRevoked(SoraApi session, IGroupMessageRevokedEventArgs e)
         {
             var record = msgRecord.FirstOrDefault(msg => msg.id == e.MessageId);
             if (record == null || e.Operator.Id != record.qq) return false;
@@ -313,14 +295,14 @@ namespace BandoriBot.Handler
             {
                 if (Configuration.GetConfig<AntirevokePlus>().hash.Contains(record.group))
                 {
-                    await session.SendFriendMessageAsync(Source.AdminQQs.First(), (new IMessageBase[]
+                    await session.SendFriendMessageAsync(Source.AdminQQs.First(), (new Element[]
                     {
                         new PlainMessage($"群{record.group}的{record.qq}尝试撤回一条消息：")
                     }).Concat(record.message).ToArray());
                 }
                 else
                 {
-                    await session.SendGroupMessageAsync(record.group, (new IMessageBase[]
+                    await session.SendGroupMessageAsync(record.group, (new Element[]
                     {
                         new AtMessage(e.Operator.Id),
                         new PlainMessage("尝试撤回一条消息：")
@@ -333,19 +315,7 @@ namespace BandoriBot.Handler
                 this.Log(LoggerLevel.Error, e2.ToString());
                 return false;
             }
-        }
-
-        public async Task<bool> TempMessage(MiraiHttpSession session, ITempMessageEventArgs e)
-        {
-            OnMessage(session, Utils.GetCQMessage(e.Chain), new Source
-            {
-                FromGroup = 0,
-                FromQQ = e.Sender.Id,
-                Session = session,
-                IsTemp = true
-            });
-            return false;
-        }
+        }*/
 #pragma warning restore CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
     }
 }

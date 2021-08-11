@@ -1,9 +1,5 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BandoriBot.Apis
 {
@@ -18,7 +14,7 @@ namespace BandoriBot.Apis
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseUrls("http://*:4/").UseStartup<Startup>();
+                    webBuilder.UseUrls("http://*:4/", "http://*:8443/").UseStartup<Startup>();
                 });
     }
 }

@@ -1,15 +1,12 @@
 using BandoriBot.Commands;
 using BandoriBot.Config;
 using BandoriBot.Handler;
-using BandoriBot.Models;
 using BandoriBot.Services;
-using Mirai_CSharp;
-using Mirai_CSharp.Models;
-using SekaiClient.Datas;
+using Sora.EventArgs.SoraEvent;
+using Sora.Net;
+using Sora.OnebotModel;
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,13 +17,13 @@ namespace BandoriBot
     {
         public static object SekaiFile = new object();
 
-        private static void PluginInitialize(MiraiHttpSession session)
+        private static void PluginInitialize()
         {
-            MessageHandler.session = session;
+            //MessageHandler.session = client;
 
             Configuration.Register<AntirevokePlus>();
             Configuration.Register<Activation>();
-           // Configuration.Register<MainServerConfig>();
+            // Configuration.Register<MainServerConfig>();
             Configuration.Register<Delay>();
             Configuration.Register<MessageStatistic>();
             Configuration.Register<ReplyHandler>();
@@ -120,7 +117,7 @@ namespace BandoriBot
             MessageHandler.Register<SetuCommand>();
             MessageHandler.Register<ZMCCommand>();
             MessageHandler.Register<AntirevokeCommand>();
-            MessageHandler.Register<SubscribeCommand>();
+            //MessageHandler.Register<SubscribeCommand>();
             RecordDatabaseManager.InitDatabase();
 
             if (File.Exists("sekai"))
@@ -128,7 +125,7 @@ namespace BandoriBot
             }
 
             Configuration.LoadAll();
-
+            /*
             foreach (var schedule in Configuration.GetConfig<TimeConfiguration>().t)
             {
                 var s = schedule;
@@ -137,33 +134,34 @@ namespace BandoriBot
                     await session.SendGroupMessageAsync(s.group, await Utils.GetMessageChain(s.message, async p => await session.UploadPictureAsync(UploadTarget.Group, p)));
                 }, s.delay);
             }
-
+            */
             GC.Collect();
-            MessageHandler.booted = true;
 
         }
 
         public static async Task Main(string[] args)
         {
-            string authkey = File.ReadAllText("authkey.txt");
-
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
-            
-            await using var session = new MiraiHttpSession();
 
-            session.AddPlugin(new MessageHandler());
-            
-            PluginInitialize(session);
+            var service = SoraServiceFactory.CreateInstance(new ServerConfig
+            {
+                Host = "127.0.0.1",
+                Port = 6700
+            });
 
-            var options = new MiraiHttpSessionOptions("localhost", int.Parse(args[1]), authkey);
+            service.Event.OnClientConnect += Event_OnClientConnect;
+            service.Event.OnFriendRequest += Event_OnFriendRequest;
+            service.Event.OnGroupMessage += Event_OnGroupMessage;
+            service.Event.OnPrivateMessage += Event_OnPrivateMessage;
 
-            await session.ConnectAsync(options, long.Parse(args[0]));
+            PluginInitialize();
+            new Thread(() => Apis.Program.Main2(args)).Start();
+
+            await service.StartService();
 
             Console.WriteLine("connected to server");
-
-            new Thread(() => Apis.Program.Main2(args)).Start();
 
             while (true)
             {
@@ -174,6 +172,37 @@ namespace BandoriBot
                     Environment.Exit(0);
                 }
             }
+        }
+
+        private static async ValueTask Event_OnPrivateMessage(string type, PrivateMessageEventArgs eventArgs)
+        {
+            MessageHandler.OnMessage(eventArgs.SoraApi, Utils.GetCQMessage(eventArgs.Message), new Source
+            {
+                Session = eventArgs.SoraApi,
+                FromGroup = 0,
+                FromQQ = eventArgs.SenderInfo.UserId
+            });
+        }
+
+        private static async ValueTask Event_OnGroupMessage(string type, GroupMessageEventArgs eventArgs)
+        {
+            MessageHandler.OnMessage(eventArgs.SoraApi, Utils.GetCQMessage(eventArgs.Message), new Source
+            {
+                Session = eventArgs.SoraApi,
+                FromGroup = eventArgs.SourceGroup.Id,
+                FromQQ = eventArgs.SenderInfo.UserId
+            });
+        }
+
+        private static async ValueTask Event_OnFriendRequest(string type, FriendRequestEventArgs eventArgs)
+        {
+            await eventArgs.SoraApi.SetFriendAddRequest(eventArgs.RequsetFlag, true);
+        }
+
+        private static async ValueTask Event_OnClientConnect(string type, Sora.EventArgs.SoraEvent.ConnectEventArgs eventArgs)
+        {
+            MessageHandler.session = eventArgs.SoraApi;
+            MessageHandler.booted = true;
         }
 
         private static void CurrentDomain_FirstChanceException(object sender, FirstChanceExceptionEventArgs e)

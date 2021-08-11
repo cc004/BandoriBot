@@ -1,9 +1,11 @@
 using BandoriBot.Handler;
 using BandoriBot.Models;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Mirai_CSharp;
-using Mirai_CSharp.Models;
 using Newtonsoft.Json.Linq;
+using Sora.Entities;
+using Sora.Entities.Base;
+using Sora.Entities.CQCodes;
+using Sora.Entities.CQCodes.CQCodeModel;
+using Sora.Enumeration;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,7 +16,8 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using static Mirai_CSharp.Models.PokeMessage;
+using Sora.Enumeration.EventParamsType;
+using Image = System.Drawing.Image;
 
 namespace BandoriBot
 {
@@ -28,8 +31,38 @@ namespace BandoriBot
             return origin.Replace(at, "");
         }
 
+        public static async Task<List<GroupMemberInfo>> GetMemberList(this SoraApi session, long groupId)
+        {
+            return (await session.GetGroupMemberList(groupId)).groupMemberList
+                .Select(info => new GroupMemberInfo
+                {
+                    GroupId = groupId,
+                    QQId = info.UserId,
+                    PermitType = info.Role switch
+                    {
+                        MemberRoleType.Owner => PermitType.Holder,
+                        MemberRoleType.Admin => PermitType.Manage,
+                        _ => PermitType.None
+                    }
+                }).ToList();
+        }
+
+        public static async Task<List<Models.GroupInfo>> GetGroupList0(this SoraApi session)
+        {
+            return (await session.GetGroupList())
+                .groupList.Select(info => new Models.GroupInfo
+                {
+                    Id = info.GroupId,
+                    Name = info.GroupName
+                }).ToList();
+        }
+
+        public static int SetGroupSpecialTitle(this SoraApi session, long groupId, long qqId, string specialTitle, TimeSpan time)
+        {
+            throw new NotImplementedException();
+        }
         public static string TryGetValueStart<T>(IEnumerable<T> dict, Func<T, string> conv, string start, out T value)
-            {
+        {
             var matches = new List<Tuple<string, T>>();
             foreach (var pair in dict)
             {
@@ -62,38 +95,44 @@ namespace BandoriBot
         }
 
         private static Regex codeReg = new Regex(@"^(.*?)\[(.*?)=(.*?)\](.*)$", RegexOptions.Singleline | RegexOptions.Multiline | RegexOptions.Compiled);
-        
-        public static async Task<IMessageBase[]> GetMessageChain(string msg, Func<string, Task<ImageMessage>> picUploader)
+
+        private static string FixImage(this string imgcode)
+        {
+            return imgcode[1..37].Replace("-", "").ToLower() + ".image";
+        }
+
+        public static List<CQCode> GetMessageChain(string msg)
         {
             Match match;
-            List<IMessageBase> result = new List<IMessageBase>();
+            List<CQCode> result = new List<CQCode>();
 
             while ((match = codeReg.Match(msg)).Success)
             {
                 if (!string.IsNullOrEmpty(match.Groups[1].Value))
-                    result.Add(new PlainMessage(match.Groups[1].Value.Decode()));
+                    result.Add(CQCode.CQText(match.Groups[1].Value.Decode()));
                 var val = match.Groups[3].Value;
                 switch (match.Groups[2].Value)
                 {
-                    case "mirai:at": result.Add(new AtMessage(long.Parse(val))); break;
-                    case "mirai:imageid": result.Add(new ImageMessage(val.Decode(), "", "")); break;
-                    case "mirai:imageurl": result.Add(new ImageMessage("", val.Decode(), "")); break;
-                    case "mirai:imagepath": result.Add(await picUploader(Path.GetFullPath(val.Decode()))); break;
-                    case "mirai:atall": result.Add(new AtAllMessage());break;
-                    case "mirai:json": result.Add(new JsonMessage(val.Decode())); break;
-                    case "mirai:xml": result.Add(new XmlMessage(val.Decode())); break;
-                    case "mirai:poke": result.Add(new PokeMessage(Enum.Parse<PokeType>(val))); break;
-                    case "mirai:face": result.Add(new FaceMessage(int.Parse(val), "")); break;
-                    case "CQ:at,qq": result.Add(new AtMessage(long.Parse(val))); break;
-                    case "CQ:face,id": result.Add(new FaceMessage(int.Parse(val), "")); break;
-                    default: result.Add(new PlainMessage($"[{match.Groups[2].Value}={match.Groups[3].Value}]")); break;
+                    case "mirai:at": result.Add(CQCode.CQAt(long.Parse(val))); break;
+                    case "mirai:imageid": result.Add(CQCode.CQImage(val.Decode().FixImage(), false)); break;
+                    case "mirai:imageurl": result.Add(CQCode.CQImage(val.Decode())); break;
+                    case "mirai:imagepath": result.Add(CQCode.CQImage(val.Decode())); break;
+                    case "mirai:imagenew": result.Add(CQCode.CQImage(val.Decode())); break;
+                    case "mirai:atall": result.Add(CQCode.CQAtAll()); break;
+                    case "mirai:json": result.Add(CQCode.CQJson(val.Decode())); break;
+                    case "mirai:xml": result.Add(CQCode.CQXml(val.Decode())); break;
+                    case "mirai:poke": result.Add(CQCode.CQPoke(long.Parse(val))); break;
+                    case "mirai:face": result.Add(CQCode.CQFace(int.Parse(val))); break;
+                    case "CQ:at,qq": result.Add(CQCode.CQAt(long.Parse(val))); break;
+                    case "CQ:face,id": result.Add(CQCode.CQFace(int.Parse(val))); break;
+                    default: result.Add(CQCode.CQText($"[{match.Groups[2].Value}={match.Groups[3].Value}]")); break;
                 }
                 msg = match.Groups[4].Value;
             }
 
-            if (!string.IsNullOrEmpty(msg)) result.Add(new PlainMessage(msg.Decode()));
+            if (!string.IsNullOrEmpty(msg)) result.Add(CQCode.CQText(msg.Decode()));
 
-            return result.ToArray();
+            return result.ToList();
         }
 
         /*
@@ -125,11 +164,11 @@ public static string FixImage(string origin)
             return Image.FromFile(path) as Bitmap;
         }
 
-        public static async Task<string> GetName(this MiraiHttpSession session, long group, long qq)
+        public static async Task<string> GetName(this SoraApi session, long group, long qq)
         {
             try
             {
-                return (await session.GetGroupMemberInfoAsync(qq, group)).Name;
+                return (await session.GetGroupMemberInfo(qq, group)).memberInfo.Card;
             }
             catch (Exception e)
             {
@@ -141,9 +180,9 @@ public static string FixImage(string origin)
         public static async Task<string> GetName(this Source source)
             => await source.Session.GetName(source.FromGroup, source.FromQQ);
 
-        internal static string GetCQMessage(IEnumerable<IMessageBase> chain)
+        internal static string GetCQMessage(Message chain)
         {
-            return string.Concat(chain.Select(msg => GetCQMessage(msg)));
+            return string.Concat(chain.MessageList.Select(msg => GetCQMessage(msg)));
         }
 
         public static string Encode(this string str)
@@ -156,32 +195,29 @@ public static string FixImage(string origin)
             return str.Replace("&#91;", "[").Replace("&#93;", "]").Replace("&amp;", "&");
         }
 
-        private static string GetCQMessage(IMessageBase msg)
+        private static string GetCQMessage(CQCode msg)
         {
-            switch (msg)
+            switch (msg.CQData)
             {
-                case FaceMessage face:
+                case Face face:
                     return $"[mirai:face={face.Id}]";
-                case PlainMessage plain:
-                    return plain.Message.Encode();
-                case JsonMessage json:
-                    return $"[mirai:json={json.Json.Encode()}]";
-                case XmlMessage xml:
-                    return $"[mirai:xml={xml.Xml.Encode()}]";
-                case AtMessage at:
-                    return $"[mirai:at={at.Target}]";
-                case ImageMessage img:
-                    return img.ImageId != null ? $"[mirai:imageid={img.ImageId}]" : $"[mirai:imageurl={img.Url.Encode()}]";
-                case AtAllMessage atall:
-                    return $"[mirai:atall=]";
-                case PokeMessage poke:
-                    return $"[mirai:poke={poke.Name}]";
-                case QuoteMessage quote:
-                    return "";
-                case SourceMessage _:
-                    return "";
+                case Text plain:
+                    return plain.Content.Encode();
+                case At at:
+                    return $"[mirai:at={at.Traget}]";
+                case Sora.Entities.CQCodes.CQCodeModel.Image img:
+                    return $"[mirai:imagenew={img.ImgFile}]";
+                case Poke poke:
+                    return $"[mirai:poke={poke.Uid}]";
+                case Code code:
+                    switch (msg.Function)
+                    {
+                        case CQFunction.Json: return $"[mirai:json={code.Content}]";
+                        case CQFunction.Xml: return $"[mirai:xml={code.Content}]";
+                        default: return "";
+                    }
                 default:
-                    return msg.ToString().Encode();
+                    return "";//msg.ToString().Encode();
             }
         }
 
@@ -203,7 +239,14 @@ public static string FixImage(string origin)
         {
             var path = Path.Combine("imagecache", $"cache{new Random().Next()}.jpg");
             img.Save(path);
-            return $"[mirai:imagepath={path}]";
+            return $"[mirai:imagepath={Path.GetFullPath(path)}]";
+        }
+
+        public static string ToCache(this byte[] b)
+        {
+            var path = Path.Combine("imagecache", $"cache{new Random().Next()}");
+            File.WriteAllBytes(path, b);
+            return Path.GetFullPath(path);
         }
 
         public static void Log(this object o, LoggerLevel level, object s)
@@ -285,7 +328,7 @@ public static string FixImage(string origin)
             if (typeof(T) == typeof(string))
                 return (T)(object)str;
             else
-                return (T) typeof(T).GetMethod("Parse", BindingFlags.Public | BindingFlags.Static, null, new Type[] { typeof(string) }, null)
+                return (T)typeof(T).GetMethod("Parse", BindingFlags.Public | BindingFlags.Static, null, new Type[] { typeof(string) }, null)
                     .Invoke(null, new object[] { str });
         }
 

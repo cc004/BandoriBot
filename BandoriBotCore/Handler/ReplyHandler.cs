@@ -1,17 +1,10 @@
-using BandoriBot.Commands;
 using BandoriBot.Config;
 using BandoriBot.DataStructures;
-using BandoriBot.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.VisualBasic.CompilerServices;
-using Mirai_CSharp;
-using MsgPack;
-using Newtonsoft.Json.Linq;
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -107,7 +100,7 @@ namespace BandoriBot.Handler
 
         public async Task<bool> OnMessage(HandlerArgs args)
         {
-            var raw = Utils.FindAtMe(args.message, out var isme, args.Sender.Session.QQNumber ?? 0).Trim();
+            var raw = Utils.FindAtMe(args.message, out var isme, args.Sender.Session.GetLoginUserId()).Trim();
             var isadmin = await args.Sender.HasPermission("*", -1);
 
             if (!GetConfig<Whitelist>().hash.Contains(args.Sender.FromGroup) && !isadmin)

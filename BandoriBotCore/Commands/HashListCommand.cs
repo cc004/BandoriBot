@@ -1,11 +1,8 @@
-﻿using System;
+﻿using BandoriBot.Config;
+using BandoriBot.Handler;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using BandoriBot.Config;
-using BandoriBot.Handler;
-using Mirai_CSharp.Models;
 
 namespace BandoriBot.Commands
 {

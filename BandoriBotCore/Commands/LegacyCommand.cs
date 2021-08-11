@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
     [Serializable]
-    public class CommandException : Exception{
+    public class CommandException : Exception
+    {
         public CommandException(string message) : base(message)
         {
         }
@@ -44,7 +43,7 @@ namespace BandoriBot.Commands
             {
                 await Action(args);
             }
-            
+
             catch (TargetInvocationException e)
             {
                 if (e.InnerException is CommandException e2)

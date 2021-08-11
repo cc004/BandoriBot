@@ -1,9 +1,5 @@
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BandoriBot.Config
 {
@@ -17,7 +13,7 @@ namespace BandoriBot.Config
                 ["expire"] = DateTime.Now + expire
             };
             for (int i = 0; i < list.Count; ++i)
-                if ((long) list[i]["id"] == id)
+                if ((long)list[i]["id"] == id)
                 {
                     list[i] = obj;
                     Save();

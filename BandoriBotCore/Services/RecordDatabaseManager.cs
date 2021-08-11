@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BandoriBot.Services
 {
@@ -14,7 +12,7 @@ namespace BandoriBot.Services
         [DllImport("database.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern void FlushFile();
         [DllImport("database.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void AddRecord(long qq, long group, long timestamp, [MarshalAs(UnmanagedType.LPWStr)]string message);
+        private static extern void AddRecord(long qq, long group, long timestamp, [MarshalAs(UnmanagedType.LPWStr)] string message);
         [DllImport("database.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr CacheIndex(int start, int end);
         [DllImport("database.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -28,7 +26,7 @@ namespace BandoriBot.Services
         [DllImport("database.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern void CloseFile();
         public static int Length => RecordLength();
-        private static readonly object @lock = new ();
+        private static readonly object @lock = new();
         public static void Close() => CloseFile();
         public static void InitDatabase()
         {

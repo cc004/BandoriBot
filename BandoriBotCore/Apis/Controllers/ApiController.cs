@@ -2,14 +2,20 @@
 using BandoriBot.Handler;
 using BandoriBot.Services;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace BandoriBot.Apis.Controllers
 {
+    public class TimelineData
+    {
+        public string Data { get; set; }
+        public string Name { get; set; }
+    }
+
     [ApiController]
     public class ApiController : Controller
     {
@@ -55,6 +61,31 @@ namespace BandoriBot.Apis.Controllers
             if (endtime > 0) result = result.Where(r => r.timestamp <= endtime);
             if (!string.IsNullOrEmpty(keyword)) result = result.Where(r => r.message.Contains(keyword));
             return result.Take(limit).ToArray();
+        }
+
+        private static readonly object iolock = new object();
+
+        private static readonly Regex reg = new Regex(@"-4010([234])(\d\d)0([1-5])）造成(\d*)伤害", RegexOptions.Compiled);
+
+        private static string Fix(string name)
+        {
+            var s = name.Split('-', '.');
+            return $"{s[1]}-{s[2]}-{s[3]}-{s[0]}.txt";
+        }
+        [HttpPost("record")]
+        public async Task<ActionResult> PostRecord(TimelineData data)
+        {
+            var start = data.Data.IndexOf("--[[");
+            var end = data.Data.IndexOf("]]");
+            var text = data.Data[(start + 4)..end];
+            await System.IO.File.AppendAllTextAsync("records.txt", data.Data + "\n");
+            var pdata = reg.Match(text);
+
+            var dmg = int.Parse(pdata.Groups[4].Value);
+            await MessageHandler.session.UploadGroupFile(1095742657L, Encoding.UTF8.GetBytes(text).ToCache()
+
+                , Fix(data.Name));
+            return NoContent();
         }
 
         [HttpGet("countv2")]

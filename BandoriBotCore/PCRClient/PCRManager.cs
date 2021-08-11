@@ -1,13 +1,3 @@
-using BandoriBot;
-using BandoriBot.Config;
-using BandoriBot.Handler;
-using Newtonsoft.Json.Linq;
-using PCRClient;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 namespace PCRClientTest
 {/*
     public class PCRManager

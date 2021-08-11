@@ -6,10 +6,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -41,7 +39,7 @@ namespace BandoriBot.Commands
     public class SetuCommand : ICommand
     {
         private readonly Random rand = new Random();
-        
+
         private static readonly HttpClient client = new HttpClient();
 
         static SetuCommand()

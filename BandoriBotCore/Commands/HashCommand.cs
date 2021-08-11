@@ -1,10 +1,8 @@
 using BandoriBot.Config;
-using Mirai_CSharp.Models;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Sora.Enumeration.EventParamsType;
 
 namespace BandoriBot.Commands
 {
@@ -12,8 +10,8 @@ namespace BandoriBot.Commands
     {
         public abstract List<string> Alias { get; }
 
-        protected virtual GroupPermission AddPermission => GroupPermission.Administrator;
-        protected virtual GroupPermission DelPermission => GroupPermission.Administrator;
+        protected virtual MemberRoleType AddPermission => MemberRoleType.Admin;
+        protected virtual MemberRoleType DelPermission => MemberRoleType.Admin;
         protected abstract string Permission { get; }
         protected virtual long GetTarget(TValue value) => 0;
         public virtual async Task Run(CommandArgs args)
