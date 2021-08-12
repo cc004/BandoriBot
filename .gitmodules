@@ -1,0 +1,3 @@
+[submodule "TrProtocol"]
+	path = TrProtocol
+	url = git@github.com:cc004/TrProtocol.git

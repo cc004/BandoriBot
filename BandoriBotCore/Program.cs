@@ -55,6 +55,7 @@ namespace BandoriBot
             MessageHandler.Register<WhitelistHandler>();
             MessageHandler.Register<RepeatHandler>();
             MessageHandler.Register(Configuration.GetConfig<MessageStatistic>());
+            MessageHandler.Register<LoginCommand>();
             //MessageHandler.Register(Configuration.GetConfig<MainServerConfig>());
 
             MessageHandler.Register<YCM>();
@@ -135,7 +136,11 @@ namespace BandoriBot
                 }, s.delay);
             }
             */
-            GC.Collect();
+            for (int i = 0; i < 10; ++i)
+            {
+                GC.Collect();
+                Thread.Sleep(1000);
+            }
 
         }
 
@@ -144,7 +149,7 @@ namespace BandoriBot
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
-
+            
             var service = SoraServiceFactory.CreateInstance(new ServerConfig
             {
                 Host = "127.0.0.1",
@@ -159,19 +164,10 @@ namespace BandoriBot
             PluginInitialize();
             new Thread(() => Apis.Program.Main2(args)).Start();
 
-            await service.StartService();
-
             Console.WriteLine("connected to server");
 
-            while (true)
-            {
-                var r = Console.ReadLine();
-                if (r == "exit")
-                {
-                    RecordDatabaseManager.Close();
-                    Environment.Exit(0);
-                }
-            }
+            await service.StartService();
+
         }
 
         private static async ValueTask Event_OnPrivateMessage(string type, PrivateMessageEventArgs eventArgs)
