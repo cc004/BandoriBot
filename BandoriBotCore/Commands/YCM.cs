@@ -60,7 +60,7 @@ namespace BandoriBot.Commands
                 indexes.Add(car.index);
                 result += car.ToString(now) + "\n";
             }
-            await args.Callback(string.IsNullOrEmpty(result) ? "myc" : result.Substring(0, result.Length - 1));
+            await args.Callback(string.IsNullOrEmpty(result) ? "myc" : "防止当成车牌所以加的奇怪的东西\n" + result.Substring(0, result.Length - 1));
         }
     }
 }
