@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using BandoriBot.Models;
 using SekaiClient;
 using SekaiClient.Datas;
+using YukariToolBox.FormatLog;
 
 namespace BandoriBot
 {
@@ -158,7 +159,7 @@ namespace BandoriBot
 
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
             
-            var service = SoraServiceFactory.CreateInstance(new ServerConfig
+            var service = SoraServiceFactory.CreateInstance(new ClientConfig()
             {
                 Host = "127.0.0.1",
                 Port = uint.Parse(args[1])
@@ -227,24 +228,16 @@ namespace BandoriBot
 
         private static async Task Testing()
         {
-            return;
-            var client = new SekaiClient.SekaiClient(new EnvironmentInfo(), false)
-            {
-                DebugWrite = text =>
-                {
-                    var stack = new StackTrace();
-                    var method = stack.GetFrame(1).GetMethod();
-                    Utils.Log(LoggerLevel.Debug, $"[{method.DeclaringType.Name}::{method.Name}]".PadRight(32) + text);
-                }
-            };
-            await client.UpgradeEnvironment();
-            var user = await client.Register();
-            await client.Login(user);
+            /*
+            //Log.SetLogLevel(LogLevel.Debug);
+            var client = SekaiClient.SekaiClient.StaticClient;
+            client.InitializeAdid();
+            client.UpgradeEnvironment().Wait();
+            var user = client.Register().Result;
+            client.Login(user).Wait();
             await MasterData.Initialize(client);
-            await client.PassTutorial(true);
-            var eventId = MasterData.Instance.CurrentEvent.id;
-            var result = await client.CallUserApi($"/event/{eventId}/ranking?targetRank={1000}", HttpMethod.Get, null);
-            Environment.Exit(0);
+            var currency = client.PassTutorial().Result;
+            var result = string.Join("\n", client.Gacha(currency).Result);*/
         }
     }
 }
