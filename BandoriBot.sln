@@ -4,9 +4,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.29905.134
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BandoriBot", "BandoriBotCore\BandoriBot.csproj", "{6E437A51-62A4-4090-9A22-1459FA7998F4}"
-	ProjectSection(ProjectDependencies) = postProject
-		{EE84567E-8C55-428D-A67D-26289657005D} = {EE84567E-8C55-428D-A67D-26289657005D}
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MsgPack", "MsgPack\MsgPack.csproj", "{A2097E23-A7CE-4D55-A0A7-95D350727ADF}"
 EndProject

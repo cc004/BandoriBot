@@ -116,9 +116,10 @@ namespace BandoriBot.Handler
                 }
                 return false;
             }
-
             if (isme)
             {
+
+                return false;
                 if (GetConfig<Blacklist>().hash.Contains(args.Sender.FromQQ))
                 {
                     await args.Callback("调戏机器人吃枣药丸");
@@ -136,7 +137,7 @@ namespace BandoriBot.Handler
             {
                 IEnumerable<Func<string>> pending = new List<Func<string>>();
 
-                pending = pending.Concat(FitRegex(data3, raw).Select(tuple => new Func<string>(() => FitReply(tuple, args.Sender))));
+                //pending = pending.Concat(FitRegex(data3, raw).Select(tuple => new Func<string>(() => FitReply(tuple, args.Sender))));
 
                 pending = pending.Concat(FitRegex(data4, raw).Select(tuple => new Func<string>(() =>
                     GetFunction(tuple.Item2.reply)(tuple.Item1, args.Sender, args.message, isadmin, s => args.Callback(s).Wait()))));

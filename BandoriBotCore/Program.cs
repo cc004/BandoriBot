@@ -6,10 +6,16 @@ using Sora.EventArgs.SoraEvent;
 using Sora.Net;
 using Sora.OnebotModel;
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 using System.Runtime.ExceptionServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using BandoriBot.Models;
+using SekaiClient;
+using SekaiClient.Datas;
 
 namespace BandoriBot
 {
@@ -65,7 +71,7 @@ namespace BandoriBot
             MessageHandler.Register<DelayCommand>();
             MessageHandler.Register<AntirevokePlusCommand>();
             MessageHandler.Register<SekaiCommand>();
-            MessageHandler.Register<SekaiPCommand>();
+            //MessageHandler.Register<SekaiPCommand>();
             MessageHandler.Register<WhitelistCommand>();
             MessageHandler.Register<GachaCommand>();
             MessageHandler.Register<GachaListCommand>();
@@ -146,6 +152,8 @@ namespace BandoriBot
 
         public static async Task Main(string[] args)
         {
+            await Testing();
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
@@ -153,7 +161,7 @@ namespace BandoriBot
             var service = SoraServiceFactory.CreateInstance(new ServerConfig
             {
                 Host = "127.0.0.1",
-                Port = 6700
+                Port = uint.Parse(args[1])
             });
 
             service.Event.OnClientConnect += Event_OnClientConnect;
@@ -172,7 +180,7 @@ namespace BandoriBot
 
         private static async ValueTask Event_OnPrivateMessage(string type, PrivateMessageEventArgs eventArgs)
         {
-            MessageHandler.OnMessage(eventArgs.SoraApi, Utils.GetCQMessage(eventArgs.Message), new Source
+            await MessageHandler.OnMessage(eventArgs.SoraApi, Utils.GetCQMessage(eventArgs.Message), new Source
             {
                 Session = eventArgs.SoraApi,
                 FromGroup = 0,
@@ -182,7 +190,7 @@ namespace BandoriBot
 
         private static async ValueTask Event_OnGroupMessage(string type, GroupMessageEventArgs eventArgs)
         {
-            MessageHandler.OnMessage(eventArgs.SoraApi, Utils.GetCQMessage(eventArgs.Message), new Source
+            await MessageHandler.OnMessage(eventArgs.SoraApi, Utils.GetCQMessage(eventArgs.Message), new Source
             {
                 Session = eventArgs.SoraApi,
                 FromGroup = eventArgs.SourceGroup.Id,
@@ -219,7 +227,23 @@ namespace BandoriBot
 
         private static async Task Testing()
         {
-            Console.WriteLine(await JJCManager.Instance.Callapi("环奈水黑布丁空花望"));
+            return;
+            var client = new SekaiClient.SekaiClient(new EnvironmentInfo(), false)
+            {
+                DebugWrite = text =>
+                {
+                    var stack = new StackTrace();
+                    var method = stack.GetFrame(1).GetMethod();
+                    Utils.Log(LoggerLevel.Debug, $"[{method.DeclaringType.Name}::{method.Name}]".PadRight(32) + text);
+                }
+            };
+            await client.UpgradeEnvironment();
+            var user = await client.Register();
+            await client.Login(user);
+            await MasterData.Initialize(client);
+            await client.PassTutorial(true);
+            var eventId = MasterData.Instance.CurrentEvent.id;
+            var result = await client.CallUserApi($"/event/{eventId}/ranking?targetRank={1000}", HttpMethod.Get, null);
             Environment.Exit(0);
         }
     }

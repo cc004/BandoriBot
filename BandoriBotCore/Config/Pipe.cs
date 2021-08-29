@@ -25,6 +25,8 @@ namespace BandoriBot.Config
         private BinaryWriter writer;
         private IPEndPoint ep;
 
+        public Queue<string> history = new();
+
         public InteractClient(string host)
         {
             var s = host.Split(':');
@@ -63,7 +65,12 @@ namespace BandoriBot.Config
                     for (; ; )
                     {
                         var s = reader.ReadString();
-                        if (!string.IsNullOrEmpty(s)) Input?.Invoke(s);
+                        if (!string.IsNullOrEmpty(s))
+                        {
+                            history.Enqueue(s);
+                            if (history.Count > 1000) history.Dequeue();
+                            Input?.Invoke(s);
+                        }
                     }
                 }
                 catch
@@ -87,8 +94,13 @@ namespace BandoriBot.Config
                 pair.Value.Input += msg =>
                 {
                     this.Log(Models.LoggerLevel.Debug, msg);
-                    MessageHandler.session.SendGroupMessage(pair.Key, CQCode.CQText(msg)).AsTask().Wait();
+                    //MessageHandler.session.SendGroupMessage(pair.Key, CQCode.CQText(msg)).AsTask().Wait();
                 };
+        }
+
+        public string GetHistory(long group)
+        {
+            return string.Join('\n', interacts[group].history);
         }
 
         public void SendMsg(long group, string msg)

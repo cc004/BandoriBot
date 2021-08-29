@@ -14,6 +14,7 @@ namespace BandoriBot.Commands
 
         public async Task Run(CommandArgs args)
         {
+            return;
             var Gachas = GachaManager.Instance.GetGachas();
             int max = Gachas.Length;
             int index = 1;

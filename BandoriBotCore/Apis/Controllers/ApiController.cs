@@ -31,7 +31,6 @@ namespace BandoriBot.Apis.Controllers
         [HttpGet("execute")]
         public async Task<ActionResult<string>> Execute(string message)
         {
-            if (!await CheckPermission("execute")) return BadRequest();
             var source = new Source { FromGroup = 0, IsTemp = false, FromQQ = GetUID(), Session = MessageHandler.session };
             var result = new StringBuilder();
             await MessageHandler.instance.OnMessage(new HandlerArgs
@@ -71,6 +70,11 @@ namespace BandoriBot.Apis.Controllers
         {
             var s = name.Split('-', '.');
             return $"{s[1]}-{s[2]}-{s[3]}-{s[0]}.txt";
+        }
+        [HttpGet("history")]
+        public async Task<ActionResult<string>> PostRecord(long group)
+        {
+            return Configuration.GetConfig<Pipe>().GetHistory(group);
         }
         [HttpPost("record")]
         public async Task<ActionResult> PostRecord(TimelineData data)

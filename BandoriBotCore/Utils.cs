@@ -249,6 +249,29 @@ public static string FixImage(string origin)
             return Path.GetFullPath(path);
         }
 
+        private static Font font = new Font(FontFamily.GenericMonospace, 10f, FontStyle.Regular);
+        private static Brush brush = Brushes.Black;
+        public static string ToImageText(this string str)
+        {
+            using var bitmap = new Bitmap(1, 1);
+            using var g = Graphics.FromImage(bitmap);
+            var lines = str.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+            var sizes = lines.Select(l => g.MeasureString(l, font)).ToArray();
+            var img = new Bitmap((int)sizes.Max(s => s.Width) + 6, (int)sizes.Sum(s => s.Height) + 6);
+            using (var g2 = Graphics.FromImage(img))
+            {
+                g2.Clear(Color.White);
+                var h = 3f;
+                for (int i = 0; i < lines.Length; ++i)
+                {
+                    g2.DrawString(lines[i], font, brush, 3, h);
+                    h += sizes[i].Height;
+                }
+            }
+
+            return GetImageCode(img);
+        }
+
         public static void Log(this object o, LoggerLevel level, object s)
         {
             lock (Console.Out)
