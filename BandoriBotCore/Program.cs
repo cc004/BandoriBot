@@ -228,6 +228,11 @@ namespace BandoriBot
 
         private static async Task Testing()
         {
+            var client = new SekaiClient.SekaiClient(new EnvironmentInfo(), false)
+            {
+            };
+
+            await client.UpgradeEnvironment();
             /*
             //Log.SetLogLevel(LogLevel.Debug);
             var client = SekaiClient.SekaiClient.StaticClient;

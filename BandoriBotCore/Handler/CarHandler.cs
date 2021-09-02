@@ -12,8 +12,8 @@ namespace BandoriBot.Handler
 {
     public class CarHandler : IMessageHandler
     {
-        private static readonly string source = HttpUtility.UrlEncode("冲冲");
-        private static readonly string token = "2NmWeiklE";
+        private static readonly string source = HttpUtility.UrlEncode("喵喵喵");
+        private static readonly string token = "oYaAqHVn63";
         private static List<Car> sekaicars = new List<Car>();
 
         public static event Action<Car> OnNewCar;

@@ -52,7 +52,7 @@ namespace BandoriBot.Commands
 
             string result = "";
             HashSet<int> indexes = new HashSet<int>();
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
 
             foreach (Car car in cars)
             {
@@ -60,7 +60,7 @@ namespace BandoriBot.Commands
                 indexes.Add(car.index);
                 result += car.ToString(now) + "\n";
             }
-            await args.Callback(string.IsNullOrEmpty(result) ? "myc" : result.Substring(0, result.Length - 1).ToImageText());
+            await args.Callback(string.IsNullOrEmpty(result) ? "myc" : " " + result.Substring(0, result.Length - 1));
         }
     }
 }

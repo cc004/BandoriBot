@@ -9,6 +9,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Websocket.Client.Logging;
 
 namespace BandoriBot.Handler
 {
@@ -27,7 +28,7 @@ namespace BandoriBot.Handler
         {
             get
             {
-                var t = DateTime.Now;
+                var t = DateTime.UtcNow;
 
                 lock (cars)
                 {
@@ -48,17 +49,27 @@ namespace BandoriBot.Handler
             Running = false;
         }
 
+
         private void StationListener_OnMsg(JObject obj)
         {
-            if (obj["status"].ToString() != "success" || obj["action"].ToString() != "sendRoomNumberList") return;
-
-            foreach (JObject car in (JArray)obj["response"])
+            if (obj["status"].ToString() != "success" ) return;
+            var resp = obj["response"];
+            switch ((string) obj["action"])
             {
-                var c = new Car(car);
-                lock (cars)
-                    cars.Add(c);
-                OnNewCar?.Invoke(c);
+                case "sendServerTime":
+                    Car.DeltaTime = (long)resp["time"] - DateTime.UtcNow.ToTimestamp();
+                    break;
+                case "sendRoomNumberList":
+                    foreach (JObject car in (JArray)resp)
+                    {
+                        var c = new Car(car);
+                        lock (cars)
+                            cars.Add(c);
+                        OnNewCar?.Invoke(c);
+                    }
+                    break;
             }
+
         }
 
         private async Task SendMsg(object json)

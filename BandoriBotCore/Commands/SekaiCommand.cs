@@ -43,7 +43,7 @@ namespace BandoriBot.Commands
                         try
                         {
                             this.Log(LoggerLevel.Info, $"gacha inherit for user {source.FromQQ}: {inherit}");
-                            source.Session.SendPrivateMessage(source.FromQQ, CQCode.CQText($"引继id: {inherit}"));
+                            source.Session.SendPrivateMessage(source.FromQQ, Utils.GetMessageChain($"引继id: {inherit}".ToImageText()));
                         }
                         catch { }
                     }
