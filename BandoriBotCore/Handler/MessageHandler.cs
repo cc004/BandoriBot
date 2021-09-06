@@ -52,27 +52,17 @@ namespace BandoriBot.Handler
         private static PermissionConfig cfg = Configuration.GetConfig<PermissionConfig>();
 
         private async Task<bool> CheckPermission(long target = 0,
-            MemberRoleType required = MemberRoleType.Admin)
-        {
-            var qq = FromQQ;
-            return (await Session.GetGroupMemberInfo(target, FromQQ)).memberInfo.Role <= required;
-        }
+            MemberRoleType required = MemberRoleType.Admin) =>
+            (await Session.GetGroupMemberInfo(target, FromQQ)).memberInfo.Role >= required;
 
-        public async Task<bool> HasPermission(string perm) =>
-            IsSuperadmin || perm == null || FromGroup > 0 && await CheckPermission(FromGroup) ||
-            cfg.t.ContainsKey(FromQQ) && (
-            cfg.t[FromQQ].Contains($"*.{perm}") ||
-            cfg.t[FromQQ].Contains($"{FromGroup}.{perm}")) ||
-            perm.Contains('.') && await HasPermission(perm.Substring(0, perm.LastIndexOf('.'))) ||
-            perm != "*" && await HasPermission("*", FromGroup);
-
+        public async Task<bool> HasPermission(string perm) => await HasPermission(perm, -1);
         public async Task<bool> HasPermission(string perm, long group) =>
-            IsSuperadmin || perm == null || group > 0 && await CheckPermission(group) ||
+            IsSuperadmin || perm == null ||
             cfg.t.ContainsKey(FromQQ) && (
             cfg.t[FromQQ].Contains($"*.{perm}") ||
             cfg.t[FromQQ].Contains($"{group}.{perm}")) ||
             perm.Contains('.') && await HasPermission(perm.Substring(0, perm.LastIndexOf('.')), group) ||
-            perm != "*" && await HasPermission("*", group);
+            perm != "*" && await HasPermission("*", group) || group > 0 && await CheckPermission(group);
     }
 
     public class MessageHandler : IMessageHandler

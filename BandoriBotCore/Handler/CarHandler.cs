@@ -24,7 +24,7 @@ namespace BandoriBot.Handler
         {
             get
             {
-                var nt = DateTime.Now;
+                var nt = DateTime.UtcNow;
                 lock (sekaicars)
                 {
                     sekaicars = sekaicars.Where(car => nt - car.time <= (car.index > 99999 ? new TimeSpan(0, 10, 0) : new TimeSpan(0, 4, 0)))
@@ -124,9 +124,9 @@ namespace BandoriBot.Handler
                     {
                         await args.Callback($"无法连接到bandoristation.com");
                     }
-                    else if (res["status"].ToString() != "success" && res["status"].ToString() != "duplicate_number_submit")
+                    else if (res["status"].ToString() != "success")
                     {
-                        await args.Callback($"上传车牌时发生错误: {res["status"]}");
+                        await args.Callback($"上传车牌时发生错误: {res["response"]}");
                     }
                     return true;
                 case CarType.Sekai:
@@ -136,7 +136,7 @@ namespace BandoriBot.Handler
                     {
                         index = car,
                         rawmessage = raw_message,
-                        time = DateTime.Now
+                        time = DateTime.UtcNow
                     };
                     lock (sekaicars)
                         sekaicars.Add(caro);
