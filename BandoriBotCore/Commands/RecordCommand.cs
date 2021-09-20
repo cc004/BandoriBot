@@ -11,7 +11,7 @@ namespace BandoriBot.Commands
         }
 
         public List<string> Alias => new List<string> { "有多少人在说" };
-
+        
         public async Task Run(CommandArgs args)
         {
             if (!await args.Source.HasPermission("chatrecord", -1)) return;

@@ -198,7 +198,7 @@ namespace BandoriBot.Commands
 
                         var result = ReplyHandler.FitRegex(data, splits[1]);
                         await args.Callback($"All regex that match `{splits[1]}`:\n" +
-                            $"{string.Join('\n', data.Where(tuple => ReplyHandler.regexCache[tuple.Key].Match(splits[1]).Success).Select(tuple => tuple.Key).Select(str => str[1..^1]))}");
+                            $"{string.Join('\n', data.Where(tuple => ReplyHandler.regexCache[tuple.Key].Match(splits[1]).Success).Select(tuple => tuple.Key))}");
                         break;
                     }
             }

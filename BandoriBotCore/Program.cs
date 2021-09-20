@@ -30,7 +30,6 @@ namespace BandoriBot
 
             Configuration.Register<AntirevokePlus>();
             // Configuration.Register<MainServerConfig>();
-            Configuration.Register<Delay>();
             Configuration.Register<MessageStatistic>();
             Configuration.Register<ReplyHandler>();
             Configuration.Register<Whitelist>();
@@ -68,7 +67,6 @@ namespace BandoriBot
             MessageHandler.Register<QueryCommand>();
             MessageHandler.Register<ReplyCommand>();
             MessageHandler.Register<FindCommand>();
-            MessageHandler.Register<DelayCommand>();
             MessageHandler.Register<AntirevokePlusCommand>();
             MessageHandler.Register<SekaiCommand>();
             //MessageHandler.Register<SekaiPCommand>();

@@ -97,9 +97,7 @@ namespace BandoriBot.Handler
 
             car = int.Parse(message.Substring(0, split));
             LastCar[args.Sender.FromQQ] = car;
-
-            await Task.Delay(Configuration.GetConfig<Delay>()[args.Sender.FromQQ] * 1000);
-
+            
             string raw_message = car.ToString("d5") + " " + message.Substring(split);
 
             // ignore non-text messages
