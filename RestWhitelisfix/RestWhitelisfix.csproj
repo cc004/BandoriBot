@@ -32,7 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="OTAPI">
-      <HintPath>..\..\TShock4.5.4_Terraria1.4.2.3\OTAPI.dll</HintPath>
+      <HintPath>..\RestCharacter\bin\Release\OTAPI.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -43,10 +43,10 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
     <Reference Include="TerrariaServer">
-      <HintPath>..\..\TShock4.5.4_Terraria1.4.2.3\TerrariaServer.exe</HintPath>
+      <HintPath>..\RestCharacter\bin\Release\TerrariaServer.exe</HintPath>
     </Reference>
     <Reference Include="TShockAPI">
-      <HintPath>..\..\TShock4.5.4_Terraria1.4.2.3\ServerPlugins\TShockAPI.dll</HintPath>
+      <HintPath>..\RestCharacter\bin\Release\TShockAPI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
