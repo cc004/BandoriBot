@@ -202,6 +202,7 @@ namespace BandoriBot.Handler
             int func = 0;
             var sb = new StringBuilder();
 
+            _ = typeof(SekaiClient.SekaiClient);
             var usings = new string[]
             {
                 "BandoriBot",
@@ -213,13 +214,22 @@ namespace BandoriBot.Handler
                 "System.Linq"
             };
 
-            var references = new List<PortableExecutableReference>();
+            var refs = new List<string>();
 
-            foreach (var asm2 in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (var name in Assembly.GetExecutingAssembly().GetReferencedAssemblies())
             {
                 try
                 {
-                    references.Add(MetadataReference.CreateFromFile(asm2.Location));
+                    refs.Add(Assembly.Load(name).Location);
+                }
+                catch { }
+            }
+
+            foreach (var asm1 in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                try
+                {
+                    refs.Add(asm1.Location);
                 }
                 catch { }
             }
@@ -243,6 +253,8 @@ namespace BandoriBot.Handler
             }
 
             sb.Append("\n}\n");
+
+            var references = refs.Where(r => !string.IsNullOrEmpty(r)).Select(r => MetadataReference.CreateFromFile(r));
 
             var codeText = sb.ToString();
             File.WriteAllText("debug.cs", codeText);

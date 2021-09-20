@@ -1,4 +1,6 @@
 using BandoriBot.Config;
+using BandoriBot.Handler;
+using Mirai_CSharp.Models;
 using Native.Csharp.App.Terraria;
 using Newtonsoft.Json.Linq;
 using System;
@@ -21,8 +23,11 @@ namespace BandoriBot.Commands
             [Superadmin]
             public static void Default(CommandArgs args)
             {
-                args.Callback(string.Join("\n", Configuration.GetConfig<ServerManager>().GetServer(args)
-                    .RunCommand(args.Arg)["response"].Select(s => s.ToString())));
+                if (args.Arg == null || args.Arg == "")
+                    args.Callback("您未定义指令，请输入正确指令！");
+                else
+                    args.Callback(string.Join("\n", Configuration.GetConfig<ServerManager>().GetServer(args)
+                        .RunCommand(args.Arg)["response"].Select(s => s.ToString())));
             }
         }
         public class 随机禁言
@@ -57,7 +62,14 @@ namespace BandoriBot.Commands
                 args.Callback($"你注册的泰拉角色名是{username}=>你的泰拉角色已绑定{qq}可以进入服务器了哦～");
             }
         }
-
+        public class Wiki
+        {
+            public static void Main(CommandArgs args,string name)
+            {
+                //https://terraria.fandom.com/zh/wiki/Special:%E6%90%9C%E7%B4%A2?query=木剑
+                args.Callback("已经从WiKi上为你找到了【"+name+"】，请点击链接查看哦：\rhttps://terraria.fandom.com/zh/wiki/Special:%E6%90%9C%E7%B4%A2?search=" + System.Web.HttpUtility.UrlEncode(name));
+            }
+        }
         public class 泰拉注册
         {
             private static readonly HashSet<char> alphabet = new HashSet<char>("1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
@@ -65,6 +77,13 @@ namespace BandoriBot.Commands
             {
                 var binding = Configuration.GetConfig<AccountBinding>().t;
                 var serverbinding = Configuration.GetConfig<ServerManager>().bindings;
+                var noreg = Configuration.GetConfig<ServerManager>().GetServer(args)?.noRegister;
+
+                if (!string.IsNullOrEmpty(noreg))
+                {
+                    args.Callback(noreg);
+                    return;
+                }
 
                 if (args.Source.FromGroup != 0)
                 {
@@ -126,13 +145,127 @@ namespace BandoriBot.Commands
         {
             public static void Main(CommandArgs args)
             {
-                args.Callback(string.Join("\n", Configuration.GetConfig<ServerManager>().servers.Select((server) =>
+                args.Callback(string.Join("", Configuration.GetConfig<ServerManager>().servers.Select((server) =>
                 {
-                    var arr = server.Value.RunRest("/v2/users/activelist")["activeusers"]
-                        .ToString().Split('\t').Where((s) => !string.IsNullOrWhiteSpace(s)).ToArray();
-                    return $"当前{server.Key}在线的玩家有{arr.Length}个:\n{string.Join(" ", arr.Select(s => $"[{s}]"))}";
+                    try
+                    {
+                        if (!server.Value.display)
+                            if (server.Key == "流光之城")
+                            {
+                                var online = string.Join("\n", server.Value.RunCommand("/list")["response"].Select(s => s.ToString()));
+                                return $"『流光之城』在线({online.Split(',').Count()}/100):\n" + string.Join(" ", online.Split('：')[1].Split(',').Select(s => $"[{s}]")) + "\n";
+                            }
+                            else
+                            {
+                                var arr = server.Value.RunRest("/v2/users/activelist")["activeusers"]
+                                    .ToString().Split('\t').Where((s) => !string.IsNullOrWhiteSpace(s)).ToArray();
+                                return $"『{server.Key}』在线({arr.Length}/100):\n{string.Join(" ", arr.Select(s => $"[{s}]"))}\n";
+                            }
+                        else
+                            return "";
+                    }
+                    catch
+                    {
+                        return "";
+                    }
                 })));
-
+            }
+            public static void Main(CommandArgs args, string name)
+            {
+                switch (name)
+                {
+                    case "主城":
+                        {
+                            var server = Configuration.GetConfig<ServerManager>().servers.ToList().Find((KeyValuePair<string, Server> k) => k.Key == "流光之城");
+                            var online = string.Join("\n", server.Value.RunCommand("/list")["response"].Select(s => s.ToString()));
+                            args.Callback($"『流光之城』在线({online.Split(',').Count()}/100):\n" + string.Join(" ", online.Split('：')[1].Split(',').Select(s => $"[{s}]")) + "\n");
+                        }
+                        break;
+                    case "生存":
+                        {
+                            args.Callback(string.Join("", Configuration.GetConfig<ServerManager>().servers.Select((server) =>
+                            {
+                                try
+                                {
+                                    if (!server.Value.display && server.Key.Contains("生存"))
+                                        if (server.Key == "流光之城")
+                                        {
+                                            var online = string.Join("\n", server.Value.RunCommand("/list")["response"].Select(s => s.ToString()));
+                                            return $"『流光之城』在线({online.Split(',').Count()}/100):\n" + string.Join(" ", online.Split('：')[1].Split(',').Select(s => $"[{s}]")) + "\n";
+                                        }
+                                        else
+                                        {
+                                            var arr = server.Value.RunRest("/v2/users/activelist")["activeusers"]
+                                                .ToString().Split('\t').Where((s) => !string.IsNullOrWhiteSpace(s)).ToArray();
+                                            return $"『{server.Key}』在线({arr.Length}/100):\n{string.Join(" ", arr.Select(s => $"[{s}]"))}\n";
+                                        }
+                                    else
+                                        return "";
+                                }
+                                catch
+                                {
+                                    return "";
+                                }
+                            })));
+                        }
+                        break;
+                    case "饥荒":
+                        {
+                            args.Callback(string.Join("", Configuration.GetConfig<ServerManager>().servers.Select((server) =>
+                            {
+                                try
+                                {
+                                    if (!server.Value.display && server.Key.Contains("饥荒"))
+                                        if (server.Key == "流光之城")
+                                        {
+                                            var online = string.Join("\n", server.Value.RunCommand("/list")["response"].Select(s => s.ToString()));
+                                            return $"『流光之城』在线({online.Split(',').Count()}/100):\n" + string.Join(" ", online.Split('：')[1].Split(',').Select(s => $"[{s}]")) + "\n";
+                                        }
+                                        else
+                                        {
+                                            var arr = server.Value.RunRest("/v2/users/activelist")["activeusers"]
+                                                .ToString().Split('\t').Where((s) => !string.IsNullOrWhiteSpace(s)).ToArray();
+                                            return $"『{server.Key}』在线({arr.Length}/100):\n{string.Join(" ", arr.Select(s => $"[{s}]"))}\n";
+                                        }
+                                    else
+                                        return "";
+                                }
+                                catch
+                                {
+                                    return "";
+                                }
+                            })));
+                        }
+                        break;
+                    default:
+                        {
+                            args.Callback(string.Join("", Configuration.GetConfig<ServerManager>().servers.Select((server) =>
+                            {
+                                try
+                                {
+                                    if (!server.Value.display)
+                                        if (server.Key == "流光之城")
+                                        {
+                                            var online = string.Join("\n", server.Value.RunCommand("/list")["response"].Select(s => s.ToString()));
+                                            return $"『流光之城』在线({online.Split(',').Count()}/100):\n" + string.Join(" ", online.Split('：')[1].Split(',').Select(s => $"[{s}]")) + "\n";
+                                        }
+                                        else
+                                        {
+                                            var arr = server.Value.RunRest("/v2/users/activelist")["activeusers"]
+                                                .ToString().Split('\t').Where((s) => !string.IsNullOrWhiteSpace(s)).ToArray();
+                                            return $"『{server.Key}』在线({arr.Length}/100):\n{string.Join(" ", arr.Select(s => $"[{s}]"))}\n";
+                                        }
+                                    else
+                                        return "";
+                                }
+                                catch
+                                {
+                                    return "";
+                                }
+                            })));
+                        }
+                        break;
+                }
             }
         }
 
@@ -282,7 +415,7 @@ namespace BandoriBot.Commands
                 {
                     throw new CommandException("该泰拉角色不存在于服务器，请输入 泰拉玩家 查看！", e);
                 }
-                Bitmap bitmap = new Bitmap(80 * 22, 80 * 12);
+                Bitmap bitmap = new Bitmap(80 * 22, 80 * 12);//1760x960
                 Graphics canvas = Graphics.FromImage(bitmap);
 
                 canvas.Clear(Color.White);
@@ -317,6 +450,7 @@ namespace BandoriBot.Commands
                 background.Dispose();
                 frame.Dispose();
                 args.Callback(Utils.GetImageCode(bitmap));
+                //args.Callback("test");
             }
 
             public static void Main(CommandArgs args)
@@ -359,15 +493,104 @@ namespace BandoriBot.Commands
                 args.Callback(RankFormat($"当前物品ID{id}的排行如下: ", Configuration.GetConfig<ServerManager>().GetServer(args).RunRest($"/v1/itemrank/rankboard?&id={id}").Where(t => (int)t["count"] > 0),
                     rank => $"共拥有{rank["count"]}个", page, rank => rank.Value<string>("name") == name, rank => $"[{rank["name"]}]"));
             }
+            public static void Main(CommandArgs args)
+            {
+                args.Callback("指令格式:泰拉物品排行 物品ID 页码");
+            }
         }
+        public class 泰拉商店
+        {
+            public static void Main(CommandArgs args,string cmd,int num)
+            {
+                var server = Configuration.GetConfig<ServerManager>().GetServer(args);
+                string res = "还没写，爬！";
+                switch (cmd)
+                {
+                    case "下架":
+                        {
 
+                        }
+                        break;
+                    case "交易列表":
+                        {
+                            var arr = (server.RunRest("/economy/getshopitems") as JObject)["market"];
+                            var list = arr.ToArray();
+                            int totalpage = list.Length / 10 + (list.Length % 10 > 0 ? 1 : 0);
+                            res = "交易列表：\r";
+                            num--;
+                            if(num < 0)
+                            {
+                                num = 0;
+                            }
+                            for (int i = num * 10; i < ((num + 1) * 10 + 1 < list.Length ? (num + 1) * 10 + 1 : list.Length); i++)
+                            {
+                                res += $"{i}.物品:{list[i]["ItemID"]}x{list[i]["ItemStack"]} " +
+                                    (int.Parse(list[i]["ItemPrefix"].ToString()) == 0 ? "" : $"前缀:{list[i]["ItemPrefix"]}") +
+                                    $"价格:{list[i]["Price"]} 出售者:{list[i]["Owner"]}\r";
+                            }
+                            res += $"==页码[{num + 1}/{totalpage}]";
+                        }
+                        break;
+                    case "商店列表":
+                        {
+                            var arr = (server.RunRest("/economy/getshopitems") as JObject)["shop"];
+                            var list = arr.ToArray();
+                            int totalpage = list.Length / 10 + (list.Length % 10 > 0 ? 1 : 0);
+                            res = "商店列表：\r";
+                            num--;
+                            if (num < 0)
+                            {
+                                num = 0;
+                            }
+                            for (int i = num * 10; i < ((num + 1) * 10 + 1 < list.Length ? (num + 1) * 10 + 1 : list.Length); i++)
+                            {
+                                res += $"{i}.物品:{list[i]["ItemID"]}x{list[i]["ItemStack"]} " +
+                                    (int.Parse(list[i]["ItemPrefix"].ToString()) == 0 ? "" : $"前缀:{list[i]["ItemPrefix"]}") +
+                                    $"价格:{list[i]["Price"]}\r";
+                            }
+                            res += $"==页码[{num + 1}/{totalpage}]";
+                        }
+                        break;
+                    case "购买":
+                        {
+
+                        }
+                        break;
+                    default:
+                        {
+                            res = "没这功能，爬！";
+                        }
+                        break;
+                }
+                args.Callback(res);
+            }
+            public static void 上架(CommandArgs args,int id,int stack,int price)
+            {
+                string res = "还没写，爬！";
+                args.Callback(res);
+            }
+            public static void Main(CommandArgs args)
+            {
+                args.Callback("指令格式：\r" +
+                    "泰拉商店 商店列表 页码\r" +
+                    "泰拉商店 交易列表 页码\r" +
+                    "泰拉商店 下架 编号\r" +
+                    "泰拉商店 上架 物品ID 数量 价格\r" +
+                    "泰拉商店 购买 序号");
+            }
+        }
         public class 泰拉财富排行
         {
             public static void Main(CommandArgs args, int page)
             {
                 var name = GetUsername(args);
-                args.Callback(RankFormat($"当前财富排行如下: ", Configuration.GetConfig<ServerManager>().GetServer(args).RunRest($"/v1/seconomy/rankboard"),
-                    rank => $"共拥有${rank["balance"]}", page, rank => rank.Value<string>("name") == name, rank => $"[{rank["name"]}]"));
+                args.Callback(RankFormat($"当前财富排行如下: ", Configuration.GetConfig<ServerManager>().GetServer(args).RunRest($"/economy/getmoneyrank")["response"],
+                    rank => $"共拥有${rank["Value"]}", page, rank => rank.Value<string>("Key") == name, rank => $"[{rank["Key"]}]"));
+
+            }
+            public static void Main(CommandArgs args)
+            {
+                args.Callback("指令格式:泰拉财富排行 页码");
             }
         }
 
@@ -379,6 +602,10 @@ namespace BandoriBot.Commands
                 args.Callback(RankFormat($"当前重生次数排行如下: ", Configuration.GetConfig<ServerManager>().GetServer(args).RunRest($"/v1/deathtimes/rankboard"),
                     rank => $"共计重生{rank["times"]}次", page, rank => rank.Value<string>("name") == name, rank => $"[{rank["name"]}]"));
             }
+            public static void Main(CommandArgs args)
+            {
+                args.Callback("指令格式:泰拉重生排行 页码");
+            }
         }
 
         public class 泰拉渔夫排行
@@ -389,6 +616,10 @@ namespace BandoriBot.Commands
                 args.Callback(RankFormat($"当前渔夫任务排行如下: ", Configuration.GetConfig<ServerManager>().GetServer(args).RunRest($"/v1/questrank/rankboard"),
                     rank => $"任务完成{rank["times"]}次", page, rank => rank.Value<string>("name") == name, rank => $"[{rank["name"]}]"));
             }
+            public static void Main(CommandArgs args)
+            {
+                args.Callback("指令格式:泰拉渔夫排行 页码");
+            }
         }
 
         public class 泰拉在线排行
@@ -398,6 +629,23 @@ namespace BandoriBot.Commands
                 var name = GetUsername(args);
                 args.Callback(RankFormat($"当前在线排行如下: ", Configuration.GetConfig<ServerManager>().GetServer(args).RunRest($"/v1/onlinetime/rankboard"),
                     rank => $"共计在线{(int)rank["time"] / 3600}分钟", page, rank => rank.Value<string>("name") == name, rank => $"[{rank["name"]}]"));
+            }
+            public static void Main(CommandArgs args)
+            {
+                args.Callback("指令格式:泰拉在线排行 页码");
+            }
+        }
+        public class 泰拉每日在线排行
+        {
+            public static void Main(CommandArgs args, int page)
+            {
+                var name = GetUsername(args);
+                args.Callback(RankFormat($"当前在线排行如下: ", Configuration.GetConfig<ServerManager>().GetServer(args).RunRest($"/v1/dailyonlinetime/rankboard"),
+                    rank => $"共计在线{(int)rank["time"] / 3600}分钟", page, rank => rank.Value<string>("name") == name, rank => $"[{rank["name"]}]"));
+            }
+            public static void Main(CommandArgs args)
+            {
+                args.Callback("指令格式:泰拉每日在线排行 页码");
             }
         }
 
@@ -499,18 +747,19 @@ namespace BandoriBot.Commands
                     return;
                 }
 
-                foreach (var pair in Configuration.GetConfig<ServerManager>().servers)
+                /*foreach (var pair in Configuration.GetConfig<ServerManager>().servers)
                 {
                     var acc = (string)Configuration.GetConfig<AccountBinding>().t.Where(o => o.group == pair.Value.group && o.qq == args.Source.FromQQ).FirstOrDefault()?.username;
                     if (acc == null) continue;
-                    pair.Value.RunRest($"/v1/whitelist/set?name={HttpUtility.UrlEncode(acc)}&status={name == pair.Key}");
-                }
+                    pair.Value.RunCommand($"/wl {HttpUtility.UrlEncode(acc)} {name == pair.Key}");
+                    //pair.Value.RunRest($"/v1/whitelist/set?name={HttpUtility.UrlEncode(acc)}&status={name == pair.Key}");
+                }*/
 
                 Configuration.GetConfig<ServerManager>().SwitchTo(args.Source.FromQQ, name);
                 
                 if (Configuration.GetConfig<AccountBinding>().t.Any(o => o.qq == args.Source.FromQQ && o.group == Configuration.GetConfig<ServerManager>().servers.FirstOrDefault(s => s.Key == name).Value.group))
                 {
-                    args.Callback($"你的客户端和角色已切换到{name}，可以进入主城服务器");
+                    args.Callback($"你的客户端和角色已切换到{name}，可以进入泰拉服务器了");
                 }
                 else
                 {
@@ -518,40 +767,137 @@ namespace BandoriBot.Commands
                 }
             }
         }
-
+        private static string GetCurrentServer(string name)
+        {
+            var servers= Configuration.GetConfig<ServerManager>().servers.Select((server) =>
+            {
+                if (server.Value.RunRest("/v2/users/activelist")["activeusers"].ToString().Contains(name))
+                    return server.Key;
+                else
+                    return "";
+            }).ToArray();
+            foreach(var s in servers)
+            {
+                if (s != "")
+                    return s;
+            }
+            return "";
+        }
+        public class test
+        {
+            [Permission("terraria.admin")]
+            public static void Main(CommandArgs args,int id,string name)
+            {
+                var server = Configuration.GetConfig<ServerManager>().GetServer(args);
+                args.Callback(server.RunRest("/v1/itemrank/rankboard?&id=" + 71).Where(t => t["name"].ToString() == name).FirstOrDefault().ToString());
+            }
+        }
         public class 泰拉资料
         {
             [Permission("terraria.admin")]
+            public static void Main(CommandArgs args,string type,long qq)
+            {
+                if (type != "QQ") return;
+                var account = Configuration.GetConfig<AccountBinding>().t.Where(o => (o.group == Configuration.GetConfig<ServerManager>().GetServer(args).group || Configuration.GetConfig<ServerManager>().GetServerName(args) == "流光之城") && o.qq == qq).FirstOrDefault();
+                if (account == null)
+                {
+                    throw new CommandException("未找到该玩家资料！");
+                }
+                else
+                {
+                    JObject data;
+                    try
+                    {
+                        data = Configuration.GetConfig<ServerManager>()
+                        .GetServer(args).RunRest($"/v1/character/query?name={HttpUtility.UrlEncode(account.username)}") as JObject;
+                    }
+                    catch (CommandException e)
+                    {
+                        throw new CommandException("该泰拉角色不存在于服务器，请输入 泰拉玩家 查看！", e);
+                    }
+                    JObject bank = null;
+                    try
+                    {
+                        bank = Configuration.GetConfig<ServerManager>().GetServer(args).RunRest($"/economy/getplayermoney?player={HttpUtility.UrlEncode(account.username)}") as JObject;
+                    }
+                    catch { }
+                    args.Callback($"这是泰拉玩家[{account.username}]的资料\n" +
+                        $"QQ: {account.qq}\n" +
+                        //$"积分: {data["ip"]}\n" +；//$"神晶: {data["ip"]}\n" +
+                        $"权限: {data["group"]}\n" +
+                        //$"等级: {data["ip"]}\n" +
+                        //$"经验: {data["ip"]}\n" +；//$"财富: {data["ip"]}\n" +
+                        $"货币：{Utils.GetMoney(Configuration.GetConfig<ServerManager>().GetServer(args), account.username)}\r" +
+                        $"生命：{data["statLife"]}/{data["statLifeMax"]}\n" +
+                        $"法力：{data["statMana"]}/{data["statManaMax"]}\n" +
+                        ((bank != null && bank["status"].ToString() == "200") ? $"经济：{bank["money"]}$\n" : "") +
+                        $"钓鱼任务完成次数: {data["questsCompleted"]}\n" +
+                        //$"今日总在线时长:功能未实现\n" +
+                        //$"本期PE在线时长: {(int)data["onlinetime"] / 3600}分钟\n" +
+                        //$"本期PC在线时长: {(int)data["onlinetime"] / 3600}分钟\n" +
+                        $"本期总在线时长: {(int)data["onlinetime"] / 3600}分钟\n" +
+                    //$"当前服务器阶段: {((bool)data["online"] ? "肉前阶段" : "肉后阶段" : "巨人前阶段" : "巨人后阶段" : "四柱阶段" : "月后阶段")}");
+                    //$"状态: {((bool)data["online"] ? $"在线 ({GetCurrentServer(account.username)})" : "离线")}");
+                    $"状态: {(Utils.PlayerOnline(account.username) ? $"在线 ({Utils.GetOnlineServer(account.username)})" : "离线")}");
+                }
+            }
+            [Permission("terraria.admin")]
             public static void Main(CommandArgs args, string name)
             {
-                JObject data;
-                try
+                /*bool isqq = long.TryParse(name, out long qq);
+                Binding account = null;
+                if (isqq)
                 {
-                    data = Configuration.GetConfig<ServerManager>()
-                    .GetServer(args).RunRest($"/v1/character/query?name={HttpUtility.UrlEncode(name)}") as JObject;
+                    account = Configuration.GetConfig<AccountBinding>().t.Where(o => (o.group == Configuration.GetConfig<ServerManager>().GetServer(args).group || Configuration.GetConfig<ServerManager>().GetServerName(args) == "流光之城") && o.qq == qq).FirstOrDefault();
                 }
-                catch (CommandException e)
+                else
                 {
-                    throw new CommandException("该泰拉角色不存在于服务器，请输入 泰拉玩家 查看！", e);
+                    account = Configuration.GetConfig<AccountBinding>().t.Where(o => (o.group == Configuration.GetConfig<ServerManager>().GetServer(args).group || Configuration.GetConfig<ServerManager>().GetServerName(args) == "流光之城") && o.username == name).FirstOrDefault();
+                }*/
+                Binding account = Configuration.GetConfig<AccountBinding>().t.Where(o => (o.group == Configuration.GetConfig<ServerManager>().GetServer(args).group || Configuration.GetConfig<ServerManager>().GetServerName(args) == "流光之城") && o.username == name).FirstOrDefault();
+                if (account == null)
+                {
+                    throw new CommandException("未找到该玩家资料！");
                 }
-
-                args.Callback($"这是泰拉玩家[{name}]的资料\n" +
-                    $"QQ: {Configuration.GetConfig<AccountBinding>().t.Where(o => o.group == Configuration.GetConfig<ServerManager>().GetServer(args).group && o.username == name).FirstOrDefault()?.qq.ToString() ?? "未绑定"}\n" +
-                    //$"积分: {data["ip"]}\n" +；//$"神晶: {data["ip"]}\n" +
-                    $"权限: {data["group"]}\n" +
-                    //$"等级: {data["ip"]}\n" +
-                    //$"经验: {data["ip"]}\n" +；//$"财富: {data["ip"]}\n" +
-                    $"生命：{data["statLife"]}/{data["statLifeMax"]}\n" +
-                    $"法力：{data["statMana"]}/{data["statManaMax"]}\n" +
-                    $"钓鱼任务完成次数: {data["questsCompleted"]}\n" +
-                    //$"今日总在线时长:功能未实现\n" +
-                    //$"本期PE在线时长: {(int)data["onlinetime"] / 3600}分钟\n" +
-                    //$"本期PC在线时长: {(int)data["onlinetime"] / 3600}分钟\n" +
-                    $"本期总在线时长: {(int)data["onlinetime"] / 3600}分钟\n" +
+                else
+                {
+                    JObject data;
+                    try
+                    {
+                        data = Configuration.GetConfig<ServerManager>()
+                        .GetServer(args).RunRest($"/v1/character/query?name={HttpUtility.UrlEncode(account.username)}") as JObject;
+                    }
+                    catch (CommandException e)
+                    {
+                        throw new CommandException("该泰拉角色不存在于服务器，请输入 泰拉玩家 查看！", e);
+                    }
+                    JObject bank = null;
+                    try
+                    {
+                        bank = Configuration.GetConfig<ServerManager>().GetServer(args).RunRest($"/economy/getplayermoney?player={HttpUtility.UrlEncode(account.username)}") as JObject;
+                    }
+                    catch { }
+                    args.Callback($"这是泰拉玩家[{account.username}]的资料\n" +
+                        $"QQ: {account.qq}\n" +
+                        //$"积分: {data["ip"]}\n" +；//$"神晶: {data["ip"]}\n" +
+                        $"权限: {data["group"]}\n" +
+                        //$"等级: {data["ip"]}\n" +
+                        //$"经验: {data["ip"]}\n" +；//$"财富: {data["ip"]}\n" +
+                        $"货币：{Utils.GetMoney(Configuration.GetConfig<ServerManager>().GetServer(args),account.username)}\r"+
+                        $"生命：{data["statLife"]}/{data["statLifeMax"]}\n" +
+                        $"法力：{data["statMana"]}/{data["statManaMax"]}\n" +
+                        ((bank!=null&&bank["status"].ToString()=="200")?$"经济：{bank["money"]}$\n":"")+
+                        $"钓鱼任务完成次数: {data["questsCompleted"]}\n" +
+                        //$"今日总在线时长:功能未实现\n" +
+                        //$"本期PE在线时长: {(int)data["onlinetime"] / 3600}分钟\n" +
+                        //$"本期PC在线时长: {(int)data["onlinetime"] / 3600}分钟\n" +
+                        $"本期总在线时长: {(int)data["onlinetime"] / 3600}分钟\n" +
                     //$"当前服务器阶段: {((bool)data["online"] ? "肉前阶段" : "肉后阶段" : "巨人前阶段" : "巨人后阶段" : "四柱阶段" : "月后阶段")}");
-                $"状态: {((bool)data["online"] ? "在线" : "离线")}");
+                    //$"状态: {((bool)data["online"] ? $"在线 ({GetCurrentServer(account.username)})" : "离线")}");
+                    $"状态: {(Utils.PlayerOnline(account.username) ? $"在线 ({Utils.GetOnlineServer(account.username)})" : "离线")}");
+                }
             }
-
+            
             public static void Main(CommandArgs args)
             {
                 var player = Configuration.GetConfig<AccountBinding>().t.Where(o => o.qq == args.Source.FromQQ && o.group == Configuration.GetConfig<ServerManager>().GetServer(args).group).FirstOrDefault()?.username?.ToString();
@@ -648,21 +994,31 @@ namespace BandoriBot.Commands
         {
             public static void Main(CommandArgs args)
             {
+                //args.Callback(string.Join("\n", Configuration.GetConfig<ServerManager>().servers.Where(pair => pair.Value.display).Select(pair => pair.Key)));
                 args.Callback(string.Join("\n", Configuration.GetConfig<ServerManager>().servers.Select(pair => pair.Key)));
             }
         }
 
         public class 加入黑名单
         {
+            [Permission("terraria.admin")]
             public static void Main(CommandArgs args, long qq)
             {
-                Configuration.GetConfig<Blacklist>().hash.Add(qq);
-                Configuration.GetConfig<Blacklist>().Save();
-                args.Callback(qq + "已加入黑名单");
+                if(Configuration.GetConfig<Admin >().hash.ToList().FindAll((long num)=>num==qq).Count == 0)
+                {
+                    Configuration.GetConfig<Blacklist>().hash.Add(qq);
+                    Configuration.GetConfig<Blacklist>().Save();
+                    args.Callback(qq + "已加入黑名单");
+                }
+                else
+                {
+                    args.Callback(qq + "为管理员，无法加入黑名单");
+                }
             }
         }
         public class 移除黑名单
         {
+            [Permission("terraria.admin")]
             public static void Main(CommandArgs args, long qq)
             {
                 Configuration.GetConfig<Blacklist>().hash.Remove(qq);
@@ -670,12 +1026,42 @@ namespace BandoriBot.Commands
                 args.Callback(qq + "已移除黑名单");
             }
         }
+        public class 黑名单
+        {
+            public static void Main(CommandArgs args)
+            {
+                args.Callback("命令列表：\n添加黑名单 QQ\n移除黑名单\n黑名单列表 页码\n查黑 QQ");
+            }
+        }
         public class 黑名单列表
         {
             public static void Main(CommandArgs args)
             {
                 int i = 0;
-                args.Callback("黑名单类别如下\n" + string.Join("\n", Configuration.GetConfig<Blacklist>().hash.Select(qq => $"{++i}. {qq}")));
+                args.Callback("黑名单列表 页码");
+                //args.Callback("黑名单列表如下\n" + string.Join("\n", Configuration.GetConfig<Blacklist>().hash.Select(qq => $"{++i}. {qq}")));
+            }
+            public static void Main(CommandArgs args, int page)
+            {
+
+                string info = "黑名单列表如下";
+                //args.Callback("黑名单列表如下\n" + string.Join("\n", Configuration.GetConfig<Blacklist>().hash.Select(qq => $"{++i}. {qq}")));
+                var list = Configuration.GetConfig<Blacklist>().hash.ToList();
+                for (int i = Math.Min((page - 1), list.Count / 20) * 20; i < Math.Min(page * 20, list.Count); i++)
+                {
+                    info += $"\n{i + 1}. {list[i]}";
+                }
+                info += $"\n第[{Math.Min(list.Count / 20 + 1, page)}/{list.Count / 20 + 1}]页";
+                args.Callback(info);
+            }
+        }
+        public class 查黑
+        {
+            public static void Main(CommandArgs args,long QQ)
+            {
+                int i = 0;
+                var list = string.Join("\n", Configuration.GetConfig<Blacklist>().hash.Select(qq => $"{++i}. {qq}"));
+                args.Callback((list.Contains(QQ.ToString()) ? "该用户在黑名单内" : "该用户不在黑名单内"));
             }
         }
 

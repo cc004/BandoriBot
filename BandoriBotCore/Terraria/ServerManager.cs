@@ -21,14 +21,16 @@ namespace Native.Csharp.App.Terraria
         public Server GetServer(CommandArgs args)
         {
             if (!bindings.ContainsKey(args.Source.FromQQ))
-                throw new CommandException("您未设定客户端类型，您可以输入:泰拉切换 (泰拉PE/泰拉PC)改洪荒1 修改客户端类型，您可以随时进行修改。请指定好客户端重发指令哦~");
+                //throw new CommandException("您未设定客户端类型，您可以输入:泰拉切换 (泰拉PE/泰拉PC)改洪荒1 修改客户端类型，您可以随时进行修改。请指定好客户端重发指令哦~");
+                throw new CommandException("您未设定服务器类型，您可以输入:泰拉切换 流光之城 修改服务端类型，您可以随时进行修改。请指定好客户端重发指令哦~");
             return servers[bindings[args.Source.FromQQ]];
         }
 
         public string GetServerName(CommandArgs args)
         {
             if (!bindings.ContainsKey(args.Source.FromQQ))
-                throw new CommandException("您未设定客户端类型，您可以输入:泰拉切换 (泰拉PE/泰拉PC)改洪荒1 修改客户端类型，您可以随时进行修改。请指定好客户端重发指令哦~");
+                //throw new CommandException("您未设定客户端类型，您可以输入:泰拉切换 (泰拉PE/泰拉PC)改洪荒1 修改客户端类型，您可以随时进行修改。请指定好客户端重发指令哦~");
+                throw new CommandException("您未设定服务器类型，您可以输入:泰拉切换 流光之城 修改服务端类型，您可以随时进行修改。请指定好客户端重发指令哦");
             return bindings[args.Source.FromQQ];
         }
 
@@ -55,7 +57,11 @@ namespace Native.Csharp.App.Terraria
             {
                 try
                 {
-                    var svr = new Server((string)obj.Value["endpoint"], (int)obj.Value["group"]);
+                    var svr = new Server((string)obj.Value["endpoint"], (int)obj.Value["group"])
+                    {
+                        display = obj.Value.Value<bool>("display"),
+                        noRegister = obj.Value.Value<string>("noRegister")
+                    };
                     svr.Login((string)obj.Value["username"], (string)obj.Value["password"]);
                     svr.RunCommand("/csreload");
                     servers.Add(obj.Name, svr);

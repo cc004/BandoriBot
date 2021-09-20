@@ -24,6 +24,7 @@ namespace BandoriBot
         {
             MessageHandler.session = session;
 
+            Configuration.Register<AntirevokePlus>();
             Configuration.Register<Activation>();
             Configuration.Register<MainServerConfig>();
             Configuration.Register<Delay>();
@@ -63,6 +64,7 @@ namespace BandoriBot
             MessageHandler.Register<FindCommand>();
             MessageHandler.Register<DelayCommand>();
             MessageHandler.Register<AdminCommand>();
+            MessageHandler.Register<AntirevokePlusCommand>();
             MessageHandler.Register<SekaiCommand>();
             MessageHandler.Register<SekaiPCommand>();
             MessageHandler.Register<WhitelistCommand>();
@@ -75,6 +77,7 @@ namespace BandoriBot
             MessageHandler.Register<PCRRunCommand>();
             MessageHandler.Register<CarTypeCommand>();
             MessageHandler.Register<SekaiLineCommand>();
+            MessageHandler.Register<SekaiGachaCommand>();
             MessageHandler.Register<PermCommand>();
             MessageHandler.Register<SendCommand>();
 
@@ -87,11 +90,15 @@ namespace BandoriBot
             MessageHandler.Register<RCCommand>();
             MessageHandler.Register<CPMCommand>();
 
+            CommandHelper.Register<AdditionalCommands.test>();
+            CommandHelper.Register<AdditionalCommands.Wiki>();
+            CommandHelper.Register<AdditionalCommands.泰拉商店>();
             CommandHelper.Register<AdditionalCommands.随机禁言>();
             CommandHelper.Register<AdditionalCommands.泰拉在线>();
             CommandHelper.Register<AdditionalCommands.泰拉资料>();
             CommandHelper.Register<AdditionalCommands.封>();
             CommandHelper.Register<AdditionalCommands.泰拉注册>();
+            CommandHelper.Register<AdditionalCommands.泰拉每日在线排行>();
             CommandHelper.Register<AdditionalCommands.泰拉在线排行>();
             CommandHelper.Register<AdditionalCommands.泰拉物品排行>();
             CommandHelper.Register<AdditionalCommands.泰拉财富排行>();
@@ -112,6 +119,8 @@ namespace BandoriBot
             CommandHelper.Register<AdditionalCommands.加入黑名单>();
             CommandHelper.Register<AdditionalCommands.移除黑名单>();
             CommandHelper.Register<AdditionalCommands.黑名单列表>();
+            CommandHelper.Register<AdditionalCommands.黑名单>();
+            CommandHelper.Register<AdditionalCommands.查黑>();
             CommandHelper.Register<AdditionalCommands.服务器列表>();
             CommandHelper.Register<AdditionalCommands.解ip>();
             CommandHelper.Register<AdditionalCommands.封ip>();
@@ -150,7 +159,7 @@ namespace BandoriBot
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
-
+            
             await using var session = new MiraiHttpSession();
 
             session.AddPlugin(new MessageHandler());

@@ -132,6 +132,7 @@ namespace BandoriBot.Handler
                     return true;
                 case CarType.Sekai:
                     if (CheckIgnored(car, message.Substring(split)) == "") break;
+                    if (car == 114514 || car == 11451 || car == 19198) break;
                     var caro = new Car
                     {
                         index = car,

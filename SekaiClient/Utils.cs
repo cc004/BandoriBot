@@ -12,6 +12,11 @@ namespace SekaiClient
 {
     public static class Utils
     {
+        public static long GetTimestamp(this DateTime time)
+        {
+            return (time.ToUniversalTime().Ticks - 621355968000000000) / 10000;
+        }
+
         public static List<T> SortRandom<T>(this IEnumerable<T> collection)
         {
             List<T> result = new List<T>();

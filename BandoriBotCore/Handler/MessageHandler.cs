@@ -8,8 +8,10 @@ using Newtonsoft.Json.Linq;
 using SekaiClient;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BandoriBot.Handler
@@ -32,7 +34,7 @@ namespace BandoriBot.Handler
         public MiraiHttpSession Session;
         public bool IsTemp;
 
-        private static readonly long AdminQQ = 1176321897;
+        internal static readonly long AdminQQ = long.Parse(File.ReadAllText("adminqq.txt"));
 
         private bool IsAdmin => AdminQQ == FromQQ || Configuration.GetConfig<Admin>().hash.Contains(FromQQ);
 
@@ -137,6 +139,8 @@ namespace BandoriBot.Handler
             }).Wait();
         }
 
+        private static int num = 0;
+
         protected static void OnMessage(MiraiHttpSession session, string message, Source Sender)
         {
             if (!booted) return;
@@ -147,7 +151,7 @@ namespace BandoriBot.Handler
             {
                 try
                 {
-                    Utils.Log(LoggerLevel.Debug, $"[{(DateTime.Now.Ticks - ticks) / 10000}ms] sent msg: " + s);
+                    Utils.Log(LoggerLevel.Debug, $"[{ Sender.FromGroup}::{ Sender.FromQQ}] [{ (DateTime.Now.Ticks - ticks) / 10000}ms] sent msg: " + s);
                     if (Sender.FromGroup != 0)
                         await session.SendGroupMessageAsync(Sender.FromGroup, await Utils.GetMessageChain(s, async p => await session.UploadPictureAsync(UploadTarget.Group, p)));
                     else if (!Sender.IsTemp)
@@ -162,8 +166,21 @@ namespace BandoriBot.Handler
                 }
             };
 
-            Utils.Log(LoggerLevel.Debug, "recv msg: " + message);
+            ChatRecordContext.Context.Records.Add(new Record
+            {
+                Group = Sender.FromGroup,
+                QQ = Sender.FromQQ,
+                Message = message,
+                Time = DateTime.Now
+            });
 
+            if (Interlocked.Increment(ref num) % 100 == 0)
+                ChatRecordContext.Context.SaveChanges();
+
+            Utils.Log(LoggerLevel.Debug, $"[{Sender.FromGroup}::{Sender.FromQQ}]recv msg: " + message);
+
+            var list = Configuration.GetConfig<Blacklist>().hash.ToList();
+            if(!list.Contains(Sender.FromQQ))
             Task.Run(() => instance.OnMessage(new HandlerArgs
             {
                 message = message,
@@ -233,7 +250,8 @@ namespace BandoriBot.Handler
         public async Task<bool> GroupMessage(MiraiHttpSession session, IGroupMessageEventArgs e)
         {
             var source = e.Chain.First() as SourceMessage;
-            if (source != null && (Configuration.GetConfig<Antirevoke>().hash.Contains(e.Sender.Group.Id) || e.Sender.Group.Id == 708647018))
+            if (source != null && (Configuration.GetConfig<Antirevoke>().hash.Contains(e.Sender.Group.Id) ||
+                Configuration.GetConfig<AntirevokePlus>().hash.Contains(e.Sender.Group.Id)))
             {
                 var now = DateTime.Now;
                 while (msgRecord.Count > 0)
@@ -292,11 +310,21 @@ namespace BandoriBot.Handler
             if (record == null || e.Operator.Id != record.qq) return false;
             try
             {
-                await session.SendGroupMessageAsync(record.group, (new IMessageBase[]
+                if (Configuration.GetConfig<AntirevokePlus>().hash.Contains(record.group))
                 {
-                    new AtMessage(e.Operator.Id),
-                    new PlainMessage("尝试撤回一条消息：")
-                }).Concat(record.message).ToArray());
+                    await session.SendFriendMessageAsync(Source.AdminQQ, (new IMessageBase[]
+                    {
+                        new PlainMessage($"群{record.group}的{record.qq}尝试撤回一条消息：")
+                    }).Concat(record.message).ToArray());
+                }
+                else
+                {
+                    await session.SendGroupMessageAsync(record.group, (new IMessageBase[]
+                    {
+                        new AtMessage(e.Operator.Id),
+                        new PlainMessage("尝试撤回一条消息：")
+                    }).Concat(record.message).ToArray());
+                }
                 return true;
             }
             catch (Exception e2)
