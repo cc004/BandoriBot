@@ -13,9 +13,5 @@ namespace BandoriBot.Commands
 
         protected override long GetTarget(long value) => value;
         protected override string Permission => "management.whitelist";
-        public override async Task Run(CommandArgs args)
-        {
-            await base.Run(args);
-        }
     }
 }

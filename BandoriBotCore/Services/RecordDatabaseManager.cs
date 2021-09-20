@@ -17,7 +17,7 @@ namespace BandoriBot.Services
         [DllImport("database.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr CacheIndex(int start, int end);
         [DllImport("database.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static unsafe extern bool RecordContains(IntPtr cache, int index, char* substr);
+        private static extern bool RecordContains(IntPtr cache, int index, char* substr);
         [DllImport("database.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern void ReadRecord(IntPtr cache, int index, out long qq, out long group, out long timestamp, IntPtr* message);
         [DllImport("database.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -53,14 +53,14 @@ namespace BandoriBot.Services
             }
         }
 
-        public static unsafe void ReadRecord(IntPtr cache, int index, out long qq, out long group, out long timestamp, out string message)
+        public static void ReadRecord(IntPtr cache, int index, out long qq, out long group, out long timestamp, out string message)
         {
             IntPtr pstr;
             ReadRecord(cache, index, out qq, out group, out timestamp, &pstr);
             message = Marshal.PtrToStringUni(pstr);
         }
 
-        public static unsafe int CountContains(string substr)
+        public static int CountContains(string substr)
         {
             if (string.IsNullOrEmpty(substr)) return RecordLength();
             IntPtr unmanaged = Marshal.StringToHGlobalUni(substr);

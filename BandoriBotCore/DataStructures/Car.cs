@@ -5,18 +5,16 @@ namespace BandoriBot.DataStructures
 {
     public class Car : IComparable<Car>
     {
+        internal static long DeltaTime { private get; set; }
+
         public DateTime time;
         public string rawmessage;
         public int index;
-        private static DateTime ToDateTime(long timestamp)
-        {
-            return new DateTime(1970, 1, 1).AddTicks(timestamp * 10000).ToLocalTime();
-        }
 
         public Car() { }
         public Car(JObject obj)
         {
-            time = ToDateTime((long)obj["time"]);
+            time = ((long)obj["time"] - DeltaTime).ToDateTime();
             rawmessage = (string)obj["raw_message"];
             index = int.Parse((string)obj["number"]);
         }

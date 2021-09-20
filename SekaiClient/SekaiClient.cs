@@ -242,15 +242,15 @@ namespace SekaiClient
             IEnumerable<Card> icards = new Card[0];
 
             var rolls = MasterData.Instance.gachaBehaviours
-                .GroupBy(b => b.costResourceQuantity)
+                .GroupBy(b => (b.costResourceQuantity, b.costResourceType))
                 .Select(g => g.Where(b => b.Gacha.IsAvailable)
                     .OrderByDescending(b => b.Gacha.rarity4Rate)
                     .ThenByDescending(b => b.Gacha.endAt).FirstOrDefault())
                 .Where(g => g != null).ToArray();
 
-            var roll10 = rolls.Single(b => b.costResourceQuantity == 3000);
-            var roll1 = rolls.Single(b => b.costResourceQuantity == 300);
-            var roll3 = rolls.Single(b => b.costResourceQuantity == 1);
+            var roll10 = rolls.Single(b => b.costResourceQuantity == 3000 && b.costResourceType == CostResourceType.jewel);
+            var roll1 = rolls.Single(b => b.costResourceQuantity == 300 && b.costResourceType == CostResourceType.jewel);
+            var roll3 = rolls.Single(b => b.costResourceQuantity == 1 && b.costResourceType == CostResourceType.gacha_ticket);
 
             //icards = await Gacha(roll3);
             

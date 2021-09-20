@@ -81,11 +81,18 @@ namespace SekaiClient.Datas
         }
     }
 
+    public enum CostResourceType
+    {
+        paid_jewel = 0,
+        jewel = 1,
+        gacha_ticket = 2
+    }
+
     [JsonObject]
     public class GachaBehaviour
     {
         public int id, gachaId, costResourceQuantity;
-
+        public CostResourceType costResourceType;
         public Gacha Gacha => MasterData.Instance.gachas.Single(ga => ga.id == gachaId);
     }
 

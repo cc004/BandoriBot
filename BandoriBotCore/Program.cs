@@ -6,10 +6,14 @@ using Sora.EventArgs.SoraEvent;
 using Sora.Net;
 using Sora.OnebotModel;
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 using System.Runtime.ExceptionServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using SekaiClient;
 using ServerConfig = Sora.OnebotModel.ServerConfig;
 
 namespace BandoriBot
@@ -23,9 +27,7 @@ namespace BandoriBot
             //MessageHandler.session = client;
 
             Configuration.Register<AntirevokePlus>();
-            Configuration.Register<Activation>();
             // Configuration.Register<MainServerConfig>();
-            Configuration.Register<Delay>();
             Configuration.Register<MessageStatistic>();
             Configuration.Register<ReplyHandler>();
             Configuration.Register<Whitelist>();
@@ -56,22 +58,19 @@ namespace BandoriBot
             MessageHandler.Register<WhitelistHandler>();
             MessageHandler.Register<RepeatHandler>();
             MessageHandler.Register(Configuration.GetConfig<MessageStatistic>());
+            MessageHandler.Register<LoginCommand>();
             //MessageHandler.Register(Configuration.GetConfig<MainServerConfig>());
 
             MessageHandler.Register<YCM>();
             MessageHandler.Register<QueryCommand>();
             MessageHandler.Register<ReplyCommand>();
             MessageHandler.Register<FindCommand>();
-            MessageHandler.Register<DelayCommand>();
-
             MessageHandler.Register<AntirevokePlusCommand>();
             MessageHandler.Register<SekaiCommand>();
-            MessageHandler.Register<SekaiPCommand>();
+            //MessageHandler.Register<SekaiPCommand>();
             MessageHandler.Register<WhitelistCommand>();
             MessageHandler.Register<GachaCommand>();
             MessageHandler.Register<GachaListCommand>();
-            MessageHandler.Register<Activate>();
-            MessageHandler.Register<Deactivate>();
             MessageHandler.Register<BlacklistCommand>();
             MessageHandler.Register<TitleCommand>();
             MessageHandler.Register<CarTypeCommand>();
@@ -143,20 +142,25 @@ namespace BandoriBot
                 }, s.delay);
             }
             */
-            GC.Collect();
+            for (int i = 0; i < 10; ++i)
+            {
+                GC.Collect();
+                Thread.Sleep(1000);
+            }
 
         }
 
         public static async Task Main(string[] args)
         {
+            //await Testing();
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
-
-            var service = SoraServiceFactory.CreateInstance(new ServerConfig
+            
+            var service = SoraServiceFactory.CreateInstance(new ClientConfig()
             {
-                Host = "127.0.0.1",
-                Port = 6701
+                Port = uint.Parse(args[1])
             });
 
             service.Event.OnClientConnect += Event_OnClientConnect;
@@ -167,24 +171,15 @@ namespace BandoriBot
             PluginInitialize();
             new Thread(() => Apis.Program.Main2(args)).Start();
 
-            await service.StartService();
-
             Console.WriteLine("connected to server");
 
-            while (true)
-            {
-                var r = Console.ReadLine();
-                if (r == "exit")
-                {
-                    RecordDatabaseManager.Close();
-                    Environment.Exit(0);
-                }
-            }
+            await service.StartService();
+
         }
 
         private static async ValueTask Event_OnPrivateMessage(string type, PrivateMessageEventArgs eventArgs)
         {
-            MessageHandler.OnMessage(eventArgs.SoraApi, Utils.GetCQMessage(eventArgs.Message), new Source
+            await MessageHandler.OnMessage(eventArgs.SoraApi, Utils.GetCQMessage(eventArgs.Message), new Source
             {
                 Session = eventArgs.SoraApi,
                 FromGroup = 0,
@@ -194,7 +189,7 @@ namespace BandoriBot
 
         private static async ValueTask Event_OnGroupMessage(string type, GroupMessageEventArgs eventArgs)
         {
-            MessageHandler.OnMessage(eventArgs.SoraApi, Utils.GetCQMessage(eventArgs.Message), new Source
+            await MessageHandler.OnMessage(eventArgs.SoraApi, Utils.GetCQMessage(eventArgs.Message), new Source
             {
                 Session = eventArgs.SoraApi,
                 FromGroup = eventArgs.SourceGroup.Id,
@@ -231,8 +226,21 @@ namespace BandoriBot
 
         private static async Task Testing()
         {
-            Console.WriteLine(await JJCManager.Instance.Callapi("环奈水黑布丁空花望"));
-            Environment.Exit(0);
+            var client = new SekaiClient.SekaiClient(new EnvironmentInfo(), false)
+            {
+            };
+
+            await client.UpgradeEnvironment();
+            /*
+            //Log.SetLogLevel(LogLevel.Debug);
+            var client = SekaiClient.SekaiClient.StaticClient;
+            client.InitializeAdid();
+            client.UpgradeEnvironment().Wait();
+            var user = client.Register().Result;
+            client.Login(user).Wait();
+            await MasterData.Initialize(client);
+            var currency = client.PassTutorial().Result;
+            var result = string.Join("\n", client.Gacha(currency).Result);*/
         }
     }
 }
