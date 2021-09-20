@@ -36,8 +36,6 @@ namespace BandoriBot.Handler
 
         private bool IsIgnore(Source sender)
         {
-            if (!Configuration.GetConfig<Activation>()[sender.FromGroup]) return true;
-            if ((sender.FromGroup > 0) && !Configuration.GetConfig<Activation>()[sender.FromQQ]) return true;
             return false;
         }
 

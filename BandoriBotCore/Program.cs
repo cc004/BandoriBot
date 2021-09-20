@@ -29,7 +29,6 @@ namespace BandoriBot
             //MessageHandler.session = client;
 
             Configuration.Register<AntirevokePlus>();
-            Configuration.Register<Activation>();
             // Configuration.Register<MainServerConfig>();
             Configuration.Register<Delay>();
             Configuration.Register<MessageStatistic>();
@@ -76,8 +75,6 @@ namespace BandoriBot
             MessageHandler.Register<WhitelistCommand>();
             MessageHandler.Register<GachaCommand>();
             MessageHandler.Register<GachaListCommand>();
-            MessageHandler.Register<Activate>();
-            MessageHandler.Register<Deactivate>();
             MessageHandler.Register<BlacklistCommand>();
             MessageHandler.Register<TitleCommand>();
             MessageHandler.Register<CarTypeCommand>();
@@ -153,7 +150,7 @@ namespace BandoriBot
 
         public static async Task Main(string[] args)
         {
-            await Testing();
+            //await Testing();
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 

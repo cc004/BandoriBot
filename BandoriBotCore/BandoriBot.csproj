@@ -30,6 +30,10 @@
     <ProjectReference Include="..\TrProtocol\TrClient\TrClient.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Data\" />
+  </ItemGroup>
+
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <Exec Command="g++ database.cpp -o $(OutDir)database.dll --static --shared -fPIC" />
   </Target>
