@@ -1,12 +1,9 @@
-﻿using Mirai_CSharp;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Sora.Entities.Base;
 
 namespace BandoriBot.Handler
 {
     public interface ISession
     {
-        public MiraiHttpSession Session { get; set; }
+        public SoraApi Session { get; set; }
     }
 }

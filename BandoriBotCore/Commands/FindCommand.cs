@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
@@ -18,8 +17,6 @@ namespace BandoriBot.Commands
             "/find"
         };
 
-        string ICommand.Permission => "management.find";
-
         public async Task Run(CommandArgs args)
         {
             string[] splits = args.Arg.Trim().Split(' ');
@@ -31,14 +28,14 @@ namespace BandoriBot.Commands
             switch (splits[0])
             {
                 case "refresh":
-                    if (!await args.Source.CheckPermission())
+                    if (!await args.Source.HasPermission("management.find.refresh", -1))
                     {
                         await args.Callback("Access denied!");
                         return;
                     }
                     infos.Clear();
                     await args.Callback($"refreshing...please wait.");
-                    foreach (var group in groups = await args.Source.Session.GetGroupList())
+                    foreach (var group in groups = await args.Source.Session.GetGroupList0())
                         foreach (var member in await args.Source.Session.GetMemberList(group.Id) ?? new List<GroupMemberInfo>())
                             infos.Add(member);
                     var idhash = new HashSet<long>(groups.Select((group) => group.Id));
@@ -104,7 +101,7 @@ namespace BandoriBot.Commands
                     }
                     if (long.TryParse(splits[1], out long qq))
                     {
-                        if (!await args.Source.CheckPermission())
+                        if (!await args.Source.HasPermission("management.find.id", -1))
                         {
                             await args.Callback("Access denied.");
                             return;
@@ -124,7 +121,7 @@ namespace BandoriBot.Commands
                         await args.Callback($"{qq}所在的群(共{total}个):\n{list}");
                     }
                     break;
-                    
+
             }
         }
     }

@@ -1,11 +1,9 @@
 using BandoriBot.Handler;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using PCRClient;
 using SekaiClient;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -140,7 +138,7 @@ namespace BandoriBot.Services
             pool.GetProxysFromAPIs();
             */
         }
-        
+
         private JObject ProxyPost(JObject json)
         {
             bool suc = false;
@@ -155,7 +153,7 @@ namespace BandoriBot.Services
                     lock (suclock) if (suc) return;
 
                     var client = new HttpClient
-                    
+
                     (new HttpClientHandler
                     {
                         Proxy = new WebProxy(s.ToString())
@@ -239,7 +237,7 @@ namespace BandoriBot.Services
 
             canvas.DrawString($"顶：{t.up} 踩：{t.down} ", font, Brushes.Black, offx, offy + 100);
         }
-        
+
         private Image GetImage(Result[] teams)
         {
             var n = teams.Length;
@@ -292,7 +290,7 @@ namespace BandoriBot.Services
             };
 
             string sign = null;
-            
+
             GetSign(json.ToString(Formatting.None), json.Value<string>("nonce"),
                 s => sign = s);
 

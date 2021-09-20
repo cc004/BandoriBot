@@ -1,13 +1,12 @@
+using System.Linq;
 using BandoriBot.Config;
 using BandoriBot.Handler;
-using Mirai_CSharp.Models;
 using Native.Csharp.App.Terraria;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -1004,7 +1003,7 @@ namespace BandoriBot.Commands
             [Permission("terraria.admin")]
             public static void Main(CommandArgs args, long qq)
             {
-                if(Configuration.GetConfig<Admin >().hash.ToList().FindAll((long num)=>num==qq).Count == 0)
+                if(!Source.AdminQQs.Contains(qq))
                 {
                     Configuration.GetConfig<Blacklist>().hash.Add(qq);
                     Configuration.GetConfig<Blacklist>().Save();

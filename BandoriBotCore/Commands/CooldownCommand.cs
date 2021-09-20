@@ -1,8 +1,6 @@
 using BandoriBot.Config;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
@@ -16,7 +14,7 @@ namespace BandoriBot.Commands
         public async Task Run(CommandArgs args)
         {
             var config = Configuration.GetConfig<T>();
-            if (await args.Source.CheckPermission() || config.IsExpire(args.Source.FromQQ))
+            if (await args.Source.HasPermission("ignore.cooldown") || config.IsExpire(args.Source.FromQQ))
             {
                 var span = DoRun(args);
                 if (span.Ticks > 0)

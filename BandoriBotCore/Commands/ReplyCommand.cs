@@ -4,7 +4,6 @@ using BandoriBot.Handler;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -32,14 +31,14 @@ namespace BandoriBot.Commands
             switch (splits[0])
             {
                 case "reload":
-                    if (!await args.Source.CheckPermission())
+                    if (!await args.Source.HasPermission("reply.reload", -1))
                     {
                         config.Load();
                         await args.Callback("configuration has been reloaded successfully.");
                     }
                     break;
                 case "save":
-                    if (!await args.Source.CheckPermission())
+                    if (!await args.Source.HasPermission("reply.save", -1))
                     {
                         config.Save();
                         await args.Callback("configuration has been saved successfully.");
@@ -54,10 +53,11 @@ namespace BandoriBot.Commands
                             await args.Callback("Invalid argument count.");
                             return;
                         }
+                        Regex reg;
 
                         try
                         {
-                            new Regex($"^{Utils.FixRegex(splits[1])}$");
+                            reg = new Regex($"^{Utils.FixRegex(splits[1])}$", RegexOptions.Multiline | RegexOptions.Compiled);
                         }
                         catch
                         {
@@ -73,25 +73,27 @@ namespace BandoriBot.Commands
 
                         var data = config[int.Parse(splits[0].Substring(3))];
 
-                        if (splits[0] == "add4" && !await args.Source.CheckPermission())
+                        if (splits[0] == "add4" && !await args.Source.HasPermission("reply.add4", -1))
                         {
                             await args.Callback("Access denied!");
                             return;
                         }
 
-                        var t = data.SingleOrDefault(data => data.Item1.ToString()[1..^1] == splits[1]);
-
-                        if (t != null)
+                        if (data.TryGetValue(splits[1], out var t))
                         {
-                            if (t.Item2.Any(r => r.reply == reply.reply))
+                            if (t.Any(r => r.reply == reply.reply))
                             {
                                 await args.Callback($"`{splits[1]}` => `{reply.reply}` already exists!");
                                 return;
                             }
-                            t.Item2.Add(reply);
+                            t.Add(reply);
                         }
                         else
-                            data.Add(ReplyHandler.D2T(new KeyValuePair<string, List<Reply>>(Utils.FixRegex(splits[1]), new List<Reply> { reply })));
+                        {
+                            data.Add(splits[1], new List<Reply> { reply });
+                            ReplyHandler.regexCache[splits[1]] = reg;
+                        }
+
 
                         if (splits[0] == "add4")
                         {
@@ -130,22 +132,22 @@ namespace BandoriBot.Commands
                         }
 
                         var data = config[int.Parse(splits[0].Substring(3))];
-                        var result = Utils.TryGetValueStart(data, (pair) => pair.Item1.ToString()[1..^1], splits[1], out var list);
+                        var result = Utils.TryGetValueStart(data, (pair) => pair.Key, splits[1], out var list);
                         var replystart = string.Concat(splits.Skip(2).Select((s) => s + ' ')).Trim();
 
                         if (string.IsNullOrEmpty(result))
                         {
-                            var result2 = Utils.TryGetValueStart(list.Item2, (reply) => reply.reply, replystart, out var reply);
+                            var result2 = Utils.TryGetValueStart(list.Value, (reply) => reply.reply, replystart, out var reply);
 
                             if (string.IsNullOrEmpty(result2))
                             {
-                                if (reply.qq == qq || await args.Source.CheckPermission())
+                                if (reply.qq == qq || await args.Source.HasPermission("reply.deloverride", -1))
                                 {
-                                    list.Item2.Remove(reply);
-                                    if (list.Item2.Count == 0)
-                                        data.Remove(list);
+                                    list.Value.Remove(reply);
+                                    if (list.Value.Count == 0)
+                                        data.Remove(list.Key);
                                     config.Save();
-                                    await args.Callback($"successfully removed `{list.Item1.ToString()[1..^1]}` => `{reply.reply}`");
+                                    await args.Callback($"successfully removed `{list.Key}` => `{reply.reply}`");
                                 }
                                 else
                                     await args.Callback("Access denied.");
@@ -165,19 +167,19 @@ namespace BandoriBot.Commands
                         var data = config[int.Parse(splits[0].Substring(4))];
                         if (splits.Length == 1)
                         {
-                            if (!await args.Source.CheckPermission())
+                            if (!await args.Source.HasPermission("reply.list", -1))
                             {
                                 await args.Callback("Access denied.");
                                 return;
                             }
-                            await args.Callback("All valid replies:\n" + string.Concat(data.Select((pair) => pair.Item1.ToString() + "\n")));
+                            await args.Callback("All valid replies:\n" + string.Concat(data.Select((pair) => pair.Key + "\n")));
                         }
                         else if (splits.Length == 2)
                         {
-                            var result = Utils.TryGetValueStart(data, (pair) => pair.Item1.ToString()[1..^1], splits[1], out var list);
+                            var result = Utils.TryGetValueStart(data, (pair) => pair.Key, splits[1], out var list);
 
                             if (string.IsNullOrEmpty(result))
-                                await args.Callback($"All valid replies for `{list.Item1.ToString()[1..^1]}`:\n{string.Concat(list.Item2.Select((reply) => $"`{reply.reply}` (by {reply.qq})\n"))}");
+                                await args.Callback($"All valid replies for `{list.Key}`:\n{string.Concat(list.Value.Select((reply) => $"`{reply.reply}` (by {reply.qq})\n"))}");
                             else
                                 await args.Callback(result);
 
@@ -195,7 +197,8 @@ namespace BandoriBot.Commands
                         if (splits.Length == 1) return;
 
                         var result = ReplyHandler.FitRegex(data, splits[1]);
-                        await args.Callback($"All regex that match `{splits[1]}`:\n{string.Join('\n', data.Where(tuple => tuple.Item1.Match(splits[1]).Success).Select(tuple => tuple.Item1.ToString()).Select(str => str[1..^1]))}");
+                        await args.Callback($"All regex that match `{splits[1]}`:\n" +
+                            $"{string.Join('\n', data.Where(tuple => ReplyHandler.regexCache[tuple.Key].Match(splits[1]).Success).Select(tuple => tuple.Key).Select(str => str[1..^1]))}");
                         break;
                     }
             }

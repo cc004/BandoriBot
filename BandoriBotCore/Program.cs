@@ -2,17 +2,15 @@ using BandoriBot.Commands;
 using BandoriBot.Config;
 using BandoriBot.Handler;
 using BandoriBot.Services;
-using Mirai_CSharp;
-using Mirai_CSharp.Models;
-using Native.Csharp.App.Terraria;
-using SekaiClient.Datas;
+using Sora.EventArgs.SoraEvent;
+using Sora.Net;
+using Sora.OnebotModel;
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
+using ServerConfig = Sora.OnebotModel.ServerConfig;
 
 namespace BandoriBot
 {
@@ -20,26 +18,25 @@ namespace BandoriBot
     {
         public static object SekaiFile = new object();
 
-        private static void PluginInitialize(MiraiHttpSession session)
+        private static void PluginInitialize()
         {
-            MessageHandler.session = session;
+            //MessageHandler.session = client;
 
             Configuration.Register<AntirevokePlus>();
             Configuration.Register<Activation>();
-            Configuration.Register<MainServerConfig>();
+            // Configuration.Register<MainServerConfig>();
             Configuration.Register<Delay>();
             Configuration.Register<MessageStatistic>();
             Configuration.Register<ReplyHandler>();
             Configuration.Register<Whitelist>();
-            Configuration.Register<Admin>();
             Configuration.Register<Blacklist>();
             Configuration.Register<BlacklistF>();
             Configuration.Register<TitleCooldown>();
-            Configuration.Register<PCRConfig>();
+            //Configuration.Register<PCRConfig>();
             Configuration.Register<R18Allowed>();
             Configuration.Register<NormalAllowed>();
             Configuration.Register<AccountBinding>();
-            Configuration.Register<ServerManager>();
+            //Configuration.Register<ServerManager>();
             Configuration.Register<TimeConfiguration>();
             Configuration.Register<GlobalConfiguration>();
             Configuration.Register<Antirevoke>();
@@ -49,21 +46,24 @@ namespace BandoriBot
             Configuration.Register<SubscribeConfig>();
             Configuration.Register<PermissionConfig>();
             Configuration.Register<Pipe>();
+            Configuration.Register<TokenConfig>();
+            Configuration.Register<SekaiCache>();
             //Configuration.Register<PeriodRank>();
 
+            MessageHandler.Register<SetTokenCommand>();
             MessageHandler.Register<CarHandler>();
             MessageHandler.Register(Configuration.GetConfig<ReplyHandler>());
             MessageHandler.Register<WhitelistHandler>();
             MessageHandler.Register<RepeatHandler>();
             MessageHandler.Register(Configuration.GetConfig<MessageStatistic>());
-            MessageHandler.Register(Configuration.GetConfig<MainServerConfig>());
+            //MessageHandler.Register(Configuration.GetConfig<MainServerConfig>());
 
             MessageHandler.Register<YCM>();
             MessageHandler.Register<QueryCommand>();
             MessageHandler.Register<ReplyCommand>();
             MessageHandler.Register<FindCommand>();
             MessageHandler.Register<DelayCommand>();
-            MessageHandler.Register<AdminCommand>();
+
             MessageHandler.Register<AntirevokePlusCommand>();
             MessageHandler.Register<SekaiCommand>();
             MessageHandler.Register<SekaiPCommand>();
@@ -74,19 +74,13 @@ namespace BandoriBot
             MessageHandler.Register<Deactivate>();
             MessageHandler.Register<BlacklistCommand>();
             MessageHandler.Register<TitleCommand>();
-            MessageHandler.Register<PCRRunCommand>();
             MessageHandler.Register<CarTypeCommand>();
             MessageHandler.Register<SekaiLineCommand>();
             MessageHandler.Register<SekaiGachaCommand>();
             MessageHandler.Register<PermCommand>();
             MessageHandler.Register<SendCommand>();
-
-            MessageHandler.Register<DDCommand>();
-            MessageHandler.Register<CDCommand>();
-            MessageHandler.Register<CCDCommand>();
-            MessageHandler.Register<SLCommand>();
-            MessageHandler.Register<SCCommand>();
-            MessageHandler.Register<TBCommand>();
+            MessageHandler.Register<RecordCommand>();
+            /*
             MessageHandler.Register<RCCommand>();
             MessageHandler.Register<CPMCommand>();
 
@@ -125,20 +119,21 @@ namespace BandoriBot
             CommandHelper.Register<AdditionalCommands.解ip>();
             CommandHelper.Register<AdditionalCommands.封ip>();
             CommandHelper.Register<AdditionalCommands.saveall>();
-
+            */
             MessageHandler.Register<R18AllowedCommand>();
             MessageHandler.Register<NormalAllowedCommand>();
             MessageHandler.Register<SetuCommand>();
             MessageHandler.Register<ZMCCommand>();
             MessageHandler.Register<AntirevokeCommand>();
-            MessageHandler.Register<SubscribeCommand>();
+            //MessageHandler.Register<SubscribeCommand>();
+            RecordDatabaseManager.InitDatabase();
 
             if (File.Exists("sekai"))
             {
             }
 
             Configuration.LoadAll();
-
+            /*
             foreach (var schedule in Configuration.GetConfig<TimeConfiguration>().t)
             {
                 var s = schedule;
@@ -147,33 +142,75 @@ namespace BandoriBot
                     await session.SendGroupMessageAsync(s.group, await Utils.GetMessageChain(s.message, async p => await session.UploadPictureAsync(UploadTarget.Group, p)));
                 }, s.delay);
             }
-
+            */
             GC.Collect();
-            MessageHandler.booted = true;
+
         }
 
         public static async Task Main(string[] args)
         {
-            string authkey = File.ReadAllText("authkey.txt");
-
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
-            
-            await using var session = new MiraiHttpSession();
 
-            session.AddPlugin(new MessageHandler());
-            
-            PluginInitialize(session);
+            var service = SoraServiceFactory.CreateInstance(new ServerConfig
+            {
+                Host = "127.0.0.1",
+                Port = 6701
+            });
 
-            var options = new MiraiHttpSessionOptions("localhost", int.Parse(args[1]), authkey);
+            service.Event.OnClientConnect += Event_OnClientConnect;
+            service.Event.OnFriendRequest += Event_OnFriendRequest;
+            service.Event.OnGroupMessage += Event_OnGroupMessage;
+            service.Event.OnPrivateMessage += Event_OnPrivateMessage;
 
-            await session.ConnectAsync(options, long.Parse(args[0]));
+            PluginInitialize();
+            new Thread(() => Apis.Program.Main2(args)).Start();
+
+            await service.StartService();
 
             Console.WriteLine("connected to server");
 
-            Thread.Sleep(int.MaxValue);
+            while (true)
+            {
+                var r = Console.ReadLine();
+                if (r == "exit")
+                {
+                    RecordDatabaseManager.Close();
+                    Environment.Exit(0);
+                }
+            }
+        }
 
+        private static async ValueTask Event_OnPrivateMessage(string type, PrivateMessageEventArgs eventArgs)
+        {
+            MessageHandler.OnMessage(eventArgs.SoraApi, Utils.GetCQMessage(eventArgs.Message), new Source
+            {
+                Session = eventArgs.SoraApi,
+                FromGroup = 0,
+                FromQQ = eventArgs.SenderInfo.UserId
+            });
+        }
+
+        private static async ValueTask Event_OnGroupMessage(string type, GroupMessageEventArgs eventArgs)
+        {
+            MessageHandler.OnMessage(eventArgs.SoraApi, Utils.GetCQMessage(eventArgs.Message), new Source
+            {
+                Session = eventArgs.SoraApi,
+                FromGroup = eventArgs.SourceGroup.Id,
+                FromQQ = eventArgs.SenderInfo.UserId
+            });
+        }
+
+        private static async ValueTask Event_OnFriendRequest(string type, FriendRequestEventArgs eventArgs)
+        {
+            await eventArgs.SoraApi.SetFriendAddRequest(eventArgs.RequsetFlag, true);
+        }
+
+        private static async ValueTask Event_OnClientConnect(string type, Sora.EventArgs.SoraEvent.ConnectEventArgs eventArgs)
+        {
+            MessageHandler.session = eventArgs.SoraApi;
+            MessageHandler.booted = true;
         }
 
         private static void CurrentDomain_FirstChanceException(object sender, FirstChanceExceptionEventArgs e)
@@ -188,6 +225,7 @@ namespace BandoriBot
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
+            RecordDatabaseManager.Close();
             Console.WriteLine(e.ExceptionObject);
         }
 

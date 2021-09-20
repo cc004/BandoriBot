@@ -1,16 +1,12 @@
-﻿using System;
+﻿using BandoriBot.Handler;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Pipes;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using BandoriBot.Handler;
-using Mirai_CSharp.Models;
-using Newtonsoft.Json;
+using Sora.Entities.CQCodes;
 
 namespace BandoriBot.Config
 {
@@ -37,7 +33,7 @@ namespace BandoriBot.Config
             new Thread(Listen).Start();
             new Thread(() =>
             {
-                for (;;)
+                for (; ; )
                 {
                     try
                     {
@@ -80,7 +76,7 @@ namespace BandoriBot.Config
     public class Pipe : SerializableConfiguration<Dictionary<long, string>>
     {
         public override string Name => "pipe.json";
-        private Dictionary<long, InteractClient> interacts = new ();
+        private Dictionary<long, InteractClient> interacts = new();
 
         public override void LoadFrom(BinaryReader br)
         {
@@ -91,7 +87,7 @@ namespace BandoriBot.Config
                 pair.Value.Input += msg =>
                 {
                     this.Log(Models.LoggerLevel.Debug, msg);
-                    MessageHandler.session.SendGroupMessageAsync(pair.Key, new PlainMessage(msg)).Wait();
+                    MessageHandler.session.SendGroupMessage(pair.Key, CQCode.CQText(msg)).AsTask().Wait();
                 };
         }
 

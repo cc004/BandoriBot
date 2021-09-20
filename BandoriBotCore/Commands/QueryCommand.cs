@@ -1,10 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using BandoriBot.Config;
 using BandoriBot.Handler;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
@@ -19,11 +17,11 @@ namespace BandoriBot.Commands
         {
             MessageStatistic data = Configuration.GetConfig<MessageStatistic>();
 
-            if (!args.Source.HasPermission("management.query"))
+            if (!await args.Source.HasPermission("management.query"))
             {
                 string[] splits = args.Arg.Trim().Split(' ');
                 if (splits.Length > 0)
-                { 
+                {
                     switch (splits[0])
                     {
                         case "reset":
@@ -75,7 +73,7 @@ namespace BandoriBot.Commands
                 sort = new List<Tuple<long, int>>();
 
                 foreach (KeyValuePair<long, int> num in data.t[group])
-                    sort.Add(new Tuple<long, int> (num.Key, num.Value));
+                    sort.Add(new Tuple<long, int>(num.Key, num.Value));
             }
 
             sort.Sort(delegate (Tuple<long, int> var1, Tuple<long, int> var2)

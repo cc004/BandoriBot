@@ -1,6 +1,6 @@
-﻿using BandoriBot.Models;
+﻿using BandoriBot.Config;
+using BandoriBot.Models;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using SekaiClient;
 using SekaiClient.Datas;
 using System;
@@ -11,6 +11,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Sora.Entities.CQCodes;
 
 namespace BandoriBot.Commands
 {
@@ -42,7 +43,7 @@ namespace BandoriBot.Commands
                         try
                         {
                             this.Log(LoggerLevel.Info, $"gacha inherit for user {source.FromQQ}: {inherit}");
-                            source.Session.SendFriendMessageAsync(source.FromQQ, new Mirai_CSharp.Models.PlainMessage($"引继id: {inherit}"));
+                            source.Session.SendPrivateMessage(source.FromQQ, CQCode.CQText($"引继id: {inherit}"));
                         }
                         catch { }
                     }
@@ -95,7 +96,7 @@ namespace BandoriBot.Commands
             var evt = MasterData.Instance.CurrentEvent;
 
             RankData data;
-            
+
             lock (Program.SekaiFile)
                 data = RankData.FromFile($"sekai_event{evt.id}.csv");
 
@@ -243,7 +244,13 @@ namespace BandoriBot.Commands
             long arg;
             try
             {
-                arg = long.Parse(args.Arg.Trim());
+                if (string.IsNullOrEmpty(args.Arg)) arg = Configuration.GetConfig<SekaiCache>().t[args.Source.FromQQ];
+                else
+                {
+                    arg = long.Parse(args.Arg.Trim());
+                    Configuration.GetConfig<SekaiCache>().t[args.Source.FromQQ] = arg;
+                    Configuration.GetConfig<SekaiCache>().Save();
+                }
             }
             catch
             {

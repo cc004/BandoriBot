@@ -1,13 +1,10 @@
 using BandoriBot.Config;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
-    public class BlacklistCommand : HashCommand<BlacklistF,string>
+    public class BlacklistCommand : HashCommand<BlacklistF, string>
     {
         public override List<string> Alias => new List<string>
         {
@@ -22,9 +19,11 @@ namespace BandoriBot.Commands
             }
             catch
             {
-                return 0;
+                return -1;
             }
         }
+
+        protected override string Permission => "management.blacklist";
 
         public override async Task Run(CommandArgs args)
         {

@@ -1,8 +1,4 @@
 using BandoriBot.Config;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BandoriBot.Handler
@@ -13,7 +9,8 @@ namespace BandoriBot.Handler
 
         public async Task<bool> OnMessage(HandlerArgs args)
         {
-            return !Configuration.GetConfig<Whitelist>().hash.Contains(args.Sender.FromGroup) && !await args.Sender.CheckPermission();
+            return !Configuration.GetConfig<Whitelist>().hash.Contains(args.Sender.FromGroup) &&
+                !await args.Sender.HasPermission("ignore.whitelist", -1);
         }
     }
 }

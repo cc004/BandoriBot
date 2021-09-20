@@ -1,15 +1,5 @@
-using BandoriBot;
-using BandoriBot.Config;
-using BandoriBot.Handler;
-using Newtonsoft.Json.Linq;
-using PCRClient;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 namespace PCRClientTest
-{
+{/*
     public class PCRManager
     {
         public static PCRManager Instance = new PCRManager();
@@ -101,5 +91,5 @@ namespace PCRClientTest
 
             return $"在排名{rank}的公会是{name}，目前处于第{lap}周目，{o.name}，剩余血量{remaining}";
         }
-    }
+    }*/
 }

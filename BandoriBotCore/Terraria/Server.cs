@@ -1,12 +1,9 @@
+
+using System;
+using System.Net.Http;
+using System.Web;
 using BandoriBot.Commands;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
 
 namespace Native.Csharp.App.Terraria
 {

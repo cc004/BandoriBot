@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
@@ -27,13 +26,13 @@ namespace BandoriBot.Commands
     {
         private const string noperm = "没有权限";
 
-        private static bool ParseCommand(Type t, CommandArgs arg, List<string> args)
+        private static async Task<bool> ParseCommand(Type t, CommandArgs arg, List<string> args)
         {
             if (args.Count > 0)
             {
                 foreach (var type in t.GetNestedTypes(BindingFlags.Public | BindingFlags.Static))
                 {
-                    if (args[0] == type.Name.ToLower() && ParseCommand(type, arg, args.Skip(1).ToList()))
+                    if (args[0] == type.Name.ToLower() && await ParseCommand(type, arg, args.Skip(1).ToList()))
                     {
                         return true;
                     }
@@ -85,10 +84,10 @@ namespace BandoriBot.Commands
 
                 if (error || index != lst.Count) continue;
 
-                if (method.IsDefined(typeof(SuperadminAttribute)) && !arg.Source.CheckPermission().Result ||
-                    method.IsDefined(typeof(PermissionAttribute)) && !arg.Source.HasPermission(method.GetCustomAttribute<PermissionAttribute>().permission))
+                if (method.IsDefined(typeof(SuperadminAttribute)) && !await arg.Source.HasPermission("*") ||
+                    method.IsDefined(typeof(PermissionAttribute)) && !await arg.Source.HasPermission(method.GetCustomAttribute<PermissionAttribute>().permission))
                 {
-                    arg.Callback(noperm);
+                    await arg.Callback(noperm);
                     return true;
                 }
 
@@ -100,10 +99,10 @@ namespace BandoriBot.Commands
             var method2 = t.GetMethod("Default", BindingFlags.Public | BindingFlags.Static);
             if (method2 != null)
             {
-                if (method2.IsDefined(typeof(SuperadminAttribute)) && !arg.Source.CheckPermission().Result ||
-                    method2.IsDefined(typeof(PermissionAttribute)) && !arg.Source.HasPermission(method2.GetCustomAttribute<PermissionAttribute>().permission))
+                if (method2.IsDefined(typeof(SuperadminAttribute)) && !await arg.Source.HasPermission("*") ||
+                    method2.IsDefined(typeof(PermissionAttribute)) && !await arg.Source.HasPermission(method2.GetCustomAttribute<PermissionAttribute>().permission))
                 {
-                    arg.Callback(noperm);
+                    await arg.Callback(noperm);
                     return true;
                 }
 

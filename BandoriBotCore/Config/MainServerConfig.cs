@@ -1,14 +1,12 @@
-﻿using BandoriBot.Handler;
-using BandoriBot.Terraria;
-using Mirai_CSharp.Models;
-using Newtonsoft.Json;
+﻿
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using BandoriBot.Handler;
+using BandoriBot.Terraria;
+using Newtonsoft.Json;
+using Sora.Entities.CQCodes;
 
 namespace BandoriBot.Config
 {
@@ -38,7 +36,7 @@ namespace BandoriBot.Config
             server.OnServerMessage += msg =>
             {
                 foreach (var group in t.groups)
-                    MessageHandler.session.SendGroupMessageAsync(group, new PlainMessage(msg)).Wait();
+                    MessageHandler.session.SendGroupMessage(group, CQCode.CQText(msg)).AsTask().Wait();
             };
         }
 

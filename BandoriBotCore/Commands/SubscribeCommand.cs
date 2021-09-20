@@ -1,19 +1,9 @@
-﻿using BandoriBot.Config;
-using BandoriBot.DataStructures;
-using BandoriBot.Handler;
-using Mirai_CSharp;
-using Mirai_CSharp.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace BandoriBot.Commands
-{
+﻿namespace BandoriBot.Commands
+{/*
     public class SubscribeCommand : ICommand, ISession
     {
         private readonly SubscribeConfig config;
-        public MiraiHttpSession Session { get; set; }
+        public SoraApi Session { get; set; }
 
         public SubscribeCommand()
         {
@@ -31,7 +21,7 @@ namespace BandoriBot.Commands
                 lock (config)
                     targets = config.t.GroupBy(pair => pair.Value).ToDictionary(group => group.Key, group => group.Select(pair => pair.Key).ToArray());
 
-                var msgchain = new IMessageBase[]
+                var msgchain = new Element[]
                 {
                     new PlainMessage(obj.ToString())
                 };
@@ -81,7 +71,7 @@ namespace BandoriBot.Commands
             }
             else
             {
-                if (!await args.Source.CheckPermission(args.Source.FromGroup))
+                if (!await args.Source.HasPermission("management.subscribe", args.Source.FromGroup))
                 {
                     await args.Callback("access denied.");
                     return;
@@ -94,6 +84,6 @@ namespace BandoriBot.Commands
                 await args.Callback($"subscribe type of group {args.Source.FromGroup} set to {type}");
             }
         }
-    }
+    }*/
 
 }

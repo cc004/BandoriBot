@@ -1,13 +1,10 @@
 using BandoriBot.Handler;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PCRClient
 {
@@ -23,7 +20,7 @@ namespace PCRClient
         public JObject Home { get; private set; }
 
         public int ClanId => Home["user_clan"].Value<int>("clan_id");
-        
+
         private int _clanbattleid = 0;
         public int ClanBattleid
         {
@@ -52,7 +49,7 @@ namespace PCRClient
                 if (field.FieldType != typeof(string)) continue;
                 client.DefaultRequestHeaders.TryAddWithoutValidation(
                     field.IsDefined(typeof(NoUpperAttribute), true) ?
-                        field.Name.Replace('_', '-') : 
+                        field.Name.Replace('_', '-') :
                         field.Name.Replace('_', '-').ToUpper(),
                     field.GetValue(info) as string);
             }
@@ -128,7 +125,7 @@ namespace PCRClient
 
             Callapi("check/check_agreement", new JObject());
 
-    
+
             Load = Callapi("load/index", new JObject { ["carrier"] = "OPPO" }) as JObject;
             Home = Callapi("home/index", new JObject
             {

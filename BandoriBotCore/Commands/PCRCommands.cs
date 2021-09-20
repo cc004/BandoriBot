@@ -1,21 +1,6 @@
-using BandoriBot.Config;
-using BandoriBot.Handler;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using PCRClient;
-using PCRClientTest;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
 namespace BandoriBot.Commands
 {
+    /*
     public class CCDCommand : ICommand
     {
         public List<string> Alias => new List<string> { "查出刀" };
@@ -307,5 +292,5 @@ namespace BandoriBot.Commands
         {
             await args.Callback(PCRManager.Instance.GetRankStatistic(int.Parse(args.Arg.Trim())));
         }
-    }
+    }*/
 }
