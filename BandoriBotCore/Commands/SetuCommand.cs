@@ -165,6 +165,7 @@ namespace BandoriBot.Commands
 
         public async Task Run(CommandArgs args)
         {
+            return;
             var flag = Configuration.GetConfig<NormalAllowed>().hash.Contains(args.Source.FromGroup);
             var flag2 = Configuration.GetConfig<R18Allowed>().hash.Contains(args.Source.FromGroup);
 

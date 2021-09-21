@@ -12,8 +12,8 @@ namespace BandoriBot.Handler
 {
     public class CarHandler : IMessageHandler
     {
-        private static readonly string source = HttpUtility.UrlEncode("冲冲");
-        private static readonly string token = "2NmWeiklE";
+        private static readonly string source = HttpUtility.UrlEncode("喵喵喵");
+        private static readonly string token = "oYaAqHVn63";
         private static List<Car> sekaicars = new List<Car>();
 
         public static event Action<Car> OnNewCar;
@@ -24,7 +24,7 @@ namespace BandoriBot.Handler
         {
             get
             {
-                var nt = DateTime.Now;
+                var nt = DateTime.UtcNow;
                 lock (sekaicars)
                 {
                     sekaicars = sekaicars.Where(car => nt - car.time <= (car.index > 99999 ? new TimeSpan(0, 10, 0) : new TimeSpan(0, 4, 0)))
@@ -36,8 +36,6 @@ namespace BandoriBot.Handler
 
         private bool IsIgnore(Source sender)
         {
-            if (!Configuration.GetConfig<Activation>()[sender.FromGroup]) return true;
-            if ((sender.FromGroup > 0) && !Configuration.GetConfig<Activation>()[sender.FromQQ]) return true;
             return false;
         }
 
@@ -99,9 +97,7 @@ namespace BandoriBot.Handler
 
             car = int.Parse(message.Substring(0, split));
             LastCar[args.Sender.FromQQ] = car;
-
-            await Task.Delay(Configuration.GetConfig<Delay>()[args.Sender.FromQQ] * 1000);
-
+            
             string raw_message = car.ToString("d5") + " " + message.Substring(split);
 
             // ignore non-text messages
@@ -124,9 +120,9 @@ namespace BandoriBot.Handler
                     {
                         await args.Callback($"无法连接到bandoristation.com");
                     }
-                    else if (res["status"].ToString() != "success" && res["status"].ToString() != "duplicate_number_submit")
+                    else if (res["status"].ToString() != "success")
                     {
-                        await args.Callback($"上传车牌时发生错误: {res["status"]}");
+                        await args.Callback($"上传车牌时发生错误: {res["response"]}");
                     }
                     return true;
                 case CarType.Sekai:
@@ -136,7 +132,7 @@ namespace BandoriBot.Handler
                     {
                         index = car,
                         rawmessage = raw_message,
-                        time = DateTime.Now
+                        time = DateTime.UtcNow
                     };
                     lock (sekaicars)
                         sekaicars.Add(caro);

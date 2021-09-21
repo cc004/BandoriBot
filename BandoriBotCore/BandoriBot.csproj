@@ -27,6 +27,11 @@
   <ItemGroup>
     <ProjectReference Include="..\MsgPack\MsgPack.csproj" />
     <ProjectReference Include="..\SekaiClient\SekaiClient.csproj" />
+    <ProjectReference Include="..\TrProtocol\TrClient\TrClient.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Data\" />
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">

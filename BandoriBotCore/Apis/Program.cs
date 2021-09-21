@@ -7,7 +7,14 @@ namespace BandoriBot.Apis
     {
         internal static void Main2(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            try
+            {
+                CreateHostBuilder(args).Build().Run();
+            }
+            catch
+            {
+
+            }
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

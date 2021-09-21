@@ -6,7 +6,7 @@ namespace BandoriBot.Commands
 {
     public class BlacklistCommand : HashCommand<BlacklistF, string>
     {
-        public override List<string> Alias => new List<string>
+        public override List<string> Alias => new()
         {
             "/blacklist"
         };
@@ -24,10 +24,5 @@ namespace BandoriBot.Commands
         }
 
         protected override string Permission => "management.blacklist";
-
-        public override async Task Run(CommandArgs args)
-        {
-            await base.Run(args);
-        }
     }
 }

@@ -116,7 +116,6 @@ namespace BandoriBot.Handler
                 }
                 return false;
             }
-
             if (isme)
             {
                 if (GetConfig<Blacklist>().hash.Contains(args.Sender.FromQQ))
