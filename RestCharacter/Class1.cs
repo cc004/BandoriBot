@@ -133,6 +133,7 @@ namespace RestCharacter
                                 }
                             }
                         TShock.DB.QueryReader("update dailyonlinetime set time=0");
+                        TShock.Utils.Broadcast("每日在线排行已重置，奖励已发放",Microsoft.Xna.Framework.Color.Green);
                     }
                     else
                     {
