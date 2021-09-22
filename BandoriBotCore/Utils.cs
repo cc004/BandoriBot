@@ -17,7 +17,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Native.Csharp.App.Terraria;
+using BandoriBot.Terraria;
 using Sora.Enumeration.EventParamsType;
 using Image = System.Drawing.Image;
 
@@ -156,63 +156,6 @@ public static string FixImage(string origin)
        });
 }
 */
-        public static bool PlayerOnline(string name)
-        {
-            return GetAllOnlinePlayers().Contains(name);
-        }
-        public static string GetOnlineServer(string name)
-        {
-            if (PlayerOnline(name))
-                foreach (var s in Configuration.GetConfig<ServerManager>().servers)
-                {
-                    if (GetOnlinePlayers(s.Value).Contains(name))
-                        return s.Key;
-                }
-            else
-                return null;
-            return null;
-        }
-        public static int GetItemStack(Server server,string name,int id)
-        {
-            return int.Parse (server.RunRest("/v1/itemrank/rankboard?&id=" + id).Where(t => t["name"].ToString() == name).FirstOrDefault()["count"].ToString());
-        }
-        public static string GetMoney(Server server,string name)
-        {
-            int copper = GetItemStack(server,name ,71), 
-                silver = GetItemStack(server, name, 72), 
-                gold = GetItemStack(server, name, 73), 
-                platinum = GetItemStack(server, name, 74);
-            string res = "";
-            if (platinum != 0)
-            {
-                res += platinum + "铂金";
-            }
-            if(gold != 0)
-            {
-                res += gold + "金";
-            }
-            if (silver != 0)
-            {
-                res += silver + "银";
-            }
-            if(copper != 0)
-            {
-                res += copper + "铜";
-            }
-            if (res == "") res = "无产阶级";
-            return res;
-        }
-        public static string[] GetOnlinePlayers(Server server)
-        {
-            return server.RunRest("/v2/users/activelist")["activeusers"]
-                .ToString().Split('\t').Where((s) => !string.IsNullOrWhiteSpace(s)).ToArray();
-        }
-        public static string[] GetAllOnlinePlayers()
-        {
-            var server = Configuration.GetConfig<ServerManager>().servers["流光之城"];
-            var online = string.Join("\n", server.RunCommand("/list")["response"].Select(s => s.ToString()));
-            return online.Split('：')[1].Split(',');
-        }
         public static string FixRegex(string origin)
         {
             return origin.Replace("[", @"\[").Replace("]", @"\]").Replace("&#91;", "[").Replace("&#93;", "]");

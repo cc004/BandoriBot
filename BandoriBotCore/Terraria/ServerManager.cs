@@ -2,16 +2,25 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using BandoriBot;
 using BandoriBot.Commands;
 using BandoriBot.Config;
 using BandoriBot.Models;
 using Newtonsoft.Json.Linq;
 
-namespace Native.Csharp.App.Terraria
+namespace BandoriBot.Terraria
 {
     public class ServerManager : JsonConfiguration
     {
+        public string GetOnlineServer(string name)
+        {
+            return string.Join(",",
+                (from server in GetConfig<ServerManager>().servers
+                    where server.Value.GetOnlinePlayers().Contains(name)
+                    select server.Key));
+        }
+
         public Dictionary<string, Server> servers;
 
         public Dictionary<long, string> bindings = new Dictionary<long, string>();

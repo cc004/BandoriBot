@@ -1,11 +1,12 @@
 
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Web;
 using BandoriBot.Commands;
 using Newtonsoft.Json.Linq;
 
-namespace Native.Csharp.App.Terraria
+namespace BandoriBot.Terraria
 {
     public class Server
     {
@@ -57,6 +58,44 @@ namespace Native.Csharp.App.Terraria
         public JToken RunCommand(string command)
         {
             return RunRest($"/v3/server/rawcmd?cmd={HttpUtility.UrlEncode(command)}");
+        }
+
+
+        public int GetItemStack(string name, int id)
+        {
+            return int.Parse(RunRest("/v1/itemrank/rankboard?&id=" + id)
+                .Where(t => t["name"].ToString() == name).FirstOrDefault()["count"].ToString());
+        }
+        public string GetMoney(string name)
+        {
+            int copper = GetItemStack(name, 71),
+                silver = GetItemStack(name, 72),
+                gold = GetItemStack(name, 73),
+                platinum = GetItemStack(name, 74);
+            string res = "";
+            if (platinum != 0)
+            {
+                res += platinum + "铂金";
+            }
+            if (gold != 0)
+            {
+                res += gold + "金";
+            }
+            if (silver != 0)
+            {
+                res += silver + "银";
+            }
+            if (copper != 0)
+            {
+                res += copper + "铜";
+            }
+            if (res == "") res = "无产阶级";
+            return res;
+        }
+        public string[] GetOnlinePlayers()
+        {
+            return RunRest("/v2/users/activelist")["activeusers"]
+                .ToString().Split('\t').Where((s) => !string.IsNullOrWhiteSpace(s)).ToArray();
         }
     }
 }

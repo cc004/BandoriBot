@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SekaiClient;
 using ServerConfig = Sora.OnebotModel.ServerConfig;
+using BandoriBot.Commands.Terraria;
 
 namespace BandoriBot
 {
@@ -58,7 +59,6 @@ namespace BandoriBot
             MessageHandler.Register<WhitelistHandler>();
             MessageHandler.Register<RepeatHandler>();
             MessageHandler.Register(Configuration.GetConfig<MessageStatistic>());
-            MessageHandler.Register<LoginCommand>();
             //MessageHandler.Register(Configuration.GetConfig<MainServerConfig>());
 
             MessageHandler.Register<YCM>();
@@ -82,43 +82,41 @@ namespace BandoriBot
             /*
             MessageHandler.Register<RCCommand>();
             MessageHandler.Register<CPMCommand>();
-
-            CommandHelper.Register<AdditionalCommands.test>();
-            CommandHelper.Register<AdditionalCommands.Wiki>();
-            CommandHelper.Register<AdditionalCommands.泰拉商店>();
-            CommandHelper.Register<AdditionalCommands.随机禁言>();
-            CommandHelper.Register<AdditionalCommands.泰拉在线>();
-            CommandHelper.Register<AdditionalCommands.泰拉资料>();
-            CommandHelper.Register<AdditionalCommands.封>();
-            CommandHelper.Register<AdditionalCommands.泰拉注册>();
-            CommandHelper.Register<AdditionalCommands.泰拉每日在线排行>();
-            CommandHelper.Register<AdditionalCommands.泰拉在线排行>();
-            CommandHelper.Register<AdditionalCommands.泰拉物品排行>();
-            CommandHelper.Register<AdditionalCommands.泰拉财富排行>();
-            CommandHelper.Register<AdditionalCommands.泰拉渔夫排行>();
-            CommandHelper.Register<AdditionalCommands.泰拉重生排行>();
-            CommandHelper.Register<AdditionalCommands.泰拉玩家>();
-            CommandHelper.Register<AdditionalCommands.泰拉背包>();
-            CommandHelper.Register<AdditionalCommands.解>();
-            CommandHelper.Register<AdditionalCommands.重置>();
-            CommandHelper.Register<AdditionalCommands.泰拉切换>();
-            CommandHelper.Register<AdditionalCommands.绑定>();
-            CommandHelper.Register<AdditionalCommands.执行>();
-            CommandHelper.Register<AdditionalCommands.解绑>();
-            CommandHelper.Register<AdditionalCommands.开启前缀检测>();
-            CommandHelper.Register<AdditionalCommands.关闭前缀检测>();
-            CommandHelper.Register<AdditionalCommands.开启自动清人>();
-            CommandHelper.Register<AdditionalCommands.关闭自动清人>();
-            CommandHelper.Register<AdditionalCommands.加入黑名单>();
-            CommandHelper.Register<AdditionalCommands.移除黑名单>();
-            CommandHelper.Register<AdditionalCommands.黑名单列表>();
-            CommandHelper.Register<AdditionalCommands.黑名单>();
-            CommandHelper.Register<AdditionalCommands.查黑>();
-            CommandHelper.Register<AdditionalCommands.服务器列表>();
-            CommandHelper.Register<AdditionalCommands.解ip>();
-            CommandHelper.Register<AdditionalCommands.封ip>();
-            CommandHelper.Register<AdditionalCommands.saveall>();
             */
+            
+            CommandHelper.Register<TerrariaCommands.泰拉商店>();
+            CommandHelper.Register<TerrariaCommands.泰拉在线>();
+            CommandHelper.Register<TerrariaCommands.泰拉资料>();
+            CommandHelper.Register<TerrariaCommands.封>();
+            CommandHelper.Register<TerrariaCommands.泰拉注册>();
+            CommandHelper.Register<TerrariaCommands.泰拉每日在线排行>();
+            CommandHelper.Register<TerrariaCommands.泰拉在线排行>();
+            CommandHelper.Register<TerrariaCommands.泰拉物品排行>();
+            CommandHelper.Register<TerrariaCommands.泰拉财富排行>();
+            CommandHelper.Register<TerrariaCommands.泰拉渔夫排行>();
+            CommandHelper.Register<TerrariaCommands.泰拉重生排行>();
+            CommandHelper.Register<TerrariaCommands.泰拉玩家>();
+            CommandHelper.Register<TerrariaCommands.泰拉背包>();
+            CommandHelper.Register<TerrariaCommands.解>();
+            CommandHelper.Register<TerrariaCommands.重置>();
+            CommandHelper.Register<TerrariaCommands.泰拉切换>();
+            CommandHelper.Register<TerrariaCommands.绑定>();
+            CommandHelper.Register<TerrariaCommands.执行>();
+            CommandHelper.Register<TerrariaCommands.解绑>();
+            CommandHelper.Register<TerrariaCommands.开启前缀检测>();
+            CommandHelper.Register<TerrariaCommands.关闭前缀检测>();
+            CommandHelper.Register<TerrariaCommands.开启自动清人>();
+            CommandHelper.Register<TerrariaCommands.关闭自动清人>();
+            CommandHelper.Register<TerrariaCommands.加入黑名单>();
+            CommandHelper.Register<TerrariaCommands.移除黑名单>();
+            CommandHelper.Register<TerrariaCommands.黑名单列表>();
+            CommandHelper.Register<TerrariaCommands.黑名单>();
+            CommandHelper.Register<TerrariaCommands.查黑>();
+            CommandHelper.Register<TerrariaCommands.服务器列表>();
+            CommandHelper.Register<TerrariaCommands.解ip>();
+            CommandHelper.Register<TerrariaCommands.封ip>();
+
+
             MessageHandler.Register<R18AllowedCommand>();
             MessageHandler.Register<NormalAllowedCommand>();
             MessageHandler.Register<SetuCommand>();
