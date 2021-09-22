@@ -14,9 +14,8 @@ namespace BandoriBot.Commands.Terraria
             private static readonly HashSet<char> alphabet = new HashSet<char>("1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
             public static void Main(CommandArgs args, string username, string password)
             {
-                var binding = Configuration.GetConfig<AccountBinding>().t;
-                var serverbinding = Configuration.GetConfig<ServerManager>().bindings;
-                var noreg = Configuration.GetConfig<ServerManager>().GetServer(args)?.noRegister;
+                var binding = bindings.t;
+                var noreg = GetServer(args)?.noRegister;
 
                 if (!string.IsNullOrEmpty(noreg))
                 {
@@ -39,18 +38,18 @@ namespace BandoriBot.Commands.Terraria
                     args.Callback("密码不可以为中文，仅限于26个字母和数字");
                     return;
                 }
-                if (binding.Any((o) => o.username == username && o.group == Configuration.GetConfig<ServerManager>().GetServer(args).group))
+                if (binding.Any((o) => o.username == username && o.group == GetServer(args).group))
                 {
                     args.Callback($"{username} already registered.");
                     return;
                 }
 
-                if (binding.Any((o) => o.qq == args.Source.FromQQ && o.group == Configuration.GetConfig<ServerManager>().GetServer(args).group))
+                if (binding.Any((o) => o.qq == args.Source.FromQQ && o.group == GetServer(args).group))
                 {
                     args.Callback("你在本客户端已注册了泰拉角色，请输入 泰拉资料 查看你的角色信息");
                     return;
                 }
-                var result = Configuration.GetConfig<ServerManager>().GetServer(args)
+                var result = GetServer(args)
                     .RunCommand($"/user add \"{username}\" \"{password}\" default");
                 if ((int)result["status"] != 200)
                 {
@@ -62,10 +61,10 @@ namespace BandoriBot.Commands.Terraria
                 {
                     username = username,
                     qq = args.Source.FromQQ,
-                    group = Configuration.GetConfig<ServerManager>().GetServer(args).group
+                    group = GetServer(args).group
                 });
 
-                Configuration.GetConfig<AccountBinding>().Save();
+                bindings.Save();
 
                 args.Callback($"你注册的泰拉角色名是{username}你的泰拉角色已绑定=>{args.Source.FromQQ}=>密码是{password}可以进入服务器了哦～");
             }
@@ -118,9 +117,9 @@ namespace BandoriBot.Commands.Terraria
                     //pair.Value.RunRest($"/v1/whitelist/set?name={HttpUtility.UrlEncode(acc)}&status={name == pair.Key}");
                 }*/
 
-                Configuration.GetConfig<ServerManager>().SwitchTo(args.Source.FromQQ, name);
+                manager.SwitchTo(args.Source.FromQQ, name);
 
-                if (Configuration.GetConfig<AccountBinding>().t.Any(o => o.qq == args.Source.FromQQ && o.group == Configuration.GetConfig<ServerManager>().servers.FirstOrDefault(s => s.Key == name).Value.group))
+                if (bindings.t.Any(o => o.qq == args.Source.FromQQ && o.group == manager.servers.FirstOrDefault(s => s.Key == name).Value.group))
                 {
                     args.Callback($"你的客户端和角色已切换到{name}，可以进入泰拉服务器了");
                 }

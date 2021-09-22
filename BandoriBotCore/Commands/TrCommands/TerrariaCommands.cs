@@ -19,6 +19,7 @@ namespace BandoriBot.Commands.Terraria
         private static readonly ScoreConfig score = Configuration.GetConfig<ScoreConfig>();
         private static readonly GlobalConfiguration global = Configuration.GetConfig<GlobalConfiguration>();
         private static readonly Blacklist blacklist = Configuration.GetConfig<Blacklist>();
+        private static readonly SubServerMap subserver = Configuration.GetConfig<SubServerMap>();
 
         private static Server GetServer(CommandArgs args)
         {

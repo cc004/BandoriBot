@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using SekaiClient;
 using ServerConfig = Sora.OnebotModel.ServerConfig;
 using BandoriBot.Commands.Terraria;
+using BandoriBot.Terraria;
 
 namespace BandoriBot
 {
@@ -39,7 +40,6 @@ namespace BandoriBot
             Configuration.Register<R18Allowed>();
             Configuration.Register<NormalAllowed>();
             Configuration.Register<AccountBinding>();
-            //Configuration.Register<ServerManager>();
             Configuration.Register<TimeConfiguration>();
             Configuration.Register<GlobalConfiguration>();
             Configuration.Register<Antirevoke>();
@@ -52,6 +52,12 @@ namespace BandoriBot
             Configuration.Register<TokenConfig>();
             Configuration.Register<SekaiCache>();
             //Configuration.Register<PeriodRank>();
+
+            Configuration.Register<ServerManager>();
+            Configuration.Register<DailyConfig>();
+            Configuration.Register<LZConfig>();
+            Configuration.Register<ScoreConfig>();
+            Configuration.Register<SubServerMap>();
 
             MessageHandler.Register<SetTokenCommand>();
             MessageHandler.Register<CarHandler>();

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -24,44 +25,7 @@ namespace BandoriBot.Commands.Terraria
                 {
                     throw new CommandException("未找到该玩家资料！");
                 }
-                else
-                {
-                    JObject data;
-                    try
-                    {
-                        data = Configuration.GetConfig<ServerManager>()
-                        .GetServer(args).RunRest($"/v1/character/query?name={HttpUtility.UrlEncode(account.username)}") as JObject;
-                    }
-                    catch (CommandException e)
-                    {
-                        throw new CommandException("该泰拉角色不存在于服务器，请输入 泰拉玩家 查看！", e);
-                    }
-                    JObject bank = null;
-                    try
-                    {
-                        bank = Configuration.GetConfig<ServerManager>().GetServer(args).RunRest($"/economy/getplayermoney?player={HttpUtility.UrlEncode(account.username)}") as JObject;
-                    }
-                    catch { }
-                    var online = manager.GetOnlineServer(account.username);
-                    args.Callback($"这是泰拉玩家[{account.username}]的资料\n" +
-                        $"QQ: {account.qq}\n" +
-                        //$"积分: {data["ip"]}\n" +；//$"神晶: {data["ip"]}\n" +
-                        $"权限: {data["group"]}\n" +
-                        //$"等级: {data["ip"]}\n" +
-                        //$"经验: {data["ip"]}\n" +；//$"财富: {data["ip"]}\n" +
-                        $"货币：{GetServer(args).GetMoney(account.username)}\r" +
-                        $"生命：{data["statLife"]}/{data["statLifeMax"]}\n" +
-                        $"法力：{data["statMana"]}/{data["statManaMax"]}\n" +
-                        ((bank != null && bank["status"].ToString() == "200") ? $"经济：{bank["money"]}$\n" : "") +
-                        $"钓鱼任务完成次数: {data["questsCompleted"]}\n" +
-                        //$"今日总在线时长:功能未实现\n" +
-                        //$"本期PE在线时长: {(int)data["onlinetime"] / 3600}分钟\n" +
-                        //$"本期PC在线时长: {(int)data["onlinetime"] / 3600}分钟\n" +
-                        $"本期总在线时长: {(int)data["onlinetime"] / 3600}分钟\n" +
-                    //$"当前服务器阶段: {((bool)data["online"] ? "肉前阶段" : "肉后阶段" : "巨人前阶段" : "巨人后阶段" : "四柱阶段" : "月后阶段")}");
-                    //$"状态: {((bool)data["online"] ? $"在线 ({GetCurrentServer(account.username)})" : "离线")}");
-                    $"状态: {(!string.IsNullOrEmpty(online) ? $"在线 ({online})" : "离线")}");
-                }
+                Main(args, account.username);
             }
             [Permission("terraria.admin")]
             public static void Main(CommandArgs args, string name)
@@ -81,44 +45,42 @@ namespace BandoriBot.Commands.Terraria
                 {
                     throw new CommandException("未找到该玩家资料！");
                 }
-                else
+
+                JObject data;
+                try
                 {
-                    JObject data;
-                    try
-                    {
-                        data = Configuration.GetConfig<ServerManager>()
-                        .GetServer(args).RunRest($"/v1/character/query?name={HttpUtility.UrlEncode(account.username)}") as JObject;
-                    }
-                    catch (CommandException e)
-                    {
-                        throw new CommandException("该泰拉角色不存在于服务器，请输入 泰拉玩家 查看！", e);
-                    }
-                    JObject bank = null;
-                    try
-                    {
-                        bank = Configuration.GetConfig<ServerManager>().GetServer(args).RunRest($"/economy/getplayermoney?player={HttpUtility.UrlEncode(account.username)}") as JObject;
-                    }
-                    catch { }
-                    var online = manager.GetOnlineServer(account.username);
-                    args.Callback($"这是泰拉玩家[{account.username}]的资料\n" +
-                        $"QQ: {account.qq}\n" +
-                        //$"积分: {data["ip"]}\n" +；//$"神晶: {data["ip"]}\n" +
-                        $"权限: {data["group"]}\n" +
-                        //$"等级: {data["ip"]}\n" +
-                        //$"经验: {data["ip"]}\n" +；//$"财富: {data["ip"]}\n" +
-                        $"货币：{GetServer(args).GetMoney(account.username)}\r" +
-                        $"生命：{data["statLife"]}/{data["statLifeMax"]}\n" +
-                        $"法力：{data["statMana"]}/{data["statManaMax"]}\n" +
-                        ((bank != null && bank["status"].ToString() == "200") ? $"经济：{bank["money"]}$\n" : "") +
-                        $"钓鱼任务完成次数: {data["questsCompleted"]}\n" +
-                        //$"今日总在线时长:功能未实现\n" +
-                        //$"本期PE在线时长: {(int)data["onlinetime"] / 3600}分钟\n" +
-                        //$"本期PC在线时长: {(int)data["onlinetime"] / 3600}分钟\n" +
-                        $"本期总在线时长: {(int)data["onlinetime"] / 3600}分钟\n" +
-                    //$"当前服务器阶段: {((bool)data["online"] ? "肉前阶段" : "肉后阶段" : "巨人前阶段" : "巨人后阶段" : "四柱阶段" : "月后阶段")}");
-                    //$"状态: {((bool)data["online"] ? $"在线 ({GetCurrentServer(account.username)})" : "离线")}");
-                    $"状态: {(!string.IsNullOrEmpty(online) ? $"在线 ({online})" : "离线")}");
+                    data = Configuration.GetConfig<ServerManager>()
+                    .GetServer(args).RunRest($"/v1/character/query?name={HttpUtility.UrlEncode(account.username)}") as JObject;
                 }
+                catch (CommandException e)
+                {
+                    throw new CommandException("该泰拉角色不存在于服务器，请输入 泰拉玩家 查看！", e);
+                }
+                JObject bank = null;
+                try
+                {
+                    bank = Configuration.GetConfig<ServerManager>().GetServer(args).RunRest($"/economy/getplayermoney?player={HttpUtility.UrlEncode(account.username)}") as JObject;
+                }
+                catch { }
+                var online = manager.GetOnlineServer(account.username);
+                args.Callback($"这是泰拉玩家[{account.username}]的资料\n" +
+                    $"QQ: {account.qq}\n" +
+                    //$"积分: {data["ip"]}\n" +；//$"神晶: {data["ip"]}\n" +
+                    $"权限: {data["group"]}\n" +
+                    //$"等级: {data["ip"]}\n" +
+                    //$"经验: {data["ip"]}\n" +；//$"财富: {data["ip"]}\n" +
+                    $"货币：{GetServer(args).GetMoney(account.username)}\r" +
+                    $"生命：{data["statLife"]}/{data["statLifeMax"]}\n" +
+                    $"法力：{data["statMana"]}/{data["statManaMax"]}\n" +
+                    ((bank != null && bank["status"].ToString() == "200") ? $"经济：{bank["money"]}$\n" : "") +
+                    $"钓鱼任务完成次数: {data["questsCompleted"]}\n" +
+                    //$"今日总在线时长:功能未实现\n" +
+                    //$"本期PE在线时长: {(int)data["onlinetime"] / 3600}分钟\n" +
+                    //$"本期PC在线时长: {(int)data["onlinetime"] / 3600}分钟\n" +
+                    $"本期总在线时长: {(int)data["onlinetime"] / 3600}分钟\n" +
+                //$"当前服务器阶段: {((bool)data["online"] ? "肉前阶段" : "肉后阶段" : "巨人前阶段" : "巨人后阶段" : "四柱阶段" : "月后阶段")}");
+                //$"状态: {((bool)data["online"] ? $"在线 ({GetCurrentServer(account.username)})" : "离线")}");
+                $"状态: {(!string.IsNullOrEmpty(online) ? $"在线 ({online})" : "离线")}");
             }
 
             public static void Main(CommandArgs args)
@@ -273,9 +235,8 @@ namespace BandoriBot.Commands.Terraria
                 Graphics canvas = Graphics.FromImage(bitmap);
 
                 canvas.Clear(Color.White);
-                var background = 泰拉背包.background.LoadImage();
-                var frame = 泰拉背包.frame.LoadImage();
-
+                using var background = 泰拉背包.background.LoadImage();
+                using var frame = 泰拉背包.frame.LoadImage();
                 canvas.DrawImage(background, new Rectangle(0, 0, 80 * 22, 80 * 12), new Rectangle(0, 0, background.Width, background.Height), GraphicsUnit.Pixel);
 
                 int pos = 0;
@@ -300,9 +261,6 @@ namespace BandoriBot.Commands.Terraria
                     canvas.DrawString($"x{item["stack"]}", font, Brushes.Black, x + 10, y + 10);
                     ++pos;
                 }
-
-                background.Dispose();
-                frame.Dispose();
                 args.Callback(Utils.GetImageCode(bitmap));
                 //args.Callback("test");
             }
@@ -328,129 +286,20 @@ namespace BandoriBot.Commands.Terraria
         }
         public class 泰拉在线
         {
+            private static string GetOnline(string name)
+            {
+                var arr = new HashSet<string>(subserver.t[name]
+                    .SelectMany(name => manager.servers.TryGetValue(name, out var svr) ? svr.GetOnlinePlayers() : Array.Empty<string>()));
+                return $"『{name}』在线({arr.Count}/100):\n{string.Join(" ", arr.Select(s => $"[{s}]"))}";
+            }
+
             public static void Main(CommandArgs args)
             {
-                args.Callback(string.Join("", Configuration.GetConfig<ServerManager>().servers.Select((server) =>
-                {
-                    try
-                    {
-                        if (!server.Value.display)
-                            if (server.Key == "流光之城")
-                            {
-                                var online = string.Join("\n", server.Value.RunCommand("/list")["response"].Select(s => s.ToString()));
-                                return $"『流光之城』在线({online.Split(',').Count()}/100):\n" + string.Join(" ", online.Split('：')[1].Split(',').Select(s => $"[{s}]")) + "\n";
-                            }
-                            else
-                            {
-                                var arr = server.Value.RunRest("/v2/users/activelist")["activeusers"]
-                                    .ToString().Split('\t').Where((s) => !string.IsNullOrWhiteSpace(s)).ToArray();
-                                return $"『{server.Key}』在线({arr.Length}/100):\n{string.Join(" ", arr.Select(s => $"[{s}]"))}\n";
-                            }
-                        else
-                            return "";
-                    }
-                    catch
-                    {
-                        return "";
-                    }
-                })));
+                args.Callback(string.Join("\n", subserver.t.Select(pair => GetOnline(pair.Key))));
             }
             public static void Main(CommandArgs args, string name)
             {
-                switch (name)
-                {
-                    case "主城":
-                        {
-                            var server = Configuration.GetConfig<ServerManager>().servers.ToList().Find((KeyValuePair<string, Server> k) => k.Key == "流光之城");
-                            var online = string.Join("\n", server.Value.RunCommand("/list")["response"].Select(s => s.ToString()));
-                            args.Callback($"『流光之城』在线({online.Split(',').Count()}/100):\n" + string.Join(" ", online.Split('：')[1].Split(',').Select(s => $"[{s}]")) + "\n");
-                        }
-                        break;
-                    case "生存":
-                        {
-                            args.Callback(string.Join("", Configuration.GetConfig<ServerManager>().servers.Select((server) =>
-                            {
-                                try
-                                {
-                                    if (!server.Value.display && server.Key.Contains("生存"))
-                                        if (server.Key == "流光之城")
-                                        {
-                                            var online = string.Join("\n", server.Value.RunCommand("/list")["response"].Select(s => s.ToString()));
-                                            return $"『流光之城』在线({online.Split(',').Count()}/100):\n" + string.Join(" ", online.Split('：')[1].Split(',').Select(s => $"[{s}]")) + "\n";
-                                        }
-                                        else
-                                        {
-                                            var arr = server.Value.RunRest("/v2/users/activelist")["activeusers"]
-                                                .ToString().Split('\t').Where((s) => !string.IsNullOrWhiteSpace(s)).ToArray();
-                                            return $"『{server.Key}』在线({arr.Length}/100):\n{string.Join(" ", arr.Select(s => $"[{s}]"))}\n";
-                                        }
-                                    else
-                                        return "";
-                                }
-                                catch
-                                {
-                                    return "";
-                                }
-                            })));
-                        }
-                        break;
-                    case "饥荒":
-                        {
-                            args.Callback(string.Join("", Configuration.GetConfig<ServerManager>().servers.Select((server) =>
-                            {
-                                try
-                                {
-                                    if (!server.Value.display && server.Key.Contains("饥荒"))
-                                        if (server.Key == "流光之城")
-                                        {
-                                            var online = string.Join("\n", server.Value.RunCommand("/list")["response"].Select(s => s.ToString()));
-                                            return $"『流光之城』在线({online.Split(',').Count()}/100):\n" + string.Join(" ", online.Split('：')[1].Split(',').Select(s => $"[{s}]")) + "\n";
-                                        }
-                                        else
-                                        {
-                                            var arr = server.Value.RunRest("/v2/users/activelist")["activeusers"]
-                                                .ToString().Split('\t').Where((s) => !string.IsNullOrWhiteSpace(s)).ToArray();
-                                            return $"『{server.Key}』在线({arr.Length}/100):\n{string.Join(" ", arr.Select(s => $"[{s}]"))}\n";
-                                        }
-                                    else
-                                        return "";
-                                }
-                                catch
-                                {
-                                    return "";
-                                }
-                            })));
-                        }
-                        break;
-                    default:
-                        {
-                            args.Callback(string.Join("", Configuration.GetConfig<ServerManager>().servers.Select((server) =>
-                            {
-                                try
-                                {
-                                    if (!server.Value.display)
-                                        if (server.Key == "流光之城")
-                                        {
-                                            var online = string.Join("\n", server.Value.RunCommand("/list")["response"].Select(s => s.ToString()));
-                                            return $"『流光之城』在线({online.Split(',').Count()}/100):\n" + string.Join(" ", online.Split('：')[1].Split(',').Select(s => $"[{s}]")) + "\n";
-                                        }
-                                        else
-                                        {
-                                            var arr = server.Value.RunRest("/v2/users/activelist")["activeusers"]
-                                                .ToString().Split('\t').Where((s) => !string.IsNullOrWhiteSpace(s)).ToArray();
-                                            return $"『{server.Key}』在线({arr.Length}/100):\n{string.Join(" ", arr.Select(s => $"[{s}]"))}\n";
-                                        }
-                                    else
-                                        return "";
-                                }
-                                catch
-                                {
-                                    return "";
-                                }
-                            })));
-                        }
-                        break;
-                }
+                args.Callback(GetOnline(name));
             }
         }
     }
