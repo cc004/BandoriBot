@@ -29,7 +29,7 @@ namespace BandoriBot
             //MessageHandler.session = client;
 
             Configuration.Register<AntirevokePlus>();
-            // Configuration.Register<MainServerConfig>();
+            Configuration.Register<MainServerConfig>();
             Configuration.Register<MessageStatistic>();
             Configuration.Register<ReplyHandler>();
             Configuration.Register<Whitelist>();
@@ -65,7 +65,7 @@ namespace BandoriBot
             MessageHandler.Register<WhitelistHandler>();
             MessageHandler.Register<RepeatHandler>();
             MessageHandler.Register(Configuration.GetConfig<MessageStatistic>());
-            //MessageHandler.Register(Configuration.GetConfig<MainServerConfig>());
+            MessageHandler.Register(Configuration.GetConfig<MainServerConfig>());
 
             MessageHandler.Register<YCM>();
             MessageHandler.Register<QueryCommand>();

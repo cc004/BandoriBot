@@ -170,7 +170,8 @@ public static string FixImage(string origin)
         {
             try
             {
-                return (await session.GetGroupMemberInfo(qq, group)).memberInfo.Card;
+                var info = (await session.GetGroupMemberInfo(group, qq));
+                return string.IsNullOrEmpty(info.memberInfo.Card) ? info.memberInfo.Nick : info.memberInfo.Card;
             }
             catch (Exception e)
             {
@@ -184,7 +185,7 @@ public static string FixImage(string origin)
 
         internal static string GetCQMessage(Message chain)
         {
-            return string.Concat(chain.MessageList.Select(msg => GetCQMessage(msg)));
+            return string.Concat(chain.MessageList.Select(GetCQMessage));
         }
 
         public static string Encode(this string str)

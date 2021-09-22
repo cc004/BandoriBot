@@ -1,3 +1,6 @@
 [submodule "TrProtocol"]
 	path = TrProtocol
 	url = git@github.com:chi-rei-den/TrProtocol.git
+[submodule "LazyUtils"]
+	path = LazyUtils
+	url = git@github.com:cc004/LazyUtils.git

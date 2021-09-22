@@ -47,21 +47,5 @@ namespace BandoriBot.Commands.Terraria
             sb.Append($"===页码[{page}/{Math.Ceiling((double)(list.Count() / 10))}]");
             return sb.ToString();
         }
-        private static string GetCurrentServer(string name)
-        {
-            var servers= Configuration.GetConfig<ServerManager>().servers.Select((server) =>
-            {
-                if (server.Value.RunRest("/v2/users/activelist")["activeusers"].ToString().Contains(name))
-                    return server.Key;
-                else
-                    return "";
-            }).ToArray();
-            foreach(var s in servers)
-            {
-                if (s != "")
-                    return s;
-            }
-            return "";
-        }
     }
 }

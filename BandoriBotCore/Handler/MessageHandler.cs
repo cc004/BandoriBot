@@ -64,6 +64,11 @@ namespace BandoriBot.Handler
             cfg.t[FromQQ].Contains($"{group}.{perm}")) ||
             perm.Contains('.') && await HasPermission(perm.Substring(0, perm.LastIndexOf('.')), group) ||
             perm != "*" && await HasPermission("*", group) || group > 0 && await CheckPermission(group);
+
+        public async Task<MemberRoleType> GetRole()
+        {
+            return (await Session.GetGroupMemberInfo(FromGroup, FromQQ)).memberInfo.Role;
+        }
     }
 
     public class MessageHandler : IMessageHandler

@@ -13,10 +13,13 @@ namespace BandoriBot.Config
     [JsonObject]
     public class ServerConfig
     {
-        public int port;
+        public string host;
+        public ushort port;
         public string format = string.Empty;
         public long[] groups = Array.Empty<long>();
-        public uint color;
+        public uint owner_color;
+        public uint admin_color;
+        public uint member_color;
     }
 
     public class MainServerConfig : SerializableConfiguration<ServerConfig>, IMessageHandler
@@ -54,7 +57,9 @@ namespace BandoriBot.Config
         public async Task<bool> OnMessage(HandlerArgs args)
         {
             if (t.groups.Contains(args.Sender.FromGroup))
+            {
                 SendMsg(args.message, args.Sender);
+            }
 
             return false;
         }
