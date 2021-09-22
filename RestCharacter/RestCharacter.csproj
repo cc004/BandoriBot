@@ -69,7 +69,8 @@
     <Reference Include="TShockAPI, Version=4.5.5.0, Culture=neutral, processorArchitecture=x86">
       <HintPath>..\packages\TerrariaServer.TShock.4.5.5\lib\net452\TShockAPI.dll</HintPath>
     </Reference>
-    <Reference Include="Wolfje.Plugins.SEconomy">
+    <Reference Include="Wolfje.Plugins.SEconomy, Version=1.0.23.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\lib\Wolfje.Plugins.SEconomy.dll</HintPath>
     </Reference>
   </ItemGroup>

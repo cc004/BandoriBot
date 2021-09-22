@@ -16,8 +16,16 @@
 
 #ifndef WASM_RT_H_
 #define WASM_RT_H_
-
 #include <stdint.h>
+#include <malloc.h>
+
+#ifndef __builtin_expect
+#define __builtin_expect(EXP, N) (EXP)
+#endif
+
+#ifndef __builtin_memcpy
+#define __builtin_memcpy memcpy
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -193,6 +201,8 @@ extern void wasm_rt_allocate_table(wasm_rt_table_t*,
 
 /** Current call stack depth. */
 extern uint32_t wasm_rt_call_stack_depth;
+
+extern void wasm_rt_finalize();
 
 #ifdef __cplusplus
 }
