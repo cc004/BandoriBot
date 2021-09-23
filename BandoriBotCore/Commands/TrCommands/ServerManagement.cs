@@ -96,7 +96,7 @@ namespace BandoriBot.Commands.Terraria
                     args.Callback("您未定义指令，请输入正确指令！");
                 else
                     args.Callback(string.Join("\n", GetServer(args)
-                        .RunCommand(args.Arg)["response"].Select(s => s.ToString())));
+                        .RunCommand(Utils.FixRegex(args.Arg))["response"].Select(s => s.ToString())));
             }
         }
         public class 泰拉切换
