@@ -390,7 +390,6 @@ Z_envZ_syscallZ2FjsZ2EfinalizeRefZ_viii = &_Z_envZ_syscallZ2FjsZ2EfinalizeRefZ_v
 
         delete[] ansi;
         delete[] str;
-        _finalize();
         delete view;
     }
 }

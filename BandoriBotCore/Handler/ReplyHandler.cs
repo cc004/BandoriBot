@@ -135,7 +135,7 @@ namespace BandoriBot.Handler
             {
                 IEnumerable<Func<string>> pending = new List<Func<string>>();
 
-                pending = pending.Concat(FitRegex(data3, raw).Select(tuple => new Func<string>(() => FitReply(tuple, args.Sender))));
+                //pending = pending.Concat(FitRegex(data3, raw).Select(tuple => new Func<string>(() => FitReply(tuple, args.Sender))));
 
                 pending = pending.Concat(FitRegex(data4, raw).Select(tuple => new Func<string>(() =>
                     GetFunction(tuple.Item2.reply)(tuple.Item1, args.Sender, args.message, isadmin, s => args.Callback(s).Wait()))));
