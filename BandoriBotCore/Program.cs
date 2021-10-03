@@ -203,7 +203,7 @@ namespace BandoriBot
 
         private static async ValueTask Event_OnFriendRequest(string type, FriendRequestEventArgs eventArgs)
         {
-            await eventArgs.SoraApi.SetFriendAddRequest(eventArgs.RequsetFlag, true);
+            //await eventArgs.SoraApi.SetFriendAddRequest(eventArgs.RequsetFlag, true);
         }
 
         private static async ValueTask Event_OnClientConnect(string type, Sora.EventArgs.SoraEvent.ConnectEventArgs eventArgs)

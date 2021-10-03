@@ -28,6 +28,8 @@ namespace BandoriBot.Terraria
             this.group = group;
         }
 
+        public Action Relogin;
+
         public void Login(string username, string password)
         {
             var tokenResult = GetHttp($"http://{endpoint}/v2/token/create?username={HttpUtility.UrlEncode(username)}&password={HttpUtility.UrlEncode(password)}");
@@ -41,12 +43,20 @@ namespace BandoriBot.Terraria
         public JToken RunRest(string uri)
         {
             JToken result = null;
+            bool retry = true;
             try
             {
+                retry:
                 result = GetHttp($"http://{endpoint}{uri}{(uri.Contains('?') ? "&" : "?")}token={token}");
                 if (result is JObject obj)
-                    if (obj.ContainsKey("status") && obj["status"].ToString() != "200" && obj["status"].ToString() != "success")
-                        throw new Exception();
+                    if (obj.ContainsKey("status") && obj["status"].ToString() != "200" &&
+                        obj["status"].ToString() != "success")
+                    {
+                        if (!retry) throw new Exception();
+                        Relogin();
+                        retry = false;
+                        goto retry;
+                    }
                 return result;
             }
             catch
@@ -94,8 +104,15 @@ namespace BandoriBot.Terraria
         }
         public string[] GetOnlinePlayers()
         {
-            return RunRest("/v2/users/activelist")["activeusers"]
-                .ToString().Split('\t').Where((s) => !string.IsNullOrWhiteSpace(s)).ToArray();
+            try
+            {
+                return RunRest("/v2/users/activelist")["activeusers"]
+                    .ToString().Split('\t').Where((s) => !string.IsNullOrWhiteSpace(s)).ToArray();
+            }
+            catch
+            {
+                return Array.Empty<string>();
+            }
         }
     }
 }

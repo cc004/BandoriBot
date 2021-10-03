@@ -69,7 +69,11 @@ namespace BandoriBot.Terraria
                         display = obj.Value.Value<bool>("display"),
                         noRegister = obj.Value.Value<string>("noRegister")
                     };
-                    svr.Login((string)obj.Value["username"], (string)obj.Value["password"]);
+                    svr.Relogin = () =>
+                    {
+                        svr.Login((string) obj.Value["username"], (string) obj.Value["password"]);
+                    };
+                    svr.Relogin();
                     svr.RunCommand("/csreload");
                     servers.Add(obj.Name, svr);
                 }

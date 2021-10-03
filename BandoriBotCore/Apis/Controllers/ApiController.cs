@@ -1,4 +1,5 @@
-﻿using BandoriBot.Config;
+﻿using System;
+using BandoriBot.Config;
 using BandoriBot.Handler;
 using BandoriBot.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -7,9 +8,23 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Sora.Entities.CQCodes;
 
 namespace BandoriBot.Apis.Controllers
 {
+    public class LoginData
+    {
+        public string Uid { get; set; }
+        public string Token { get; set; }
+    }
+
+    public class FileUploadData : LoginData
+    {
+        public string Data { get; set; }
+        public string Name { get; set; }
+        public long Group { get; set; }
+    }
+
     public class TimelineData
     {
         public string Data { get; set; }
@@ -25,7 +40,33 @@ namespace BandoriBot.Apis.Controllers
             long uid = GetUID();
             var token = Request.Query["token"];
             return Configuration.GetConfig<TokenConfig>().t.TryGetValue(uid, out var t) && t == token &&
-                await new Source { FromQQ = uid }.HasPermission("rest." + perm, -1);
+                   await new Source { FromQQ = uid }.HasPermission("rest." + perm, -1);
+        }
+        private async Task<bool> CheckPermission(string perm, LoginData postData)
+        {
+            long uid = long.Parse(postData.Uid);
+            var token = postData.Token;
+            return Configuration.GetConfig<TokenConfig>().t.TryGetValue(uid, out var t) && t == token &&
+                   await new Source { FromQQ = uid }.HasPermission("rest." + perm, -1);
+        }
+
+        [HttpPost("upload")]
+        public async Task<ActionResult> Upload(FileUploadData data)
+        {
+            if (await CheckPermission("upload", data)) return BadRequest();
+            await MessageHandler.session.UploadGroupFile(data.Group, Convert.FromBase64String(data.Data).ToCache()
+
+                , data.Name);
+            return NoContent();
+        }
+
+        [HttpGet("sendmsg")]
+        public async Task<ActionResult> Sendmsg(string message, long group)
+        {
+            if (await CheckPermission("sendmsg")) return BadRequest();
+            var source = new Source { FromGroup = 0, IsTemp = false, FromQQ = GetUID(), Session = MessageHandler.session };
+            await source.Session.SendGroupMessage(group, CQCode.CQText(message));
+            return NoContent();
         }
 
         [HttpGet("execute")]

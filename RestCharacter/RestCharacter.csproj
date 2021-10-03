@@ -39,7 +39,7 @@
       <HintPath>..\packages\TerrariaServer.TShock.4.5.5\lib\net452\HttpServer.dll</HintPath>
     </Reference>
     <Reference Include="linq2db">
-      <HintPath>..\lib\linq2db.dll</HintPath>
+      <HintPath>..\LazyUtils\LazyUtils\bin\Debug\linq2db.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Data.Sqlite, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
       <HintPath>..\packages\TerrariaServer.TShock.4.5.5\lib\net452\Mono.Data.Sqlite.dll</HintPath>
