@@ -1,6 +1,6 @@
 # BandoriBot
 
-A plugin based on Mirai-Csharp and mirai-http-api.
+A plugin based on Sora and onebot protocol
 
 This plugin has a basic message handling framework and permission control. Some functions attached are listed below:
 
