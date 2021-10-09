@@ -76,22 +76,6 @@ namespace BandoriBot.Apis.Controllers
         {
             return Configuration.GetConfig<Pipe>().GetHistory(group);
         }
-        [HttpPost("record")]
-        public async Task<ActionResult> PostRecord(TimelineData data)
-        {
-            var start = data.Data.IndexOf("--[[");
-            var end = data.Data.IndexOf("]]");
-            var text = data.Data[(start + 4)..end];
-            await System.IO.File.AppendAllTextAsync("records.txt", data.Data + "\n");
-            var pdata = reg.Match(text);
-
-            var dmg = int.Parse(pdata.Groups[4].Value);
-            await MessageHandler.session.UploadGroupFile(1095742657L, Encoding.UTF8.GetBytes(text).ToCache()
-
-                , Fix(data.Name));
-            return NoContent();
-        }
-
         [HttpGet("countv2")]
         public async Task<ActionResult<string>> Countv2(string keyword = null, long qq = 0, long group = 0, long starttime = 0, long endtime = 0)
         {

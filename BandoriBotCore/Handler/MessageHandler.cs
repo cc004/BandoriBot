@@ -30,6 +30,7 @@ namespace BandoriBot.Handler
 
     public struct Source
     {
+        public DateTime time;
         public long FromGroup, FromQQ;
         public SoraApi Session;
         public bool IsTemp;
@@ -94,7 +95,6 @@ namespace BandoriBot.Handler
         public static void Register<T>() where T : new()
         {
             var t = new T();
-            if (t is ISession session) session.Session = MessageHandler.session;
             if (t is ICommand tcmd) Register(tcmd);
             else if (t is IMessageHandler tmsg) Register(tmsg);
         }
@@ -143,9 +143,25 @@ namespace BandoriBot.Handler
             }).Wait();
         }
 
+        private static Queue<int> msgqueue = new();
+        public static readonly HashSet<long> bots = new();
+
+        private static bool SameMessageFiltering(string msg, Source src)
+        {
+            if (bots.Contains(src.FromQQ)) return false;
+            var hash = HashCode.Combine(msg, src.FromGroup, src.FromQQ, src.time);
+            if (msgqueue.Contains(hash)) return false;
+            msgqueue.Enqueue(hash);
+            while (msgqueue.Count > 100) msgqueue.Dequeue();
+            return true;
+        }
+
         public static async Task OnMessage(SoraApi session, string message, Source Sender)
         {
             if (!booted) return;
+
+            lock (msgqueue)
+                if (!SameMessageFiltering(message, Sender)) return;
 
             long ticks = DateTime.Now.Ticks;
 

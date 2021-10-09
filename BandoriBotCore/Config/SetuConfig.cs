@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 
 namespace BandoriBot.Config
 {
@@ -22,13 +23,8 @@ namespace BandoriBot.Config
         public string[] tags;
     }
 
-    public class SetuConfig : SerializableConfiguration<Picture[]>
+    public class SetuConfig : SerializableConfiguration<List<Picture>>
     {
         public override string Name => "setu.json";
-
-        public override void LoadDefault()
-        {
-            t = Array.Empty<Picture>();
-        }
     }
 }

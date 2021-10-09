@@ -4,13 +4,13 @@ using System.IO;
 
 namespace BandoriBot.Config
 {
-    public abstract class SerializableConfiguration<T> : Configuration
+    public abstract class SerializableConfiguration<T> : Configuration where T : new()
     {
         public T t;
 
         public override void LoadDefault()
         {
-            t = Activator.CreateInstance<T>();
+            t = new T();
         }
 
         public override void LoadFrom(BinaryReader br)

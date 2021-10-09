@@ -6,6 +6,7 @@ using Sora.EventArgs.SoraEvent;
 using Sora.Net;
 using Sora.OnebotModel;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -71,8 +72,8 @@ namespace BandoriBot
             MessageHandler.Register<SekaiCommand>();
             //MessageHandler.Register<SekaiPCommand>();
             MessageHandler.Register<WhitelistCommand>();
-            MessageHandler.Register<GachaCommand>();
-            MessageHandler.Register<GachaListCommand>();
+            //MessageHandler.Register<GachaCommand>();
+            //MessageHandler.Register<GachaListCommand>();
             MessageHandler.Register<BlacklistCommand>();
             MessageHandler.Register<TitleCommand>();
             MessageHandler.Register<CarTypeCommand>();
@@ -146,32 +147,39 @@ namespace BandoriBot
 
         }
 
-        public static async Task Main(string[] args)
+        public static void Main(string[] args)
         {
             //await Testing();
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
-            
-            var service = SoraServiceFactory.CreateInstance(new ClientConfig()
-            {
-                Host = "127.0.0.1",
-                Port = uint.Parse(args[1])
-            });
-
-            service.Event.OnClientConnect += Event_OnClientConnect;
-            service.Event.OnFriendRequest += Event_OnFriendRequest;
-            service.Event.OnGroupMessage += Event_OnGroupMessage;
-            service.Event.OnPrivateMessage += Event_OnPrivateMessage;
 
             PluginInitialize();
+
             new Thread(() => Apis.Program.Main2(args)).Start();
+            var tasks = new List<Task>();
 
-            Console.WriteLine("connected to server");
+            foreach (var line in File.ReadAllLines("cqservers.txt"))
+            {
+                var s = line.Split(":");
+                var service = SoraServiceFactory.CreateInstance(new ClientConfig()
+                {
+                    Host = s[0],
+                    Port = uint.Parse(s[1])
+                });
 
-            await service.StartService();
+                service.Event.OnClientConnect += Event_OnClientConnect;
+                service.Event.OnFriendRequest += Event_OnFriendRequest;
+                service.Event.OnGroupMessage += Event_OnGroupMessage;
+                service.Event.OnPrivateMessage += Event_OnPrivateMessage;
 
+                Console.WriteLine("connected to server");
+
+                tasks.Add(service.StartService().AsTask());
+            }
+
+            Task.WaitAll(tasks.ToArray());
         }
 
         private static async ValueTask Event_OnPrivateMessage(string type, PrivateMessageEventArgs eventArgs)
@@ -180,7 +188,8 @@ namespace BandoriBot
             {
                 Session = eventArgs.SoraApi,
                 FromGroup = 0,
-                FromQQ = eventArgs.SenderInfo.UserId
+                FromQQ = eventArgs.SenderInfo.UserId,
+                time = eventArgs.Time
             });
         }
 
@@ -190,7 +199,8 @@ namespace BandoriBot
             {
                 Session = eventArgs.SoraApi,
                 FromGroup = eventArgs.SourceGroup.Id,
-                FromQQ = eventArgs.SenderInfo.UserId
+                FromQQ = eventArgs.SenderInfo.UserId,
+                time = eventArgs.Time
             });
         }
 
@@ -202,6 +212,7 @@ namespace BandoriBot
         private static async ValueTask Event_OnClientConnect(string type, Sora.EventArgs.SoraEvent.ConnectEventArgs eventArgs)
         {
             MessageHandler.session = eventArgs.SoraApi;
+            MessageHandler.bots.Add(eventArgs.LoginUid);
             MessageHandler.booted = true;
         }
 
