@@ -21,6 +21,7 @@ namespace BandoriBot.Commands
 
         public async Task Run(CommandArgs args)
         {
+            return;
             if (args.Arg != "") return;
             var callback = args.Callback;
             var source = args.Source;
@@ -212,7 +213,15 @@ namespace BandoriBot.Commands
                     client.CallUserApi($"/event/{eventId}/ranking?targetRank={arg}", HttpMethod.Get, null));
                 var rank = result["rankings"]?.SingleOrDefault();
 
-                await args.Callback(rank == null ? "找不到玩家" : ($"排名为{rank["rank"]}的玩家是`{rank["name"]}`(uid={rank["userId"]})，分数为{rank["score"]}" + await GetPred((int)rank["rank"])).ToImageText());
+                var text = rank == null
+                    ? "找不到玩家"
+                    : ($"排名为{rank["rank"]}的玩家是`{rank["name"]}`(uid={rank["userId"]})，分数为{rank["score"]}" +
+                       await GetPred((int) rank["rank"]));
+
+                Task.Run(async () =>
+                {
+                    await args.Callback(text.ToImageText());
+                });
                 await RefreshCache();
             }
             catch (Exception e)
