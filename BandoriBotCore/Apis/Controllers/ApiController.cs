@@ -1,12 +1,16 @@
-﻿using BandoriBot.Config;
+﻿using System;
+using BandoriBot.Config;
 using BandoriBot.Handler;
 using BandoriBot.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace BandoriBot.Apis.Controllers
 {
@@ -16,6 +20,14 @@ namespace BandoriBot.Apis.Controllers
         public string Name { get; set; }
     }
 
+    public class Request
+    {
+        public int[] def { get; set; }
+        public int page { get; set; }
+        public int region { get; set; }
+        public int sort { get; set; }
+    }
+    
     [ApiController]
     public class ApiController : Controller
     {
@@ -28,6 +40,74 @@ namespace BandoriBot.Apis.Controllers
                 await new Source { FromQQ = uid }.HasPermission("rest." + perm, -1);
         }
 
+        private static HttpClient client = new HttpClient();
+
+        static ApiController()
+        {
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66");
+            client.DefaultRequestHeaders.Add("Referer", "https://pcrdfans.com/");
+            client.DefaultRequestHeaders.Add("Origin", "https://pcrdfans.com");
+            client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", "");
+            client.DefaultRequestHeaders.Add("Sec-Fetch-Dest", "empty");
+            client.DefaultRequestHeaders.Add("Sec-Fetch-Mode", "cors");
+            client.DefaultRequestHeaders.Add("Sec-Fetch-Site", "same-site");
+            client.DefaultRequestHeaders.Add("Accept", "*/*");
+            //client.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
+            client.DefaultRequestHeaders.Add("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6");
+            client.DefaultRequestHeaders.Remove("Expect");
+            client.Timeout = new TimeSpan(0, 0, 10);
+        }
+
+        private static string GenNonce()
+        {
+            const string chars = "0123456789abcdefghijklmnopqrstuvwxyz";
+            var rand = new Random();
+
+            return new string(Enumerable.Range(0, 16).Select(_ => chars[rand.Next(36)]).ToArray());
+        }
+        private static long GetTimeStamp()
+        {
+            TimeSpan ts = DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0);
+            return (long)ts.TotalSeconds;
+        }
+
+        [HttpPost("pcrd")]
+        public async Task<string> Pcrd(Request request)
+        {
+            var json = new JObject
+            {
+                ["def"] = new JArray(request.def.Distinct()),
+                ["nonce"] = GenNonce(),
+                ["page"] = request.page,
+                ["region"] = request.region,
+                ["sort"] = request.sort,
+                ["ts"] = GetTimeStamp()
+            };
+            
+            string sign = null;
+
+            JJCManager.GetSign(json.ToString(Formatting.None), json.Value<string>("nonce"),
+                s => sign = s);
+
+
+            json = new JObject
+            {
+                ["_sign"] = sign,
+                ["def"] = json["def"],
+                ["nonce"] = json["nonce"],
+                ["page"] = json["page"],
+                ["region"] = json["region"],
+                ["sort"] = json["sort"],
+                ["ts"] = json["ts"]
+            };
+            
+            JObject raw = null;
+
+            return client.PostAsync($"https://api.pcrdfans.com/x/v1/search",
+                new StringContent(json.ToString(Formatting.None)
+                    , Encoding.UTF8, "application/json")).Result.Content.ReadAsStringAsync().Result;
+
+        }
         [HttpGet("execute")]
         public async Task<ActionResult<string>> Execute(string message)
         {

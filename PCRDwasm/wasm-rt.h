@@ -19,6 +19,8 @@
 
 #include <stdint.h>
 
+#define __builtin_expect(x, expect) (x)
+#define __builtin_memcpy memcpy
 #ifdef __cplusplus
 extern "C" {
 #endif

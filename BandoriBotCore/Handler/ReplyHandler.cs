@@ -41,6 +41,10 @@ namespace BandoriBot.Handler
             data2 = new DataTypeS();
             data3 = new DataTypeS();
             data4 = new DataTypeS();
+            t = new List<DataTypeS>()
+            {
+                null, data2, data3, data4
+            };
         }
 
         public static Tuple<Regex, List<Reply>> D2T(KeyValuePair<string, List<Reply>> pair)

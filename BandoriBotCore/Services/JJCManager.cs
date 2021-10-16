@@ -263,10 +263,10 @@ namespace BandoriBot.Services
             return (long)ts.TotalSeconds;
         }
 
-        private delegate void CallbackD(string text);
+        public delegate void CallbackD(string text);
 
         [DllImport("PCRDwasm.dll", EntryPoint = "getSign", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void GetSign(string text, string nonce, CallbackD callback);
+        public static extern void GetSign(string text, string nonce, CallbackD callback);
 
         public async Task<string> Callapi(string text)
         {

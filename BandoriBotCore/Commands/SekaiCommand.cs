@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Sora.Entities.CQCodes;
 
@@ -218,10 +219,19 @@ namespace BandoriBot.Commands
                     : ($"排名为{rank["rank"]}的玩家是`{rank["name"]}`(uid={rank["userId"]})，分数为{rank["score"]}" +
                        await GetPred((int) rank["rank"]));
 
-                Task.Run(async () =>
+                ThreadPool.QueueUserWorkItem(_ =>
                 {
-                    await args.Callback(text.ToImageText());
+                    try
+                    {
+                        this.Log(LoggerLevel.Debug, text);
+                        args.Callback(text.ToImageText()).Wait();
+                    }
+                    catch (Exception e)
+                    {
+                        this.Log(LoggerLevel.Error, e.ToString());
+                    }
                 });
+
                 await RefreshCache();
             }
             catch (Exception e)
