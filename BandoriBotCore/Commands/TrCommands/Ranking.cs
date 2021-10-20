@@ -13,7 +13,7 @@ namespace BandoriBot.Commands.Terraria
             public static void Main(CommandArgs args, int page)
             {
                 var name = GetUsername(args);
-                args.Callback(RankFormat($"当前财富排行如下: ", GetServer(args).RunRest($"/economy/getmoneyrank")["response"],
+                args.Callback(RankFormat($"当前财富排行如下: ", GetServer(args).RunRest($"/economy/getmoneyrank"),
                     rank => $"共拥有${rank["Value"]}", page, rank => rank.Value<string>("Key") == name, rank => $"[{rank["Key"]}]"));
 
             }

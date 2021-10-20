@@ -74,8 +74,8 @@ namespace BandoriBot.Commands.Terraria
                     $"法力：{data["statMana"]}/{data["statManaMax"]}\n" +
                     ((bank != null && bank["status"].ToString() == "200") ? $"经济：{bank["money"]}$\n" : "") +
                     $"钓鱼任务完成次数: {data["questsCompleted"]}\n" +
-                    //$"今日总在线时长:功能未实现\n" +
-                    //$"本期PE在线时长: {(int)data["onlinetime"] / 3600}分钟\n" +
+                    $"今日总在线时长:{(int)data["daily"]}分钟\n" +
+                    $"本期在线时长: {(int)data["onlinetime"]}分钟\n" +
                     //$"本期PC在线时长: {(int)data["onlinetime"] / 3600}分钟\n" +
                     $"本期总在线时长: {(int)data["onlinetime"] / 3600}分钟\n" +
                 //$"当前服务器阶段: {((bool)data["online"] ? "肉前阶段" : "肉后阶段" : "巨人前阶段" : "巨人后阶段" : "四柱阶段" : "月后阶段")}");
