@@ -10,8 +10,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Sora.Entities;
-using Sora.Entities.CQCodes;
 using Sora.Enumeration.EventParamsType;
 
 namespace BandoriBot.Handler

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29905.134
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BandoriBot", "BandoriBotCore\BandoriBot.csproj", "{6E437A51-62A4-4090-9A22-1459FA7998F4}"
 EndProject
@@ -19,6 +19,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TrClient", "TrProtocol\TrClient\TrClient.csproj", "{4FC56620-87F9-4670-BE3B-6A111A6C838E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TrProtocol", "TrProtocol\TrProtocol\TrProtocol.csproj", "{E0C2BF00-449D-486C-93F3-69732264995D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sora", "Sora\Sora\Sora.csproj", "{FF77978D-3993-4E3E-B337-BDE31A0E6AB6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -100,6 +102,18 @@ Global
 		{E0C2BF00-449D-486C-93F3-69732264995D}.Release|x64.Build.0 = Release|Any CPU
 		{E0C2BF00-449D-486C-93F3-69732264995D}.Release|x86.ActiveCfg = Release|Any CPU
 		{E0C2BF00-449D-486C-93F3-69732264995D}.Release|x86.Build.0 = Release|Any CPU
+		{FF77978D-3993-4E3E-B337-BDE31A0E6AB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF77978D-3993-4E3E-B337-BDE31A0E6AB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF77978D-3993-4E3E-B337-BDE31A0E6AB6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FF77978D-3993-4E3E-B337-BDE31A0E6AB6}.Debug|x64.Build.0 = Debug|Any CPU
+		{FF77978D-3993-4E3E-B337-BDE31A0E6AB6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FF77978D-3993-4E3E-B337-BDE31A0E6AB6}.Debug|x86.Build.0 = Debug|Any CPU
+		{FF77978D-3993-4E3E-B337-BDE31A0E6AB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF77978D-3993-4E3E-B337-BDE31A0E6AB6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF77978D-3993-4E3E-B337-BDE31A0E6AB6}.Release|x64.ActiveCfg = Release|Any CPU
+		{FF77978D-3993-4E3E-B337-BDE31A0E6AB6}.Release|x64.Build.0 = Release|Any CPU
+		{FF77978D-3993-4E3E-B337-BDE31A0E6AB6}.Release|x86.ActiveCfg = Release|Any CPU
+		{FF77978D-3993-4E3E-B337-BDE31A0E6AB6}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

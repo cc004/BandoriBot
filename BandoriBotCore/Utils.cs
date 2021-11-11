@@ -3,8 +3,6 @@ using BandoriBot.Models;
 using Newtonsoft.Json.Linq;
 using Sora.Entities;
 using Sora.Entities.Base;
-using Sora.Entities.CQCodes;
-using Sora.Entities.CQCodes.CQCodeModel;
 using Sora.Enumeration;
 using System;
 using System.Collections.Generic;
@@ -13,9 +11,12 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Mime;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Sora.Entities.Segment;
+using Sora.Entities.Segment.DataModel;
 using Sora.Enumeration.EventParamsType;
 using Image = System.Drawing.Image;
 
@@ -101,38 +102,38 @@ namespace BandoriBot
             return imgcode[1..37].Replace("-", "").ToLower() + ".image";
         }
 
-        public static List<CQCode> GetMessageChain(string msg)
+        public static MessageBody GetMessageChain(string msg)
         {
             Match match;
-            List<CQCode> result = new List<CQCode>();
+            List<SoraSegment> result = new List<SoraSegment>();
 
             while ((match = codeReg.Match(msg)).Success)
             {
                 if (!string.IsNullOrEmpty(match.Groups[1].Value))
-                    result.Add(CQCode.CQText(match.Groups[1].Value.Decode()));
+                    result.Add(SoraSegment.Text(match.Groups[1].Value.Decode()));
                 var val = match.Groups[3].Value;
                 switch (match.Groups[2].Value)
                 {
-                    case "mirai:at": result.Add(CQCode.CQAt(long.Parse(val))); break;
-                    case "mirai:imageid": result.Add(CQCode.CQImage(val.Decode().FixImage(), false)); break;
-                    case "mirai:imageurl": result.Add(CQCode.CQImage(val.Decode(), false)); break;
-                    case "mirai:imagepath": result.Add(CQCode.CQImage(val.Decode(), false)); break;
-                    case "mirai:imagenew": result.Add(CQCode.CQImage(val.Decode(), false)); break;
-                    case "mirai:atall": result.Add(CQCode.CQAtAll()); break;
-                    case "mirai:json": result.Add(CQCode.CQJson(val.Decode())); break;
-                    case "mirai:xml": result.Add(CQCode.CQXml(val.Decode())); break;
-                    case "mirai:poke": result.Add(CQCode.CQPoke(long.Parse(val))); break;
-                    case "mirai:face": result.Add(CQCode.CQFace(int.Parse(val))); break;
-                    case "CQ:at,qq": result.Add(CQCode.CQAt(long.Parse(val))); break;
-                    case "CQ:face,id": result.Add(CQCode.CQFace(int.Parse(val))); break;
-                    default: result.Add(CQCode.CQText($"[{match.Groups[2].Value}={match.Groups[3].Value}]")); break;
+                    case "mirai:at": result.Add(SoraSegment.At(long.Parse(val))); break;
+                    case "mirai:imageid": result.Add(SoraSegment.Image(val.Decode().FixImage(), false)); break;
+                    case "mirai:imageurl": result.Add(SoraSegment.Image(val.Decode(), false)); break;
+                    case "mirai:imagepath": result.Add(SoraSegment.Image(val.Decode(), false)); break;
+                    case "mirai:imagenew": result.Add(SoraSegment.Image(val.Decode(), false)); break;
+                    case "mirai:atall": result.Add(SoraSegment.AtAll()); break;
+                    case "mirai:json": result.Add(SoraSegment.Json(val.Decode())); break;
+                    case "mirai:xml": result.Add(SoraSegment.Xml(val.Decode())); break;
+                    case "mirai:poke": result.Add(SoraSegment.Poke(long.Parse(val))); break;
+                    case "mirai:face": result.Add(SoraSegment.Face(int.Parse(val))); break;
+                    case "CQ:at,qq": result.Add(SoraSegment.At(long.Parse(val))); break;
+                    case "CQ:face,id": result.Add(SoraSegment.Face(int.Parse(val))); break;
+                    default: result.Add(SoraSegment.Text($"[{match.Groups[2].Value}={match.Groups[3].Value}]")); break;
                 }
                 msg = match.Groups[4].Value;
             }
 
-            if (!string.IsNullOrEmpty(msg)) result.Add(CQCode.CQText(msg.Decode()));
+            if (!string.IsNullOrEmpty(msg)) result.Add(SoraSegment.Text(msg.Decode()));
 
-            return result.ToList();
+            return new MessageBody(result);
         }
 
         /*
@@ -182,7 +183,7 @@ public static string FixImage(string origin)
 
         internal static string GetCQMessage(Message chain)
         {
-            return string.Concat(chain.MessageList.Select(msg => GetCQMessage(msg)));
+            return string.Concat(chain.MessageBody.Select(GetCQMessage));
         }
 
         public static string Encode(this string str)
@@ -195,25 +196,25 @@ public static string FixImage(string origin)
             return str.Replace("&#91;", "[").Replace("&#93;", "]").Replace("&amp;", "&");
         }
 
-        private static string GetCQMessage(CQCode msg)
+        private static string GetCQMessage(SoraSegment msg)
         {
-            switch (msg.CQData)
+            switch (msg.Data)
             {
-                case Face face:
+                case FaceSegment face:
                     return $"[mirai:face={face.Id}]";
-                case Text plain:
+                case TextSegment plain:
                     return plain.Content.Encode();
-                case At at:
-                    return $"[mirai:at={at.Traget}]";
-                case Sora.Entities.CQCodes.CQCodeModel.Image img:
+                case AtSegment at:
+                    return $"[mirai:at={at.Target}]";
+                case ImageSegment img:
                     return $"[mirai:imagenew={img.ImgFile}]";
-                case Poke poke:
+                case PokeSegment poke:
                     return $"[mirai:poke={poke.Uid}]";
-                case Code code:
-                    switch (msg.Function)
+                case CodeSegment code:
+                    switch (msg.MessageType)
                     {
-                        case CQFunction.Json: return $"[mirai:json={code.Content}]";
-                        case CQFunction.Xml: return $"[mirai:xml={code.Content}]";
+                        case SegmentType.Json: return $"[mirai:json={code.Content}]";
+                        case SegmentType.Xml: return $"[mirai:xml={code.Content}]";
                         default: return "";
                     }
                 default:

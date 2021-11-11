@@ -17,7 +17,9 @@ using System.Threading.Tasks;
 using BandoriBot.Models;
 using SekaiClient;
 using SekaiClient.Datas;
+using Sora;
 using Sora.Enumeration.EventParamsType;
+using Sora.Net.Config;
 using YukariToolBox.FormatLog;
 
 namespace BandoriBot
@@ -167,10 +169,10 @@ namespace BandoriBot
             foreach (var line in File.ReadAllLines("cqservers.txt"))
             {
                 var s = line.Split(":");
-                var service = SoraServiceFactory.CreateInstance(new ClientConfig()
+                var service = SoraServiceFactory.CreateService(new ClientConfig()
                 {
                     Host = s[0],
-                    Port = uint.Parse(s[1])
+                    Port = ushort.Parse(s[1])
                 });
 
                 service.Event.OnClientConnect += Event_OnClientConnect;
@@ -217,7 +219,7 @@ namespace BandoriBot
 
         private static async ValueTask Event_OnFriendRequest(string type, FriendRequestEventArgs eventArgs)
         {
-            await eventArgs.SoraApi.SetFriendAddRequest(eventArgs.RequsetFlag, true);
+            await eventArgs.SoraApi.SetFriendAddRequest(eventArgs.RequestFlag, true);
         }
 
         private static async ValueTask Event_OnClientConnect(string type, Sora.EventArgs.SoraEvent.ConnectEventArgs eventArgs)
