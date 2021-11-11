@@ -47,7 +47,15 @@ namespace BandoriBot.Commands
                 {
                     while (true)
                     {
-                        RefreshCache().Wait();
+                        try
+                        {
+                            RefreshCache().Wait();
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                            continue;
+                        }
                         Thread.Sleep(1000 * 3600);
                     }
                 }).Start();

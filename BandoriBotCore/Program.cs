@@ -160,7 +160,7 @@ namespace BandoriBot
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
-
+            
             PluginInitialize();
 
             new Thread(() => Apis.Program.Main2(args)).Start();

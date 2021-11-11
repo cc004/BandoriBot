@@ -59,7 +59,10 @@ void OpenFile(const char *datafile, const char *indexfile)
     fseek(fpindex, 0, SEEK_SET);
     fread(buf, curIndex, 1, fpindex);
     for (int i = 0; i < n; ++i)
+    {
+        if (buf[i] == 0) continue;
         indexCache.push_back(buf[i]);
+    }
     fseek(fpdata, 0, SEEK_END);
     curIndex = ftell(fpdata);
     printf("total %d records\n", n);
@@ -124,6 +127,5 @@ bool RecordContains(const Cache* cache, int index, const wchar_t *substr)
 {
     char *record = cache->buf + indexCache[index] - indexCache[cache->index];
     wchar_t *message = (wchar_t *)(record + sizeof(long) + sizeof(long) + sizeof(long));
-
     return wcsstr(message, substr) != NULL;
 }
