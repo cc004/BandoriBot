@@ -28,7 +28,7 @@ namespace BandoriBot.Commands
                 {
                     foreach (var rank in ranks)
                     {
-                        var resp = await parent.clientForManager.CallUserApi($"/event/{parent.eventId}/ranking?targetRank={rank}", HttpMethod.Get, null);
+                        var resp = await SekaiClient.SekaiClient.StaticClient.CallUserApi($"/event/{eventId}/ranking?targetRank={rank}", HttpMethod.Get, null);
                         var now = resp["rankings"][0].Value<int>("score");
 
                         if (hourCache.ContainsKey(rank)) hourSpeed[rank] = now - hourCache[rank];
@@ -38,7 +38,7 @@ namespace BandoriBot.Commands
                 catch (Exception e)
                 {
                     this.Log(LoggerLevel.Warn, e.ToString());
-                    await parent.ManagerClientReady();
+                    await SekaiClient.SekaiClient.StaticClient.Reset();
                 }
             }
             public void Initialize()

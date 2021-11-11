@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using BandoriBot.Models;
 using SekaiClient;
 using SekaiClient.Datas;
+using Sora.Enumeration.EventParamsType;
 using YukariToolBox.FormatLog;
 
 namespace BandoriBot
@@ -29,6 +30,7 @@ namespace BandoriBot
         {
             //MessageHandler.session = client;
 
+            Configuration.Register<Blacklist2>();
             Configuration.Register<AntirevokePlus>();
             // Configuration.Register<MainServerConfig>();
             Configuration.Register<MessageStatistic>();
@@ -82,6 +84,7 @@ namespace BandoriBot
             MessageHandler.Register<PermCommand>();
             MessageHandler.Register<SendCommand>();
             MessageHandler.Register<RecordCommand>();
+            MessageHandler.Register<Blacklist2Command>();
             /*
             MessageHandler.Register<RCCommand>();
             MessageHandler.Register<CPMCommand>();
@@ -121,6 +124,7 @@ namespace BandoriBot
             MessageHandler.Register<SetuCommand>();
             MessageHandler.Register<ZMCCommand>();
             MessageHandler.Register<AntirevokeCommand>();
+            MessageHandler.Register<AntirevokePlusPlusCommand>();
             //MessageHandler.Register<SubscribeCommand>();
             RecordDatabaseManager.InitDatabase();
 
@@ -173,6 +177,7 @@ namespace BandoriBot
                 service.Event.OnFriendRequest += Event_OnFriendRequest;
                 service.Event.OnGroupMessage += Event_OnGroupMessage;
                 service.Event.OnPrivateMessage += Event_OnPrivateMessage;
+                service.Event.OnGroupRequest += Event_OnGroupRequest;
 
                 Console.WriteLine("connected to server");
 
@@ -180,6 +185,12 @@ namespace BandoriBot
             }
 
             Task.WaitAll(tasks.ToArray());
+        }
+
+        private static async ValueTask Event_OnGroupRequest(string type, AddGroupRequestEventArgs eventArgs)
+        {
+            if (eventArgs.SubType == GroupRequestType.Invite)
+                await eventArgs.Accept();
         }
 
         private static async ValueTask Event_OnPrivateMessage(string type, PrivateMessageEventArgs eventArgs)

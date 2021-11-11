@@ -67,7 +67,7 @@ namespace BandoriBot.Handler
 
         private static Regex replace = new Regex(@"\$((?!&).|&...;)", RegexOptions.Compiled);
         internal static Dictionary<string, Regex> regexCache = new();
-
+        private static Blacklist2 cfg = Configuration.GetConfig<Blacklist2>();
         public static IEnumerable<(Match, Reply)> FitRegex(DataTypeS data, string content)
         {
             IEnumerable<(Match, Reply)> result = new List<(Match, Reply)>();
@@ -76,7 +76,7 @@ namespace BandoriBot.Handler
             {
                 var match = regexCache[tuple.Key].Match(content);
                 if (match.Success)
-                    result = result.Concat(tuple.Value.Select(reply => (match, reply)));
+                    result = result.Concat(tuple.Value.Select(reply => (match, reply)).Where(reply => !cfg.InBlacklist(reply.reply.qq)));
             }
 
             return result;
@@ -139,7 +139,7 @@ namespace BandoriBot.Handler
             {
                 IEnumerable<Func<string>> pending = new List<Func<string>>();
 
-                //pending = pending.Concat(FitRegex(data3, raw).Select(tuple => new Func<string>(() => FitReply(tuple, args.Sender))));
+                pending = pending.Concat(FitRegex(data3, raw).Select(tuple => new Func<string>(() => FitReply(tuple, args.Sender))));
 
                 pending = pending.Concat(FitRegex(data4, raw).Select(tuple => new Func<string>(() =>
                     GetFunction(tuple.Item2.reply)(tuple.Item1, args.Sender, args.message, isadmin, s => args.Callback(s).Wait()))));

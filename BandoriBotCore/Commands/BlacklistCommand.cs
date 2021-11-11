@@ -25,4 +25,15 @@ namespace BandoriBot.Commands
 
         protected override string Permission => "management.blacklist";
     }
+    public class Blacklist2Command : HashCommand<Blacklist2, string>
+    {
+        public override List<string> Alias => new()
+        {
+            "/bl"
+        };
+
+        protected override long GetTarget(string value) => -1;
+
+        protected override string Permission => "management.blacklist";
+    }
 }

@@ -34,8 +34,28 @@ namespace SekaiClient
 
         [ThreadStatic]
         private static SekaiClient _staticClient;
-        public static SekaiClient StaticClient => _staticClient ??= new SekaiClient(new EnvironmentInfo()) { DebugWrite = Console.WriteLine };
+        public static SekaiClient StaticClient
+        {
+            get
+            {
+                if (_staticClient == null)
+                {
+                    _staticClient = new SekaiClient(new EnvironmentInfo())
+                    {
+                        DebugWrite = Console.WriteLine
+                    };
+                    _staticClient.Reset().Wait();
 
+                }
+
+                return _staticClient;
+            }
+            set
+            {
+                _staticClient = value;
+            }
+        }
+        
         public string AssetHash { get; private set; }
 
         private void SetupHeaders()
@@ -49,6 +69,17 @@ namespace SekaiClient
                     field.GetValue(environment) as string);
             }
         }
+
+        public async Task Reset()
+        {
+            InitializeAdid();
+            await UpgradeEnvironment();
+            var user = await Register();
+            await Login(user);
+            await MasterData.Initialize(this);
+            await PassTutorial(true);
+        }
+
         public SekaiClient(EnvironmentInfo info, bool useProxy = false)
         {
             var headertype = typeof(HttpClient).Assembly.GetType("System.Net.Http.Headers.HttpHeaderType");
@@ -96,50 +127,58 @@ namespace SekaiClient
 
         public async Task<JToken> CallApi(string apiurl, HttpMethod method, JObject content)
         {
-            lock (this)
-            {
-
-            }
-            var tick = DateTime.Now.Ticks;
-
-
             if (token != null)
                 client.DefaultRequestHeaders.TryAddWithoutValidation("X-Session-Token", token);
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Request-Id", Guid.NewGuid().ToString());
 
-            HttpResponseMessage resp;
-
             try
             {
-                resp = await client.SendAsync(new HttpRequestMessage(method, (connected ? urlroot2 : urlroot) + apiurl)
-                {
-                    Content = method == HttpMethod.Get ? null : new ByteArrayContent(PackHelper.Pack(content))
-                });
-            }
-            catch (AggregateException)
-            {
-                throw new ApiException($"与服务器通信时发生错误, 请求超时");
-            }
 
-            if (!resp.IsSuccessStatusCode)
-            {
-                if (resp.StatusCode == HttpStatusCode.UpgradeRequired)
+                var tick = DateTime.Now.Ticks;
+
+
+                HttpResponseMessage resp;
+
+                try
                 {
-                    DebugWrite($"api failed with header = {string.Join("\n", client.DefaultRequestHeaders.Select(pair => $"{pair.Key}={string.Join(",", pair.Value)}"))}");
+                    resp = await client.SendAsync(
+                        new HttpRequestMessage(method, (connected ? urlroot2 : urlroot) + apiurl)
+                        {
+                            Content = method == HttpMethod.Get ? null : new ByteArrayContent(PackHelper.Pack(content))
+                        });
                 }
-                throw new ApiException($"与服务器通信时发生错误, HTTP {(int)resp.StatusCode} {resp.StatusCode}");
+                catch (AggregateException)
+                {
+                    throw new ApiException($"与服务器通信时发生错误, 请求超时");
+                }
+
+                if (!resp.IsSuccessStatusCode)
+                {
+                    if (resp.StatusCode == HttpStatusCode.UpgradeRequired)
+                    {
+                        DebugWrite(
+                            $"api failed with header = {string.Join("\n", client.DefaultRequestHeaders.Select(pair => $"{pair.Key}={string.Join(",", pair.Value)}"))}");
+                    }
+
+                    throw new ApiException($"与服务器通信时发生错误, HTTP {(int) resp.StatusCode} {resp.StatusCode}");
+                }
+
+                var nextToken = resp.Headers.Contains("X-Session-Token")
+                    ? resp.Headers.GetValues("X-Session-Token").Single()
+                    : null;
+                if (nextToken != null) token = nextToken;
+                var result = PackHelper.Unpack(await resp.Content.ReadAsByteArrayAsync());
+
+                connected = true;
+
+                DebugWrite(apiurl + $" called, {(DateTime.Now.Ticks - tick) / 1000 / 10.0} ms elapsed");
+                return result;
             }
-
-            var nextToken = resp.Headers.Contains("X-Session-Token") ? resp.Headers.GetValues("X-Session-Token").Single() : null;
-            if (nextToken != null) token = nextToken;
-            var result = PackHelper.Unpack(await resp.Content.ReadAsByteArrayAsync());
-
-            client.DefaultRequestHeaders.Remove("X-Session-Token");
-            client.DefaultRequestHeaders.Remove("X-Request-Id");
-            connected = true;
-
-            DebugWrite(apiurl + $" called, {(DateTime.Now.Ticks - tick) / 1000 / 10.0} ms elapsed");
-            return result;
+            finally
+            {
+                client.DefaultRequestHeaders.Remove("X-Session-Token");
+                client.DefaultRequestHeaders.Remove("X-Request-Id");
+            }
         }
 
         public async Task<JToken> CallUserApi(string apiurl, HttpMethod method, JObject content)

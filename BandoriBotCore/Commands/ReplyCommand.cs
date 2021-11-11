@@ -18,6 +18,8 @@ namespace BandoriBot.Commands
 
         public async Task Run(CommandArgs args)
         {
+            if (Configuration.GetConfig<Blacklist2>().InBlacklist(args.Source.FromQQ)) return;
+
             string[] splits = args.Arg.Trim().Split(' ');
             if (string.IsNullOrWhiteSpace(args.Arg.Trim()))
             {

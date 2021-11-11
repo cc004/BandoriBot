@@ -1,3 +1,6 @@
 [submodule "TrProtocol"]
 	path = TrProtocol
 	url = git@github.com:chi-rei-den/TrProtocol.git
+[submodule "Sora"]
+	path = Sora
+	url = git@github.com:DeepOceanSoft/Sora

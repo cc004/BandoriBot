@@ -115,9 +115,9 @@ namespace BandoriBot
                 {
                     case "mirai:at": result.Add(CQCode.CQAt(long.Parse(val))); break;
                     case "mirai:imageid": result.Add(CQCode.CQImage(val.Decode().FixImage(), false)); break;
-                    case "mirai:imageurl": result.Add(CQCode.CQImage(val.Decode())); break;
-                    case "mirai:imagepath": result.Add(CQCode.CQImage(val.Decode())); break;
-                    case "mirai:imagenew": result.Add(CQCode.CQImage(val.Decode())); break;
+                    case "mirai:imageurl": result.Add(CQCode.CQImage(val.Decode(), false)); break;
+                    case "mirai:imagepath": result.Add(CQCode.CQImage(val.Decode(), false)); break;
+                    case "mirai:imagenew": result.Add(CQCode.CQImage(val.Decode(), false)); break;
                     case "mirai:atall": result.Add(CQCode.CQAtAll()); break;
                     case "mirai:json": result.Add(CQCode.CQJson(val.Decode())); break;
                     case "mirai:xml": result.Add(CQCode.CQXml(val.Decode())); break;
