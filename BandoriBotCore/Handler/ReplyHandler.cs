@@ -13,6 +13,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
+using Sora.Entities.Segment.DataModel;
 
 namespace BandoriBot.Handler
 {
@@ -53,12 +54,30 @@ namespace BandoriBot.Handler
         private static KeyValuePair<string, List<Reply>> T2D(Tuple<Regex, List<Reply>> tuple)
             => new KeyValuePair<string, List<Reply>>(tuple.Item1.ToString()[1..^1], tuple.Item2);
 
+        private static bool Verify(Reply r)
+        {
+            try
+            {
+                var seg = Utils.GetMessageChain(r.reply);
+                return !seg.Any(s =>
+                    s.Data is ImageSegment se && se.ImgFile.EndsWith(".image") &&
+                    !File.Exists(Path.Join("images", se.ImgFile)));
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static DataTypeS Verify(DataTypeS d)
+            => d.Select(pair => (pair.Key, pair.Value.Where(Verify).ToList())).ToDictionary(t => t.Key, t => t.Item2);
+
         public override void LoadFrom(BinaryReader br)
         {
             base.LoadFrom(br);
-            data2 = t[1];
-            data3 = t[2];
-            data4 = t[3];
+            data2 = Verify(t[1]);
+            data3 = Verify(t[2]);
+            data4 = Verify(t[3]);
             regexCache = new HashSet<string>(t.Where(t => t != null)
                 .SelectMany(dict => dict.Select(pair => pair.Key)))
                .ToDictionary(t => t, t => new Regex($"^{Utils.FixRegex(t)}$", RegexOptions.Multiline | RegexOptions.Compiled));
