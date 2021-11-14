@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MsgPack\MsgPack.csproj" />
+    <ProjectReference Include="..\PCRApi\PCRApi\PCRApi.csproj" />
     <ProjectReference Include="..\SekaiClient\SekaiClient.csproj" />
     <ProjectReference Include="..\Sora\Sora\Sora.csproj" />
     <ProjectReference Include="..\TrProtocol\TrClient\TrClient.csproj" />

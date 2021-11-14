@@ -71,7 +71,6 @@ namespace BandoriBot.Commands
     {
 
         public List<string> Alias => new List<string> { "sekai" };
-        private BlockingCollection<SekaiClient.SekaiClient> clients = new();
         private PPHManager manager;
         private static int eventId => MasterData.Instance.CurrentEvent.id;
         
@@ -147,20 +146,28 @@ namespace BandoriBot.Commands
         public async Task Run(CommandArgs args)
         {
             long arg;
-            try
+            int eventId = SekaiCommand.eventId;
+
+            if (string.IsNullOrEmpty(args.Arg))
             {
-                if (string.IsNullOrEmpty(args.Arg)) arg = Configuration.GetConfig<SekaiCache>().t[args.Source.FromQQ];
-                else
+                try
                 {
-                    arg = long.Parse(args.Arg.Trim());
-                    Configuration.GetConfig<SekaiCache>().t[args.Source.FromQQ] = arg;
-                    Configuration.GetConfig<SekaiCache>().Save();
+                    arg = Configuration.GetConfig<SekaiCache>().t[args.Source.FromQQ];
+                }
+                catch
+                {
+                    await args.Callback("你还没有绑定你的id哦");
+                    return;
                 }
             }
-            catch
+            else
             {
-                await args.Callback("你还没有绑定你的id哦");
-                return;
+                var split = args.Arg.Trim().Split(':');
+                if (!long.TryParse(split[0], out arg)) return;
+                if (split.Length == 2 && !int.TryParse(split[1], out eventId)) eventId = SekaiCommand.eventId;
+
+                Configuration.GetConfig<SekaiCache>().t[args.Source.FromQQ] = arg;
+                Configuration.GetConfig<SekaiCache>().Save();
             }
 
 
@@ -178,15 +185,20 @@ namespace BandoriBot.Commands
                         ? "找不到玩家"
                         : ($"排名为{rank["rank"]}的玩家是`{rank["name"]}`(uid={rank["userId"]})，分数为{rank["score"]}" +
                            GetPred((int)rank["rank"], client).Result);
-
-                    clients.Add(client);
-                    this.Log(LoggerLevel.Debug, text);
-                    args.Callback(text.ToImageText()).Wait();
-                    RefreshCache();
+                    
+                    try
+                    {
+                        this.Log(LoggerLevel.Debug, text);
+                        args.Callback(text.ToImageText()).Wait();
+                        RefreshCache();
+                    }
+                    catch (Exception e)
+                    {
+                        this.Log(LoggerLevel.Error, e.ToString());
+                    }
                 }
-                catch (Exception e)
+                catch
                 {
-                    this.Log(LoggerLevel.Error, e.ToString());
                     SekaiClient.SekaiClient.StaticClient = null;
                 }
             });

@@ -5,6 +5,7 @@ using BandoriBot.Services;
 using Newtonsoft.Json.Linq;
 using Sora.Entities.Base;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -141,16 +142,16 @@ namespace BandoriBot.Handler
             }).Wait();
         }
 
-        private static Queue<int> msgqueue = new();
+        private static ConcurrentQueue<int> msgqueue = new();
         public static readonly HashSet<long> bots = new();
 
         private static bool SameMessageFiltering(string msg, Source src)
         {
             if (bots.Contains(src.FromQQ)) return false;
-            var hash = HashCode.Combine(msg, src.FromGroup, src.FromQQ, src.time);
+            var hash = HashCode.Combine(msg, src.FromGroup, src.FromQQ, src.time.ToTimestamp() / 60000);
             if (msgqueue.Contains(hash)) return false;
             msgqueue.Enqueue(hash);
-            while (msgqueue.Count > 100) msgqueue.Dequeue();
+            while (msgqueue.Count > 100) msgqueue.TryDequeue(out _);
             return true;
         }
 
@@ -165,19 +166,24 @@ namespace BandoriBot.Handler
 
             Func<string, Task> callback = async s =>
             {
-                try
+                _ = Task.Run(async () =>
                 {
-                    Utils.Log(LoggerLevel.Debug, $"[{ Sender.FromGroup}::{ Sender.FromQQ}] [{ (DateTime.Now.Ticks - ticks) / 10000}ms] sent msg: " + s);
-                    if (Sender.FromGroup != 0)
-                        await session.SendGroupMessage(Sender.FromGroup, Utils.GetMessageChain(s));
-                    else
-                        await session.SendPrivateMessage(Sender.FromQQ, Utils.GetMessageChain(s));
+                    try
+                    {
+                        Utils.Log(LoggerLevel.Debug,
+                            $"[{Sender.FromGroup}::{Sender.FromQQ}] [{(DateTime.Now.Ticks - ticks) / 10000}ms] sent msg: " +
+                            s);
+                        if (Sender.FromGroup != 0)
+                            await session.SendGroupMessage(Sender.FromGroup, Utils.GetMessageChain(s));
+                        else
+                            await session.SendPrivateMessage(Sender.FromQQ, Utils.GetMessageChain(s));
 
-                }
-                catch (Exception e)
-                {
-                    Utils.Log(LoggerLevel.Error, "error in msg: " + s + "\n" + e.ToString());
-                }
+                    }
+                    catch (Exception e)
+                    {
+                        Utils.Log(LoggerLevel.Error, $"error in msg: {s}\n{e}");
+                    }
+                });
             };
 
             RecordDatabaseManager.AddRecord(Sender.FromQQ, Sender.FromGroup, DateTime.Now, message);

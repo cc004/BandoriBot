@@ -4,3 +4,6 @@
 [submodule "Sora"]
 	path = Sora
 	url = git@github.com:DeepOceanSoft/Sora
+[submodule "PCRApi"]
+	path = PCRApi
+	url = git@github.com:cc004/PCRApi

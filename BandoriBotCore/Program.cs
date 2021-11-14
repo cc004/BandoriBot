@@ -87,6 +87,7 @@ namespace BandoriBot
             MessageHandler.Register<SendCommand>();
             MessageHandler.Register<RecordCommand>();
             MessageHandler.Register<Blacklist2Command>();
+            MessageHandler.Register<QACommand>();
             /*
             MessageHandler.Register<RCCommand>();
             MessageHandler.Register<CPMCommand>();

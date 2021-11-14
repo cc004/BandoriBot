@@ -50,10 +50,7 @@ namespace SekaiClient
 
                 return _staticClient;
             }
-            set
-            {
-                _staticClient = value;
-            }
+            set => _staticClient = value;
         }
         
         public string AssetHash { get; private set; }

@@ -75,38 +75,49 @@ namespace BandoriBot.Apis.Controllers
         [HttpPost("pcrd")]
         public async Task<string> Pcrd(Request request)
         {
-            var json = new JObject
+            try
             {
-                ["def"] = new JArray(request.def.Distinct()),
-                ["nonce"] = GenNonce(),
-                ["page"] = request.page,
-                ["region"] = request.region,
-                ["sort"] = request.sort,
-                ["ts"] = GetTimeStamp()
-            };
-            
-            string sign = null;
+                var json = new JObject
+                {
+                    ["def"] = new JArray(request.def.Distinct()),
+                    ["nonce"] = GenNonce(),
+                    ["page"] = request.page,
+                    ["region"] = request.region,
+                    ["sort"] = request.sort,
+                    ["ts"] = GetTimeStamp()
+                };
 
-            JJCManager.GetSign(json.ToString(Formatting.None), json.Value<string>("nonce"),
-                s => sign = s);
+                string sign = null;
+
+                JJCManager.GetSign(json.ToString(Formatting.None), json.Value<string>("nonce"),
+                    s => sign = s);
 
 
-            json = new JObject
+                json = new JObject
+                {
+                    ["_sign"] = sign,
+                    ["def"] = json["def"],
+                    ["nonce"] = json["nonce"],
+                    ["page"] = json["page"],
+                    ["region"] = json["region"],
+                    ["sort"] = json["sort"],
+                    ["ts"] = json["ts"]
+                };
+
+                JObject raw = null;
+
+                return client.PostAsync($"https://api.pcrdfans.com/x/v1/search",
+                    new StringContent(json.ToString(Formatting.None)
+                        , Encoding.UTF8, "application/json")).Result.Content.ReadAsStringAsync().Result;
+            }
+            catch (Exception ex)
             {
-                ["_sign"] = sign,
-                ["def"] = json["def"],
-                ["nonce"] = json["nonce"],
-                ["page"] = json["page"],
-                ["region"] = json["region"],
-                ["sort"] = json["sort"],
-                ["ts"] = json["ts"]
-            };
-            
-            JObject raw = null;
-
-            return client.PostAsync($"https://api.pcrdfans.com/x/v1/search",
-                new StringContent(json.ToString(Formatting.None)
-                    , Encoding.UTF8, "application/json")).Result.Content.ReadAsStringAsync().Result;
+                return new JObject()
+                {
+                    ["code"] = 500,
+                    ["message"] = ex.ToString()
+                }.ToString(Formatting.Indented);
+            }
 
         }
         [HttpGet("execute")]

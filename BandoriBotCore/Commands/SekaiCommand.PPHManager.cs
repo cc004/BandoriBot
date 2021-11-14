@@ -38,7 +38,7 @@ namespace BandoriBot.Commands
                 catch (Exception e)
                 {
                     this.Log(LoggerLevel.Warn, e.ToString());
-                    await SekaiClient.SekaiClient.StaticClient.Reset();
+                    SekaiClient.SekaiClient.StaticClient = null;
                 }
             }
             public void Initialize()
