@@ -17,31 +17,44 @@ namespace BandoriBot.Commands
     {
         private AssetManager mgr = new ();
 
-        public List<string> Alias => new List<string> { "/qa" };
+        public List<string> Alias => new List<string> { "/qa", "QAç‰ˆæœ¬æ›´æ–° Manifest:" };
+
+
         public async Task Run(CommandArgs args)
         {
             var a = args.Arg.Trim().Split(' ');
-            switch (a[0])
+            if (long.TryParse(a[0], out var val)) a = new[] {"update_query", a[0]};
+            if (a[0].IndexOf("update") >= 0)
             {
-                case "query":
-                    var now = DateTime.Now;
-                    await args.Callback("¹ú·þ°ÙÀïÑÛ:\n" + string.Join("\n", ISchedule.Schedules.SelectMany(sch => sch.AsEnumerable()
-                        .Where(s => DateTime.Parse(s.StartTime) > now).Select(s => $"{s.StartTime}-{s.EndTime} {s.Description}"))));
-                    break;
-                case "update":
-                    var client = new AssetController.PCRClient();
-                    client.urlroot = "http://l3-qa2-all-gs-gzlj.bilibiligame.net/";
-                    var manifest = client.Callapi("source_ini/get_resource_info", new JObject { ["viewer_id"] = "0" });
+                var client = new AssetController.PCRClient();
+                client.urlroot = "http://l3-qa2-all-gs-gzlj.bilibiligame.net/";
+                var manifest = client.Callapi("source_ini/get_resource_info", new JObject { ["viewer_id"] = "0" });
 
-                    await mgr.Initialize(a[1],
-                        (string)manifest["movie_ver"],
-                        (string)manifest["sound_ver"], manifest["resource"][0].ToString());
-                    var ab = await mgr.ResolveAssetsBundle("a/masterdata_master.unity3d", "master_data.unity3d");
-                    var af = ab.Files[0].ToAssetsFile();
-                    await File.WriteAllBytesAsync("Data/master.db", af.Objects[0].Data.Skip(16).ToArray());
-                    masterContextCache.instance = new masterContext();
-                    await args.Callback($"manifest updated to {a[1]}");
-                    break;
+                await mgr.Initialize(a[1],
+                    (string)manifest["movie_ver"],
+                    (string)manifest["sound_ver"], manifest["resource"][0].ToString());
+                var ab = await mgr.ResolveAssetsBundle("a/masterdata_master.unity3d", "master_data.unity3d");
+                var af = ab.Files[0].ToAssetsFile();
+                await File.WriteAllBytesAsync("Data/master.db", af.Objects[0].Data.Skip(16).ToArray());
+                masterContextCache.instance = new masterContext();
+                await args.Callback($"manifest updated to {a[1]}");
+            }
+            if (a[0].IndexOf("query") >= 0)
+            {
+                var now = DateTime.Now;
+                var res = "å…¬ä¸»è¿žç»“åŠæœˆåˆŠ:\n" + string.Join("\n", ISchedule.Schedules.SelectMany(sch => sch.AsEnumerable()
+                    )
+                    .Where(s => DateTime.Parse(s.StartTime) > now && s.Enabled)
+                    .Select(s => ((
+                        $"{DateTime.Parse(s.StartTime).ToShortDateString()}-{DateTime.Parse(s.EndTime).ToShortDateString()}",
+                        DateTime.Parse(s.StartTime), s.Description)))
+                    .GroupBy(t => t.Item1)
+                    .OrderBy(g => g.First().Item2)
+                    .Select(g => $"{g.Key}\n{string.Join("\n", g.Select(s => $"      {s.Item3}"))}"));
+                if (a[0].IndexOf("text") >= 0)
+                    await args.Callback(res);
+                else
+                    await args.Callback(res.ToImageText());
             }
         }
     }
