@@ -26,19 +26,21 @@ namespace BandoriBot.Commands
             {
                 try
                 {
+                    var client = SekaiClient.SekaiClient.GetClient();
                     foreach (var rank in ranks)
                     {
-                        var resp = await SekaiClient.SekaiClient.StaticClient.CallUserApi($"/event/{eventId}/ranking?targetRank={rank}", HttpMethod.Get, null);
+                        var resp = await client.CallUserApi($"/event/{eventId}/ranking?targetRank={rank}", HttpMethod.Get, null);
                         var now = resp["rankings"][0].Value<int>("score");
 
                         if (hourCache.ContainsKey(rank)) hourSpeed[rank] = now - hourCache[rank];
                         hourCache[rank] = now;
                     }
+
+                    SekaiClient.SekaiClient.PutClient(client);
                 }
                 catch (Exception e)
                 {
                     this.Log(LoggerLevel.Warn, e.ToString());
-                    SekaiClient.SekaiClient.StaticClient = null;
                 }
             }
             public void Initialize()

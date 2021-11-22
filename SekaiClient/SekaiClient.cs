@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using SekaiClient.Datas;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -31,28 +32,28 @@ namespace SekaiClient
         private readonly HttpClient client;
         private string adid, uid, token;
         internal readonly EnvironmentInfo environment;
-
-        [ThreadStatic]
-        private static SekaiClient _staticClient;
-        public static SekaiClient StaticClient
-        {
-            get
-            {
-                if (_staticClient == null)
-                {
-                    _staticClient = new SekaiClient(new EnvironmentInfo())
-                    {
-                        DebugWrite = Console.WriteLine
-                    };
-                    _staticClient.Reset().Wait();
-
-                }
-
-                return _staticClient;
-            }
-            set => _staticClient = value;
-        }
         
+        private static readonly BlockingCollection<SekaiClient> _staticClients = new ();
+        public static SekaiClient GetClient()
+        {
+            if (!_staticClients.TryTake(out var _staticClient))
+            {
+                _staticClient = new SekaiClient(new EnvironmentInfo())
+                {
+                    DebugWrite = Console.WriteLine
+                };
+                _staticClient.Reset().Wait();
+
+            }
+
+            return _staticClient;
+        }
+
+        public static void PutClient(SekaiClient client)
+        {
+            _staticClients.Add(client);
+        }
+
         public string AssetHash { get; private set; }
 
         private void SetupHeaders()

@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Runtime.ExceptionServices;
 using System.Text;
@@ -18,9 +19,9 @@ using BandoriBot.Models;
 using SekaiClient;
 using SekaiClient.Datas;
 using Sora;
+using Sora.Entities.Base;
 using Sora.Enumeration.EventParamsType;
 using Sora.Net.Config;
-using YukariToolBox.FormatLog;
 
 namespace BandoriBot
 {
@@ -88,6 +89,7 @@ namespace BandoriBot
             MessageHandler.Register<RecordCommand>();
             MessageHandler.Register<Blacklist2Command>();
             MessageHandler.Register<QACommand>();
+            MessageHandler.Register<BroadcastCommand>();
             /*
             MessageHandler.Register<RCCommand>();
             MessageHandler.Register<CPMCommand>();
@@ -123,6 +125,7 @@ namespace BandoriBot
             CommandHelper.Register<AdditionalCommands.saveall>();
             */
             MessageHandler.Register<R18AllowedCommand>();
+            MessageHandler.Register<WhereCommand>();
             MessageHandler.Register<NormalAllowedCommand>();
             MessageHandler.Register<SetuCommand>();
             MessageHandler.Register<ZMCCommand>();
@@ -166,7 +169,7 @@ namespace BandoriBot
 
             new Thread(() => Apis.Program.Main2(args)).Start();
             var tasks = new List<Task>();
-
+            
             foreach (var line in File.ReadAllLines("cqservers.txt"))
             {
                 var s = line.Split(":");
@@ -181,6 +184,7 @@ namespace BandoriBot
                 service.Event.OnGroupMessage += Event_OnGroupMessage;
                 service.Event.OnPrivateMessage += Event_OnPrivateMessage;
                 service.Event.OnGroupRequest += Event_OnGroupRequest;
+                service.Event.OnGuildMessage += Event_OnGuildMessage;
 
                 Console.WriteLine("connected to server");
 
@@ -188,6 +192,18 @@ namespace BandoriBot
             }
 
             Task.WaitAll(tasks.ToArray());
+        }
+
+        private static async ValueTask Event_OnGuildMessage(string eventType, GuildMessageEventArgs eventArgs)
+        {
+            await MessageHandler.OnMessage(eventArgs.SoraApi, Utils.GetCQMessage(eventArgs.Message), new Source
+            {
+                Session = eventArgs.SoraApi,
+                FromGroup = MessageHandler.HashGroupCache(eventArgs.Guild, eventArgs.Channel),
+                IsGuild = true,
+                FromQQ = eventArgs.SenderInfo.UserId,
+                time = eventArgs.Time
+            });
         }
 
         private static async ValueTask Event_OnGroupRequest(string type, AddGroupRequestEventArgs eventArgs)
@@ -226,7 +242,13 @@ namespace BandoriBot
         private static async ValueTask Event_OnClientConnect(string type, Sora.EventArgs.SoraEvent.ConnectEventArgs eventArgs)
         {
             MessageHandler.session = eventArgs.SoraApi;
-            MessageHandler.bots.Add(eventArgs.LoginUid);
+            lock (MessageHandler.bots)
+            {
+                if (!MessageHandler.bots.ContainsKey(eventArgs.LoginUid))
+                    MessageHandler.bots.Remove(eventArgs.LoginUid);
+                MessageHandler.bots.Add(eventArgs.LoginUid, eventArgs.SoraApi);
+                MessageHandler.selfids.Add(eventArgs.LoginUid);
+            }
             MessageHandler.booted = true;
         }
 

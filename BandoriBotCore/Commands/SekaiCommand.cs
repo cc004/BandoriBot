@@ -104,9 +104,12 @@ namespace BandoriBot.Commands
 
         public static async Task<string> Query(long rankorid)
         {
-            return (await (rankorid > int.MaxValue ?
-                SekaiClient.SekaiClient.StaticClient.CallUserApi($"/event/{eventId}/ranking?targetUserId={rankorid}", HttpMethod.Get, null) :
-                SekaiClient.SekaiClient.StaticClient.CallUserApi($"/event/{eventId}/ranking?targetRank={rankorid}", HttpMethod.Get, null))).ToString(Formatting.Indented);
+            var client = SekaiClient.SekaiClient.GetClient();
+            var result = (await (rankorid > int.MaxValue ?
+                client.CallUserApi($"/event/{eventId}/ranking?targetUserId={rankorid}", HttpMethod.Get, null) :
+                client.CallUserApi($"/event/{eventId}/ranking?targetRank={rankorid}", HttpMethod.Get, null))).ToString(Formatting.Indented);
+            SekaiClient.SekaiClient.PutClient(client);
+            return result;
         }
 
         private async Task<string> GetDesc(int rankacc, SekaiClient.SekaiClient client)
@@ -175,7 +178,7 @@ namespace BandoriBot.Commands
             {
                 try
                 {
-                    var client = SekaiClient.SekaiClient.StaticClient;
+                    var client = SekaiClient.SekaiClient.GetClient();
                     var result = (arg > int.MaxValue ?
                         client.CallUserApi($"/event/{eventId}/ranking?targetUserId={arg}", HttpMethod.Get, null) :
                         client.CallUserApi($"/event/{eventId}/ranking?targetRank={arg}", HttpMethod.Get, null)).Result;
@@ -185,7 +188,7 @@ namespace BandoriBot.Commands
                         ? "找不到玩家"
                         : ($"排名为{rank["rank"]}的玩家是`{rank["name"]}`(uid={rank["userId"]})，分数为{rank["score"]}" +
                            GetPred((int)rank["rank"], client).Result);
-                    
+                    SekaiClient.SekaiClient.PutClient(client);
                     try
                     {
                         this.Log(LoggerLevel.Debug, text);
@@ -199,7 +202,6 @@ namespace BandoriBot.Commands
                 }
                 catch
                 {
-                    SekaiClient.SekaiClient.StaticClient = null;
                 }
             });
         }

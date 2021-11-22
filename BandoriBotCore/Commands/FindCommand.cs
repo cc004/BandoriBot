@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using BandoriBot.Handler;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace BandoriBot.Commands
 {
@@ -35,9 +37,19 @@ namespace BandoriBot.Commands
                     }
                     infos.Clear();
                     await args.Callback($"refreshing...please wait.");
-                    foreach (var group in groups = await args.Source.Session.GetGroupList0())
-                        foreach (var member in await args.Source.Session.GetMemberList(group.Id) ?? new List<GroupMemberInfo>())
+                    groups = new();
+                    foreach (var group in (await MessageHandler.GetGroupList()).GroupBy(t => t.Item1)
+                             .Select(g => g.First()))
+                    {
+                        foreach (var member in await group.Item2.GetMemberList(group.Item1) ?? new List<GroupMemberInfo>())
                             infos.Add(member);
+                        var inf = (await group.Item2.GetGroupInfo(group.Item1)).groupInfo;
+                        groups.Add(new GroupInfo()
+                        {
+                            Id = inf.GroupId,
+                            Name = inf.GroupName
+                        });
+                    }
                     var idhash = new HashSet<long>(groups.Select((group) => group.Id));
                     var groupfile = Path.Combine("groups.json");
                     if (File.Exists(groupfile))

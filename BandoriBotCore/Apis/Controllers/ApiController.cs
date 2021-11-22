@@ -123,7 +123,7 @@ namespace BandoriBot.Apis.Controllers
         [HttpGet("execute")]
         public async Task<ActionResult<string>> Execute(string message)
         {
-            var source = new Source { FromGroup = 0, IsTemp = false, FromQQ = GetUID(), Session = MessageHandler.session };
+            var source = new Source { FromGroup = 0, FromQQ = GetUID(), Session = MessageHandler.session };
             var result = new StringBuilder();
             await MessageHandler.instance.OnMessage(new HandlerArgs
             {

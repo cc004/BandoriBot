@@ -20,7 +20,7 @@ namespace BandoriBot.Commands
         {
             if (Configuration.GetConfig<Blacklist2>().InBlacklist(args.Source.FromQQ)) return;
 
-            string[] splits = args.Arg.Trim().Split(' ');
+            string[] splits = args.Arg.TrimStart().Split(' ');
             if (string.IsNullOrWhiteSpace(args.Arg.Trim()))
             {
                 await args.Callback("/reply <add/del/list>[1234] ...\n1 is string comparision\n2 is regex match\n3 is regex match without at(requires admin).\n4 is c# code");
@@ -123,6 +123,32 @@ namespace BandoriBot.Commands
 
                         break;
                     }
+                case "dela2":
+                case "dela3":
+                case "dela4":
+                {
+                    if (splits.Length < 3)
+                    {
+                        await args.Callback("Invalid argument count.");
+                        return;
+                    }
+                    
+                    var data = config[int.Parse(splits[0].Substring(4))];
+                    if (!await args.Source.HasPermission("reply.management", -1))
+                    {
+                        await args.Callback("access denied.");
+                        return;
+                    }
+
+                    foreach (var pair in data.ToArray())
+                    {
+                        if (pair.Key.StartsWith(pair.Key)) data.Remove(pair.Key);
+                    }
+
+                    config.Save();
+
+                    break;
+                }
                 case "del2":
                 case "del3":
                 case "del4":
@@ -198,7 +224,7 @@ namespace BandoriBot.Commands
 
                         if (splits.Length == 1) return;
 
-                        var result = ReplyHandler.FitRegex(data, splits[1]);
+                        var result = ReplyHandler.FitRegex(data, string.Join(" ", splits.Skip(1)));
                         await args.Callback($"All regex that match `{splits[1]}`:\n" +
                             $"{string.Join('\n', data.Where(tuple => ReplyHandler.regexCache[tuple.Key].Match(splits[1]).Success).Select(tuple => tuple.Key))}");
                         break;

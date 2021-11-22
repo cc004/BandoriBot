@@ -25,11 +25,17 @@ namespace BandoriBot
     public static class Utils
     {
 
-        public static string FindAtMe(string origin, out bool isat, long qq)
+        public static string FindAtMe(string origin, out bool isat)
         {
-            var at = $"[mirai:at={qq}]";
-            isat = origin.Contains(at);
-            return origin.Replace(at, "");
+            isat = false;
+            foreach (var qq in MessageHandler.selfids)
+            {
+                var at = $"[mirai:at={qq}]";
+                isat |= origin.Contains(at);
+                origin = origin.Replace(at, "");
+            }
+
+            return origin;
         }
 
         public static async Task<List<GroupMemberInfo>> GetMemberList(this SoraApi session, long groupId)

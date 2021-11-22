@@ -9,6 +9,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Sora.Enumeration.EventParamsType;
@@ -32,7 +33,7 @@ namespace BandoriBot.Handler
         public DateTime time;
         public long FromGroup, FromQQ;
         public SoraApi Session;
-        public bool IsTemp;
+        public bool IsGuild;
 
         internal static readonly HashSet<long> AdminQQs = new(File.ReadAllText("adminqq.txt").Split('\n').Select(long.Parse));
 
@@ -52,8 +53,19 @@ namespace BandoriBot.Handler
         private static PermissionConfig cfg = Configuration.GetConfig<PermissionConfig>();
 
         private async Task<bool> CheckPermission(long target = 0,
-            MemberRoleType required = MemberRoleType.Admin) =>
-            (await Session.GetGroupMemberInfo(target, FromQQ)).memberInfo.Role >= required;
+            MemberRoleType required = MemberRoleType.Admin)
+        {
+            if (IsGuild)
+            {
+                var res = (await Session.GetGuildMembers(MessageHandler.GetGroupCache(target).guild)).memberInfo;
+                var qq = FromQQ;
+
+                var info = res.bots.Concat(res.admins).Concat(res.members).FirstOrDefault(m => m.UserId == qq); 
+                this.Log(LoggerLevel.Info, $"guild perm {target}::{FromQQ} = {info?.Role}");
+                return (info?.Role ?? MemberRoleType.Unknown) >= required;
+            }
+            return (await Session.GetGroupMemberInfo(target, FromQQ)).memberInfo.Role >= required;
+        }
 
         public async Task<bool> HasPermission(string perm) => await HasPermission(perm, -1);
         public async Task<bool> HasPermission(string perm, long group) =>
@@ -62,7 +74,7 @@ namespace BandoriBot.Handler
             cfg.t[FromQQ].Contains($"*.{perm}") ||
             cfg.t[FromQQ].Contains($"{group}.{perm}")) ||
             perm.Contains('.') && await HasPermission(perm.Substring(0, perm.LastIndexOf('.')), group) ||
-            perm != "*" && await HasPermission("*", group) || group > 0 && await CheckPermission(group);
+            perm != "*" && await HasPermission("*", group) || group != 0 && group != -1 && await CheckPermission(group);
     }
 
     public class MessageHandler : IMessageHandler
@@ -75,7 +87,9 @@ namespace BandoriBot.Handler
             public long group, qq;
             public CQCode[] message;
         }*/
-
+        public static readonly HashSet<long> selfids =
+            new(File.ReadAllText("selfid.txt").Split('\n').Select(long.Parse));
+        private static readonly ConcurrentDictionary<long, (long, long)> hashedGroupCache = new ();
         private static readonly List<HandlerHolder> functions = new List<HandlerHolder>();
         internal static readonly IMessageHandler instance = new MessageHandler();
        // private static readonly Queue<Message> msgRecord = new Queue<Message>();
@@ -83,6 +97,38 @@ namespace BandoriBot.Handler
         public static bool booted = false;
 
         public static SoraApi session;
+
+        private static unsafe long GetHashCode(string str)
+        {
+            long num = 5381;
+            long num2 = num;
+            int num3;
+            fixed (char* ptr = str)
+            {
+                char* ptr2 = ptr;
+                while ((num3 = (int)(*ptr2)) != 0)
+                {
+                    num = ((num << 5) + num ^ num3);
+                    num3 = (int)ptr2[1];
+                    if (num3 == 0)
+                    {
+                        break;
+                    }
+                    num2 = ((num2 << 5) + num2 ^ num3);
+                    ptr2 += 2;
+                }
+            }
+            return num + num2 * 1566083941;
+        }
+
+        public static long HashGroupCache(long guild, long channel)
+        {
+            var res = GetHashCode($"{guild}{channel}");
+             hashedGroupCache.TryAdd(res, (guild, channel));
+             return res;
+        }
+
+        public static (long guild, long channel) GetGroupCache(long hash) => hashedGroupCache[hash];
 
         private class State
         {
@@ -147,11 +193,12 @@ namespace BandoriBot.Handler
         }
 
         private static ConcurrentQueue<int> msgqueue = new();
-        public static readonly HashSet<long> bots = new();
+        public static readonly Dictionary<long, SoraApi> bots = new();
 
         private static bool SameMessageFiltering(string msg, Source src)
         {
-            if (bots.Contains(src.FromQQ)) return false;
+            lock (bots)
+                if (bots.ContainsKey(src.FromQQ)) return false;
             var hash = HashCode.Combine(msg, src.FromGroup, src.FromQQ, src.time.ToTimestamp() / 3000);
             if (msgqueue.Contains(hash)) return false;
             msgqueue.Enqueue(hash);
@@ -172,13 +219,24 @@ namespace BandoriBot.Handler
             {
                 try
                 {
-                    Utils.Log(LoggerLevel.Debug,
-                        $"[{Sender.FromGroup}::{Sender.FromQQ}] [{(DateTime.Now.Ticks - ticks) / 10000}ms] sent msg: " +
-                        s);
-                    if (Sender.FromGroup != 0)
-                        await session.SendGroupMessage(Sender.FromGroup, Utils.GetMessageChain(s));
+                    if (Sender.IsGuild)
+                    {
+                        var (guild, channel) = GetGroupCache(Sender.FromGroup);
+                        Utils.Log(LoggerLevel.Debug,
+                            $"[{guild}::{channel}::{Sender.FromQQ}] [{(DateTime.Now.Ticks - ticks) / 10000}ms] sent msg: " +
+                            s);
+                        await session.SendGuildMessage(guild, channel, Utils.GetMessageChain(s));
+                    }
                     else
-                        await session.SendPrivateMessage(Sender.FromQQ, Utils.GetMessageChain(s));
+                    {
+                        Utils.Log(LoggerLevel.Debug,
+                            $"[{Sender.FromGroup}::{Sender.FromQQ}] [{(DateTime.Now.Ticks - ticks) / 10000}ms] sent msg: " +
+                            s);
+                        if (Sender.FromGroup != 0)
+                            await session.SendGroupMessage(Sender.FromGroup, Utils.GetMessageChain(s));
+                        else
+                            await session.SendPrivateMessage(Sender.FromQQ, Utils.GetMessageChain(s));
+                    }
 
                 }
                 catch (Exception e)
@@ -328,5 +386,19 @@ namespace BandoriBot.Handler
             }
         }*/
 #pragma warning restore CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
+        public static async Task Broadcast(string msg)
+        {
+            var group = await GetGroupList();
+            foreach (var tuple in group.GroupBy(t => t.Item1).Select(g => g.OrderBy(g => g.GetHashCode()).First()))
+                await tuple.Item2.SendGroupMessage(tuple.Item1, Utils.GetMessageChain(msg));
+        }
+
+        public static async Task<(long, SoraApi)[]> GetGroupList()
+        {
+            var group = new List<(long, SoraApi)>();
+            foreach (var pair in bots)
+                group.AddRange((await pair.Value.GetGroupList()).groupList.Select(g => (g.GroupId, pair.Value)));
+            return group.ToArray();
+        }
     }
 }
