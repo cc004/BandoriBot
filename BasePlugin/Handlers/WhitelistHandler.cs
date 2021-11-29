@@ -7,6 +7,8 @@ namespace BandoriBot.Handler
     {
         public bool IgnoreCommandHandled => true;
 
+        public float Priority => 1100f;
+
         public async Task<bool> OnMessage(HandlerArgs args)
         {
             return !Configuration.GetConfig<Whitelist>().hash.Contains(args.Sender.FromGroup) &&

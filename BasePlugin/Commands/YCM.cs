@@ -1,9 +1,10 @@
 ﻿using BandoriBot.Config;
 using BandoriBot.DataStructures;
-using BandoriBot.Handler;
+using BandoriBot.Services;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using BandoriBot.Handler;
 
 namespace BandoriBot.Commands
 {

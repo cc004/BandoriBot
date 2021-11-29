@@ -1,6 +1,3 @@
-using BandoriBot.DataStructures;
-using BandoriBot.Models;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,9 +6,11 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Websocket.Client.Logging;
+using BandoriBot.DataStructures;
+using BandoriBot.Models;
+using Newtonsoft.Json.Linq;
 
-namespace BandoriBot.Handler
+namespace BandoriBot.Services
 {
     public class StationListener
     {

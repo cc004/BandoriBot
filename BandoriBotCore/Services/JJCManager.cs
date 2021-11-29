@@ -1,7 +1,6 @@
-using BandoriBot.Handler;
+using BandoriBot.Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SekaiClient;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -20,7 +19,6 @@ namespace BandoriBot.Services
     public sealed class JJCManager : IDisposable
     {
         public static JJCManager Instance = new JJCManager(Path.Combine("jjc"));
-        private ProxyPool pool = new ProxyPool();
 
 #pragma warning disable CS0649
         class CommentModel
@@ -138,71 +136,7 @@ namespace BandoriBot.Services
             pool.GetProxysFromAPIs();
             */
         }
-
-        private JObject ProxyPost(JObject json)
-        {
-            bool suc = false;
-            object suclock = new object();
-            JObject result = null;
-            using var evt = new ManualResetEvent(false);
-            this.Log(Models.LoggerLevel.Info, $"posting {json}");
-
-            pool.proxys.OrderBy(_ => Guid.NewGuid())
-                .AsParallel().WithDegreeOfParallelism(48).ForAll(s =>
-                {
-                    lock (suclock) if (suc) return;
-
-                    var client = new HttpClient
-
-                    (new HttpClientHandler
-                    {
-                        Proxy = new WebProxy(s.ToString())
-                    });
-
-                    client.Timeout = new TimeSpan(0, 0, 10);
-
-                    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66");
-                    client.DefaultRequestHeaders.Add("Referer", "https://pcrdfans.com/");
-                    client.DefaultRequestHeaders.Add("Origin", "https://pcrdfans.com");
-                    client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", "");
-                    client.DefaultRequestHeaders.Add("Sec-Fetch-Dest", "empty");
-                    client.DefaultRequestHeaders.Add("Sec-Fetch-Mode", "cors");
-                    client.DefaultRequestHeaders.Add("Sec-Fetch-Site", "same-site");
-                    client.DefaultRequestHeaders.Add("Accept", "*/*");
-                    //client.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
-                    client.DefaultRequestHeaders.Add("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6");
-                    client.DefaultRequestHeaders.Remove("Expect");
-
-                    try
-                    {
-                        var content = client.PostAsync($"https://api.pcrdfans.com/x/v1/search",
-                            new StringContent(json.ToString(Formatting.None)
-                        , Encoding.UTF8, "application/json")).Result;
-
-                        lock (suclock) if (suc) return;
-
-                        var res = JObject.Parse(content.Content.ReadAsStringAsync().Result);
-                        var code = res.Value<int>("code");
-                        if (code == -429 || code == 601) throw new ApiException();
-
-                        lock (suclock)
-                        {
-                            if (suc) return;
-
-                            suc = true;
-                            result = res;
-                            evt.Set();
-                        }
-                    }
-                    catch
-                    {
-
-                    }
-                });
-
-            evt.WaitOne();
-            return result;
-        }
+        
         private Image GetTexture(Character c)
         {
             Image img;

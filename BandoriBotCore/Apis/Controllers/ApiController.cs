@@ -1,15 +1,15 @@
 ﻿using System;
-using BandoriBot.Config;
 using BandoriBot.Handler;
 using BandoriBot.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using BandoriBot.Commands;
+using BandoriBot.Config;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -133,13 +133,13 @@ namespace BandoriBot.Apis.Controllers
             });
             return result.ToString();
         }
-
+        /*
         [HttpGet("sekai")]
         public async Task<ActionResult<string>> Sekai(long id)
         {
             return await SekaiCommand.Query(id);
         }
-
+        */
         [HttpGet("count")]
         public async Task<ActionResult<string>> Count(string keyword)
         {
@@ -160,11 +160,6 @@ namespace BandoriBot.Apis.Controllers
             return result.Take(limit).ToArray();
         }
         
-        [HttpGet("history")]
-        public async Task<ActionResult<string>> PostRecord(long group)
-        {
-            return Configuration.GetConfig<Pipe>().GetHistory(group);
-        }
         [HttpGet("countv2")]
         public async Task<ActionResult<string>> Countv2(string keyword = null, long qq = 0, long group = 0, long starttime = 0, long endtime = 0)
         {

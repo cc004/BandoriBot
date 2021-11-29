@@ -24,6 +24,8 @@ namespace BandoriBot.Handler
     {
         public bool IgnoreCommandHandled => false;
 
+        public float Priority => -1000f;
+
         private const int version = 2;
         public override string Name => "reply.json";
         public DataTypeS data2, data3, data4;

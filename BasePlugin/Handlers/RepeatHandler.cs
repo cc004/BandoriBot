@@ -16,6 +16,8 @@ namespace BandoriBot.Handler
         private Dictionary<int, GroupStatus> lastMessage = new Dictionary<int, GroupStatus>();
         private const string breakMessage = "打断", breakMessage2 = "继续打断";
 
+        public float Priority => -1100f;
+
         public bool IgnoreCommandHandled => true;
 
         public RepeatHandler()

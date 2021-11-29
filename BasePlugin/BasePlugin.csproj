@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0-windows</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BandoriBotCore\BandoriBot.csproj" />
+    <ProjectReference Include="..\PCRApi\PCRApi\PCRApi.csproj" />
+    <ProjectReference Include="..\SekaiClient\SekaiClient.csproj" />
+    <ProjectReference Include="..\TrProtocol\TrClient\TrClient.csproj" />
+  </ItemGroup>
+
+</Project>

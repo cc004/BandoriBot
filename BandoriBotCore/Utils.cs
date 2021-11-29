@@ -1,4 +1,4 @@
-using BandoriBot.Handler;
+using BandoriBot.Services;
 using BandoriBot.Models;
 using Newtonsoft.Json.Linq;
 using Sora.Entities;
@@ -36,32 +36,6 @@ namespace BandoriBot
             }
 
             return origin;
-        }
-
-        public static async Task<List<GroupMemberInfo>> GetMemberList(this SoraApi session, long groupId)
-        {
-            return (await session.GetGroupMemberList(groupId)).groupMemberList
-                .Select(info => new GroupMemberInfo
-                {
-                    GroupId = groupId,
-                    QQId = info.UserId,
-                    PermitType = info.Role switch
-                    {
-                        MemberRoleType.Owner => PermitType.Holder,
-                        MemberRoleType.Admin => PermitType.Manage,
-                        _ => PermitType.None
-                    }
-                }).ToList();
-        }
-
-        public static async Task<List<Models.GroupInfo>> GetGroupList0(this SoraApi session)
-        {
-            return (await session.GetGroupList())
-                .groupList.Select(info => new Models.GroupInfo
-                {
-                    Id = info.GroupId,
-                    Name = info.GroupName
-                }).ToList();
         }
 
         public static int SetGroupSpecialTitle(this SoraApi session, long groupId, long qqId, string specialTitle, TimeSpan time)

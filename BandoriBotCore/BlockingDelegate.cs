@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BandoriBot.Handler
+namespace BandoriBot
 {
     public sealed class BlockingDelegate<T, TResult> : IDisposable
     {

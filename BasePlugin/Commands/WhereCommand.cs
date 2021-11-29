@@ -2,7 +2,6 @@ using BandoriBot.Config;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using BandoriBot.Handler;
 using BandoriBot.Services;
 
 namespace BandoriBot.Commands

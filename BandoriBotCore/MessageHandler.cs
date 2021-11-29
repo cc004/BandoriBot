@@ -1,102 +1,30 @@
-using BandoriBot.Commands;
-using BandoriBot.Config;
-using BandoriBot.Models;
-using BandoriBot.Services;
-using Newtonsoft.Json.Linq;
-using Sora.Entities.Base;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using Sora.Enumeration.EventParamsType;
+using BandoriBot.Commands;
+using BandoriBot.Config;
+using BandoriBot.Handler;
+using BandoriBot.Models;
+using BandoriBot.Services;
+using Sora.Entities.Base;
 
-namespace BandoriBot.Handler
+namespace BandoriBot
 {
-    public class HandlerHolder
-    {
-        public IMessageHandler handler;
-        public BlockingDelegate<HandlerArgs, bool> cmd;
-
-        public HandlerHolder(IMessageHandler handler)
-        {
-            this.handler = handler;
-            cmd = new BlockingDelegate<HandlerArgs, bool>(handler.OnMessage);
-        }
-    }
-
-    public struct Source
-    {
-        public DateTime time;
-        public long FromGroup, FromQQ;
-        public SoraApi Session;
-        public bool IsGuild;
-
-        internal static readonly HashSet<long> AdminQQs = new(File.ReadAllText("adminqq.txt").Split('\n').Select(long.Parse));
-
-        public bool IsSuperadmin => AdminQQs.Contains(FromQQ);
-
-        public JObject GetSave()
-        {
-            var result = Configuration.GetConfig<Save>()[FromQQ];
-            if (result == null)
-            {
-                result = new JObject();
-                Configuration.GetConfig<Save>()[FromQQ] = result;
-            }
-            return result;
-        }
-
-        private static PermissionConfig cfg = Configuration.GetConfig<PermissionConfig>();
-
-        private async Task<bool> CheckPermission(long target = 0,
-            MemberRoleType required = MemberRoleType.Admin)
-        {
-            if (IsGuild)
-            {
-                var res = (await Session.GetGuildMembers(MessageHandler.GetGroupCache(target).guild)).memberInfo;
-                var qq = FromQQ;
-
-                var info = res.bots.Concat(res.admins).Concat(res.members).FirstOrDefault(m => m.UserId == qq); 
-                this.Log(LoggerLevel.Info, $"guild perm {target}::{FromQQ} = {info?.Role}");
-                return (info?.Role ?? MemberRoleType.Unknown) >= required;
-            }
-            return (await Session.GetGroupMemberInfo(target, FromQQ)).memberInfo.Role >= required;
-        }
-
-        public async Task<bool> HasPermission(string perm) => await HasPermission(perm, -1);
-        public async Task<bool> HasPermission(string perm, long group) =>
-            IsSuperadmin || perm == null ||
-            cfg.t.ContainsKey(FromQQ) && (
-            cfg.t[FromQQ].Contains($"*.{perm}") ||
-            cfg.t[FromQQ].Contains($"{group}.{perm}")) ||
-            perm.Contains('.') && await HasPermission(perm.Substring(0, perm.LastIndexOf('.')), group) ||
-            perm != "*" && await HasPermission("*", group) || group != 0 && group != -1 && await CheckPermission(group);
-    }
-
     public class MessageHandler : IMessageHandler
     {
-        /*
-        private class Message
-        {
-            public DateTime time;
-            public int id;
-            public long group, qq;
-            public CQCode[] message;
-        }*/
         public static readonly HashSet<long> selfids =
             new(File.ReadAllText("selfid.txt").Split('\n').Select(long.Parse));
         private static readonly ConcurrentDictionary<long, (long, long)> hashedGroupCache = new ();
         private static readonly List<HandlerHolder> functions = new List<HandlerHolder>();
         internal static readonly IMessageHandler instance = new MessageHandler();
-       // private static readonly Queue<Message> msgRecord = new Queue<Message>();
-        private static readonly State head = new State();
+        private static readonly State head = new ();
         public static bool booted = false;
 
-        public static SoraApi session;
+        public static SoraApi session => bots.OrderBy(p => p.GetHashCode()).First().Value;
 
         private static unsafe long GetHashCode(string str)
         {
@@ -147,6 +75,11 @@ namespace BandoriBot.Handler
         public static void Register(IMessageHandler t)
         {
             functions.Add(new HandlerHolder(t));
+        }
+
+        public static void SortHandler()
+        {
+            functions.Sort((a, b) => -a.handler.Priority.CompareTo(b.handler.Priority));
         }
 
         public static void Register(ICommand t)

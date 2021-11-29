@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace BandoriBot.Handler
+namespace BandoriBot
 {
     public struct HandlerArgs
     {
@@ -13,6 +13,7 @@ namespace BandoriBot.Handler
     public interface IMessageHandler
     {
         bool IgnoreCommandHandled { get; }
+        float Priority => 0;
         Task<bool> OnMessage(HandlerArgs args);
     }
 }

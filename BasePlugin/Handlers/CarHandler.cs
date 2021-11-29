@@ -18,6 +18,8 @@ namespace BandoriBot.Handler
 
         public static event Action<Car> OnNewCar;
 
+        public float Priority => 900f;
+
         public bool IgnoreCommandHandled => false;
 
         public static List<Car> Cars

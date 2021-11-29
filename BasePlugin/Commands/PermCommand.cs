@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace BandoriBot.Commands
 {
-    public class PermCommand : HashListCommand<PermissionConfig, long, string>, ICommand
+    public class PermCommand : HashListCommand<PermissionConfig, long, string>
     {
         protected override string Permission => "management.perm";
         protected override async Task<bool> HasPermission(Source op, long key, string val)

@@ -11,13 +11,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BandoriBot.Models;
-using SekaiClient;
-using SekaiClient.Datas;
 using Sora;
 using Sora.Entities.Base;
 using Sora.Enumeration.EventParamsType;
@@ -27,133 +26,30 @@ namespace BandoriBot
 {
     class Program
     {
-        public static object SekaiFile = new object();
-
         private static void PluginInitialize()
         {
-            //MessageHandler.session = client;
-
-            Configuration.Register<Blacklist2>();
-            Configuration.Register<AntirevokePlus>();
-            // Configuration.Register<MainServerConfig>();
-            Configuration.Register<MessageStatistic>();
-            Configuration.Register<ReplyHandler>();
-            Configuration.Register<Whitelist>();
-            Configuration.Register<Blacklist>();
             Configuration.Register<BlacklistF>();
-            Configuration.Register<TitleCooldown>();
-            //Configuration.Register<PCRConfig>();
-            Configuration.Register<R18Allowed>();
-            Configuration.Register<NormalAllowed>();
-            Configuration.Register<AccountBinding>();
-            //Configuration.Register<ServerManager>();
-            Configuration.Register<TimeConfiguration>();
-            Configuration.Register<GlobalConfiguration>();
-            Configuration.Register<Antirevoke>();
-            Configuration.Register<SetuConfig>();
-            Configuration.Register<Save>();
-            Configuration.Register<CarTypeConfig>();
-            Configuration.Register<SubscribeConfig>();
-            Configuration.Register<PermissionConfig>();
-            Configuration.Register<Pipe>();
             Configuration.Register<TokenConfig>();
-            Configuration.Register<SekaiCache>();
-            //Configuration.Register<PeriodRank>();
 
-            MessageHandler.Register<SetTokenCommand>();
-            MessageHandler.Register<CarHandler>();
-            MessageHandler.Register(Configuration.GetConfig<ReplyHandler>());
-            MessageHandler.Register<WhitelistHandler>();
-            MessageHandler.Register<RepeatHandler>();
-            MessageHandler.Register(Configuration.GetConfig<MessageStatistic>());
-            MessageHandler.Register<LoginCommand>();
-            //MessageHandler.Register(Configuration.GetConfig<MainServerConfig>());
-
-            MessageHandler.Register<YCM>();
-            MessageHandler.Register<QueryCommand>();
-            MessageHandler.Register<ReplyCommand>();
-            MessageHandler.Register<FindCommand>();
-            MessageHandler.Register<AntirevokePlusCommand>();
-            MessageHandler.Register<SekaiCommand>();
-            //MessageHandler.Register<SekaiPCommand>();
-            MessageHandler.Register<WhitelistCommand>();
-            //MessageHandler.Register<GachaCommand>();
-            //MessageHandler.Register<GachaListCommand>();
-            MessageHandler.Register<BlacklistCommand>();
-            MessageHandler.Register<TitleCommand>();
-            MessageHandler.Register<CarTypeCommand>();
-            MessageHandler.Register<SekaiLineCommand>();
-            MessageHandler.Register<SekaiGachaCommand>();
-            MessageHandler.Register<PermCommand>();
-            MessageHandler.Register<SendCommand>();
-            MessageHandler.Register<RecordCommand>();
-            MessageHandler.Register<Blacklist2Command>();
-            MessageHandler.Register<QACommand>();
-            MessageHandler.Register<BroadcastCommand>();
-            /*
-            MessageHandler.Register<RCCommand>();
-            MessageHandler.Register<CPMCommand>();
-
-            CommandHelper.Register<AdditionalCommands.随机禁言>();
-            CommandHelper.Register<AdditionalCommands.泰拉在线>();
-            CommandHelper.Register<AdditionalCommands.泰拉资料>();
-            CommandHelper.Register<AdditionalCommands.封>();
-            CommandHelper.Register<AdditionalCommands.泰拉注册>();
-            CommandHelper.Register<AdditionalCommands.泰拉在线排行>();
-            CommandHelper.Register<AdditionalCommands.泰拉物品排行>();
-            CommandHelper.Register<AdditionalCommands.泰拉财富排行>();
-            CommandHelper.Register<AdditionalCommands.泰拉渔夫排行>();
-            CommandHelper.Register<AdditionalCommands.泰拉重生排行>();
-            CommandHelper.Register<AdditionalCommands.泰拉玩家>();
-            CommandHelper.Register<AdditionalCommands.泰拉背包>();
-            CommandHelper.Register<AdditionalCommands.解>();
-            CommandHelper.Register<AdditionalCommands.重置>();
-            CommandHelper.Register<AdditionalCommands.泰拉切换>();
-            CommandHelper.Register<AdditionalCommands.绑定>();
-            CommandHelper.Register<AdditionalCommands.执行>();
-            CommandHelper.Register<AdditionalCommands.解绑>();
-            CommandHelper.Register<AdditionalCommands.开启前缀检测>();
-            CommandHelper.Register<AdditionalCommands.关闭前缀检测>();
-            CommandHelper.Register<AdditionalCommands.开启自动清人>();
-            CommandHelper.Register<AdditionalCommands.关闭自动清人>();
-            CommandHelper.Register<AdditionalCommands.加入黑名单>();
-            CommandHelper.Register<AdditionalCommands.移除黑名单>();
-            CommandHelper.Register<AdditionalCommands.黑名单列表>();
-            CommandHelper.Register<AdditionalCommands.服务器列表>();
-            CommandHelper.Register<AdditionalCommands.解ip>();
-            CommandHelper.Register<AdditionalCommands.封ip>();
-            CommandHelper.Register<AdditionalCommands.saveall>();
-            */
-            MessageHandler.Register<R18AllowedCommand>();
-            MessageHandler.Register<WhereCommand>();
-            MessageHandler.Register<NormalAllowedCommand>();
-            MessageHandler.Register<SetuCommand>();
-            MessageHandler.Register<ZMCCommand>();
-            MessageHandler.Register<AntirevokeCommand>();
-            MessageHandler.Register<AntirevokePlusPlusCommand>();
-            //MessageHandler.Register<SubscribeCommand>();
-            RecordDatabaseManager.InitDatabase();
-
-            if (File.Exists("sekai"))
+            if (!Directory.Exists("Plugins")) Directory.CreateDirectory("Plugins");
+            foreach (var file in Directory.GetFiles("Plugins"))
             {
-            }
-
-            Configuration.LoadAll();
-            /*
-            foreach (var schedule in Configuration.GetConfig<TimeConfiguration>().t)
-            {
-                var s = schedule;
-                ScheduleManager.QueueTimed(async () =>
+                var asm = Assembly.LoadFrom(file);
+                foreach (var type in asm.GetTypes())
                 {
-                    await session.SendGroupMessageAsync(s.group, await Utils.GetMessageChain(s.message, async p => await session.UploadPictureAsync(UploadTarget.Group, p)));
-                }, s.delay);
+                    object o = null;
+                    if (type.IsAssignableTo(typeof(Configuration)))
+                        Configuration.Register((Configuration)(o ??= Activator.CreateInstance(type)));
+                    if (type.IsAssignableTo(typeof(ICommand)))
+                        MessageHandler.Register((ICommand)(o ??= Activator.CreateInstance(type)));
+                    if (type.IsAssignableTo(typeof(IMessageHandler)))
+                        MessageHandler.Register((IMessageHandler)(o ??= Activator.CreateInstance(type)));
+                }
             }
-            */
-            for (int i = 0; i < 10; ++i)
-            {
-                GC.Collect();
-                Thread.Sleep(1000);
-            }
+            RecordDatabaseManager.InitDatabase();
+            Configuration.LoadAll();
+            MessageHandler.SortHandler();
+            GC.Collect();
 
         }
 
@@ -241,7 +137,6 @@ namespace BandoriBot
 
         private static async ValueTask Event_OnClientConnect(string type, Sora.EventArgs.SoraEvent.ConnectEventArgs eventArgs)
         {
-            MessageHandler.session = eventArgs.SoraApi;
             lock (MessageHandler.bots)
             {
                 if (!MessageHandler.bots.ContainsKey(eventArgs.LoginUid))
@@ -266,25 +161,6 @@ namespace BandoriBot
         {
             RecordDatabaseManager.Close();
             Console.WriteLine(e.ExceptionObject);
-        }
-
-        private static async Task Testing()
-        {
-            var client = new SekaiClient.SekaiClient(new EnvironmentInfo(), false)
-            {
-            };
-
-            await client.UpgradeEnvironment();
-            /*
-            //Log.SetLogLevel(LogLevel.Debug);
-            var client = SekaiClient.SekaiClient.StaticClient;
-            client.InitializeAdid();
-            client.UpgradeEnvironment().Wait();
-            var user = client.Register().Result;
-            client.Login(user).Wait();
-            await MasterData.Initialize(client);
-            var currency = client.PassTutorial().Result;
-            var result = string.Join("\n", client.Gacha(currency).Result);*/
         }
     }
 }

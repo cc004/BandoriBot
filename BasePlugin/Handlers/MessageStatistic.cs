@@ -15,6 +15,8 @@ namespace BandoriBot.Handler
             t = new Dictionary<long, Dictionary<long, int>>();
         }
 
+        public float Priority => 1000f;
+
         public async Task<bool> OnMessage(HandlerArgs args)
         {
             if (args.Sender.FromGroup == 0) return false;

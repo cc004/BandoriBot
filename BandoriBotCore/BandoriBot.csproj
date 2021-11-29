@@ -24,10 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PCRApi\PCRApi\PCRApi.csproj" />
-    <ProjectReference Include="..\SekaiClient\SekaiClient.csproj" />
     <ProjectReference Include="..\Sora\Sora\Sora.csproj" />
-    <ProjectReference Include="..\TrProtocol\TrClient\TrClient.csproj" />
   </ItemGroup>
 
   <ItemGroup>

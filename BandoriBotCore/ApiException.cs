@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BandoriBot.Handler
+namespace BandoriBot
 {
     public class ApiException : Exception
     {

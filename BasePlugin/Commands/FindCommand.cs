@@ -5,13 +5,77 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using BandoriBot.Handler;
+using BandoriBot.Services;
 using Microsoft.EntityFrameworkCore.Query;
+using Sora.Entities.Base;
+using Sora.Enumeration.EventParamsType;
 
 namespace BandoriBot.Commands
 {
     public class FindCommand : ICommand
     {
+        private enum PermitType
+        {
+            /// <summary>
+            /// 成员
+            /// </summary>
+            None = 1,
+            /// <summary>
+            /// 管理
+            /// </summary>
+            Manage = 2,
+            /// <summary>
+            /// 群主
+            /// </summary>
+            Holder = 3
+        }
+        private class GroupMemberInfo
+        {
+            /// <summary>
+            /// 获取或设置一个值, 指示成员所在群
+            /// </summary>
+            public long GroupId { get; set; }
+            /// <summary>
+            /// 获取或设置一个值, 指示成员QQ
+            /// </summary>
+            public long QQId { get; set; }
+            /// <summary>
+            /// 获取或设置一个值, 指示成员最后发言时间
+            /// </summary>
+            //public DateTime LastDateTime { get; set; }
+            /// <summary>
+            /// 获取或设置一个值, 指示成员在此群的权限
+            /// </summary>
+            public PermitType PermitType { get; set; }
+        }
+        private class GroupInfo
+        {
+            /// <summary>
+            /// 群号码
+            /// </summary>
+            public long Id;
+            /// <summary>
+            /// 群名字
+            /// </summary>
+            public string Name;
+        }
+
+        private static async Task<List<GroupMemberInfo>> GetMemberList(SoraApi session, long groupId)
+        {
+            return (await session.GetGroupMemberList(groupId)).groupMemberList
+                .Select(info => new GroupMemberInfo
+                {
+                    GroupId = groupId,
+                    QQId = info.UserId,
+                    PermitType = info.Role switch
+                    {
+                        MemberRoleType.Owner => PermitType.Holder,
+                        MemberRoleType.Admin => PermitType.Manage,
+                        _ => PermitType.None
+                    }
+                }).ToList();
+        }
+
         private List<GroupMemberInfo> infos = new List<GroupMemberInfo>();
         private List<GroupInfo> groups = new List<GroupInfo>();
         public List<string> Alias => new List<string>
@@ -41,7 +105,7 @@ namespace BandoriBot.Commands
                     foreach (var group in (await MessageHandler.GetGroupList()).GroupBy(t => t.Item1)
                              .Select(g => g.First()))
                     {
-                        foreach (var member in await group.Item2.GetMemberList(group.Item1) ?? new List<GroupMemberInfo>())
+                        foreach (var member in await GetMemberList(group.Item2, group.Item1) ?? new List<GroupMemberInfo>())
                             infos.Add(member);
                         var inf = (await group.Item2.GetGroupInfo(group.Item1)).groupInfo;
                         groups.Add(new GroupInfo()
