@@ -14,13 +14,12 @@ using Sora.Entities.Base;
 
 namespace BandoriBot
 {
-    public class MessageHandler : IMessageHandler
+    public static class MessageHandler
     {
         public static readonly HashSet<long> selfids =
             new(File.ReadAllText("selfid.txt").Split('\n').Select(long.Parse));
         private static readonly ConcurrentDictionary<long, (long, long)> hashedGroupCache = new ();
         private static readonly List<HandlerHolder> functions = new List<HandlerHolder>();
-        internal static readonly IMessageHandler instance = new MessageHandler();
         private static readonly State head = new ();
         public static bool booted = false;
 
@@ -94,7 +93,7 @@ namespace BandoriBot
 
                 if (!Configuration.GetConfig<BlacklistF>().InBlacklist(args.Source.FromGroup, t))
                 {
-                    Utils.Log(LoggerLevel.Debug, $"message {args.Arg} triggered command {t.GetType().FullName}");
+                    Utils.Log(LoggerLevel.Info, $"message {args.Arg} triggered command {t.GetType().FullName}");
                     await t.Run(args);
                 }
             });
@@ -110,12 +109,10 @@ namespace BandoriBot
                 node.cmd = @delegate;
             }
         }
-
-        public bool IgnoreCommandHandled => true;
-
+        
         //provide api compatibility
 
-        public void OnMessage(string message, Source source, bool isAdmin, Action<string> callback)
+        public static void OnMessage(string message, Source source, bool isAdmin, Action<string> callback)
         {
             OnMessage(new HandlerArgs
             {
@@ -182,7 +179,7 @@ namespace BandoriBot
 
             Utils.Log(LoggerLevel.Debug, $"[{Sender.FromGroup}::{Sender.FromQQ}]recv msg: " + message);
 
-            await Task.Run(() => instance.OnMessage(new HandlerArgs
+            await Task.Run(() => OnMessage(new HandlerArgs
             {
                 message = message,
                 Sender = Sender,
@@ -190,7 +187,7 @@ namespace BandoriBot
             }));
         }
 
-        private void ProcessError(Func<string, Task> callback, Exception e, bool senderr)
+        private static void ProcessError(Func<string, Task> callback, Exception e, bool senderr)
         {
             Utils.Log(LoggerLevel.Error, e.ToString());
 
@@ -199,7 +196,7 @@ namespace BandoriBot
             else if (senderr) callback(e.ToString());
         }
 
-        public async Task<bool> OnMessage(HandlerArgs args)
+        public static async Task<bool> OnMessage(HandlerArgs args)
         {
             var node = head;
             var i = 0;
@@ -238,7 +235,12 @@ namespace BandoriBot
                 try
                 {
                     if ((!cmdhandle || function.handler.IgnoreCommandHandled) && !Configuration.GetConfig<BlacklistF>().InBlacklist(args.Sender.FromGroup, function))
-                        if (await function.cmd.Run(args)) break;
+                    {
+                        if (await function.cmd.Run(args))
+                        {
+                            break;
+                        }
+                    }
                 }
                 catch (Exception e)
                 {

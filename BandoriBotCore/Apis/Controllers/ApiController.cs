@@ -125,7 +125,7 @@ namespace BandoriBot.Apis.Controllers
         {
             var source = new Source { FromGroup = 0, FromQQ = GetUID(), Session = MessageHandler.session };
             var result = new StringBuilder();
-            await MessageHandler.instance.OnMessage(new HandlerArgs
+            await MessageHandler.OnMessage(new HandlerArgs
             {
                 Sender = source,
                 Callback = async s => result.AppendLine(s),

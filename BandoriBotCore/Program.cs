@@ -37,11 +37,22 @@ namespace BandoriBot
 
                 object o = null;
                 if (type.IsAssignableTo(typeof(Configuration)))
+                {
                     Configuration.Register((Configuration)(o ??= Activator.CreateInstance(type)));
+                    Utils.Log(LoggerLevel.Info, $"registering {o} to configuration");
+                }
+
                 if (type.IsAssignableTo(typeof(ICommand)))
+                {
                     MessageHandler.Register((ICommand)(o ??= Activator.CreateInstance(type)));
+                    Utils.Log(LoggerLevel.Info, $"registering {o} to command");
+                }
+
                 if (type.IsAssignableTo(typeof(IMessageHandler)))
+                {
                     MessageHandler.Register((IMessageHandler)(o ??= Activator.CreateInstance(type)));
+                    Utils.Log(LoggerLevel.Info, $"registering {o} to handler");
+                }
             }
             RecordDatabaseManager.InitDatabase();
             Configuration.LoadAll();

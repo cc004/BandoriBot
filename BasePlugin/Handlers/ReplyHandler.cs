@@ -13,6 +13,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
+using BandoriBot.Models;
 using Sora.Entities.Segment.DataModel;
 
 namespace BandoriBot.Handler
@@ -25,8 +26,7 @@ namespace BandoriBot.Handler
         public bool IgnoreCommandHandled => false;
 
         public float Priority => -1000f;
-
-        private const int version = 2;
+        
         public override string Name => "reply.json";
         public DataTypeS data2, data3, data4;
 
@@ -125,6 +125,7 @@ namespace BandoriBot.Handler
 
         public async Task<bool> OnMessage(HandlerArgs args)
         {
+            this.Log(LoggerLevel.Info, $"msg {args.message} triggered reply handler");
             var raw = Utils.FindAtMe(args.message, out var isme).Trim();
             var isadmin = await args.Sender.HasPermission("*", -1);
 
