@@ -28,23 +28,20 @@ namespace BandoriBot
     {
         private static void PluginInitialize()
         {
-            Configuration.Register<BlacklistF>();
-            Configuration.Register<TokenConfig>();
-
             if (!Directory.Exists("Plugins")) Directory.CreateDirectory("Plugins");
-            foreach (var file in Directory.GetFiles("Plugins"))
+            foreach (var type in new []{Assembly.GetExecutingAssembly()}
+                         .Concat(Directory.GetFiles("Plugins").Select(file => Assembly.LoadFrom(file)))
+                         .SelectMany(asm => asm.GetTypes()))
             {
-                var asm = Assembly.LoadFrom(file);
-                foreach (var type in asm.GetTypes())
-                {
-                    object o = null;
-                    if (type.IsAssignableTo(typeof(Configuration)))
-                        Configuration.Register((Configuration)(o ??= Activator.CreateInstance(type)));
-                    if (type.IsAssignableTo(typeof(ICommand)))
-                        MessageHandler.Register((ICommand)(o ??= Activator.CreateInstance(type)));
-                    if (type.IsAssignableTo(typeof(IMessageHandler)))
-                        MessageHandler.Register((IMessageHandler)(o ??= Activator.CreateInstance(type)));
-                }
+                if (type.IsAbstract) continue;
+
+                object o = null;
+                if (type.IsAssignableTo(typeof(Configuration)))
+                    Configuration.Register((Configuration)(o ??= Activator.CreateInstance(type)));
+                if (type.IsAssignableTo(typeof(ICommand)))
+                    MessageHandler.Register((ICommand)(o ??= Activator.CreateInstance(type)));
+                if (type.IsAssignableTo(typeof(IMessageHandler)))
+                    MessageHandler.Register((IMessageHandler)(o ??= Activator.CreateInstance(type)));
             }
             RecordDatabaseManager.InitDatabase();
             Configuration.LoadAll();
@@ -52,17 +49,17 @@ namespace BandoriBot
             GC.Collect();
 
         }
-
+        
         public static void Main(string[] args)
         {
             //await Testing();
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
             
             PluginInitialize();
-
+            
             new Thread(() => Apis.Program.Main2(args)).Start();
             var tasks = new List<Task>();
             
@@ -88,6 +85,19 @@ namespace BandoriBot
             }
 
             Task.WaitAll(tasks.ToArray());
+        }
+
+        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            try
+            {
+                var root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                return Assembly.LoadFrom(Path.Combine(root, $"{new AssemblyName(args.Name).Name}.dll"));
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private static async ValueTask Event_OnGuildMessage(string eventType, GuildMessageEventArgs eventArgs)
