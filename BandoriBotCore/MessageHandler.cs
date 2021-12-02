@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using BandoriBot.Commands;
 using BandoriBot.Config;
@@ -112,6 +113,18 @@ namespace BandoriBot
         
         //provide api compatibility
 
+        public static string OnMessageTest(Match match, Source source, bool isAdmin, Action<string> callback)
+        {
+            return string.Join("\n", source.Session.GetGroupRootFiles(source.FromGroup).Result.groupFolders
+                    .Where(f => f.Name.StartsWith(match.Groups[1].Value))
+                    .SelectMany(f => source.Session.GetGroupFilesByFolder(source.FromGroup, f.Id).Result.groupFiles)
+                    .Where(f => f.Name.EndsWith(".xlsx"))
+                    .GroupBy(f => f.UploadUserId)
+                    .OrderByDescending(g => g.Count())
+                    .Select((g, i) => $"{i + 1}.{g.First().UploadUserName}: {g.Count()}"))
+                .ToImageText();
+
+        }
         public static void OnMessage(string message, Source source, bool isAdmin, Action<string> callback)
         {
             OnMessage(new HandlerArgs
@@ -176,6 +189,12 @@ namespace BandoriBot
             };
 
             RecordDatabaseManager.AddRecord(Sender.FromQQ, Sender.FromGroup, DateTime.Now, message);
+
+            if (Configuration.GetConfig<GroupBlacklist>().InBlacklist(Sender.FromGroup))
+            {
+                Utils.Log(LoggerLevel.Debug, $"[{Sender.FromGroup}::{Sender.FromQQ}]ignored msg: " + message);
+                return;
+            }
 
             Utils.Log(LoggerLevel.Debug, $"[{Sender.FromGroup}::{Sender.FromQQ}]recv msg: " + message);
 
@@ -249,78 +268,6 @@ namespace BandoriBot
             }
             return true;
         }
-        /*
-#pragma warning disable CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
-        public async Task<bool> GroupMessage(SoraApi session, IGroupMessageEventArgs e)
-        {
-            var source = e.Chain.First() as SourceMessage;
-            if (source != null && (Configuration.GetConfig<Antirevoke>().hash.Contains(e.Sender.Group.Id) ||
-                Configuration.GetConfig<AntirevokePlus>().hash.Contains(e.Sender.Group.Id)))
-            {
-                var now = DateTime.Now;
-                while (msgRecord.Count > 0)
-                {
-                    if (now - msgRecord.Peek().time > new TimeSpan(0, 10, 0))
-                        msgRecord.Dequeue();
-                    else
-                        break;
-                }
-
-                msgRecord.Enqueue(new Message
-                {
-                    id = source.Id,
-                    message = e.Chain.Skip(1).ToArray(),
-                    group = e.Sender.Group.Id,
-                    qq = e.Sender.Id,
-                    time = now
-                });
-            }
-
-            OnMessage(session, Utils.GetCQMessage(e.Chain), new Source
-            {
-                FromGroup = e.Sender.Group.Id,
-                FromQQ = e.Sender.Id,
-                Session = session
-            });
-            return false;
-        }
-
-        public async Task<bool> BotInvitedJoinGroup(SoraApi session, IBotInvitedJoinGroupEventArgs e)
-        {
-            await session.HandleGroupApplyAsync(e, GroupApplyActions.Allow);
-            return true;
-        }
-
-        public async Task<bool> GroupMessageRevoked(SoraApi session, IGroupMessageRevokedEventArgs e)
-        {
-            var record = msgRecord.FirstOrDefault(msg => msg.id == e.MessageId);
-            if (record == null || e.Operator.Id != record.qq) return false;
-            try
-            {
-                if (Configuration.GetConfig<AntirevokePlus>().hash.Contains(record.group))
-                {
-                    await session.SendFriendMessageAsync(Source.AdminQQs.First(), (new Element[]
-                    {
-                        new PlainMessage($"群{record.group}的{record.qq}尝试撤回一条消息：")
-                    }).Concat(record.message).ToArray());
-                }
-                else
-                {
-                    await session.SendGroupMessageAsync(record.group, (new Element[]
-                    {
-                        new AtMessage(e.Operator.Id),
-                        new PlainMessage("尝试撤回一条消息：")
-                    }).Concat(record.message).ToArray());
-                }
-                return true;
-            }
-            catch (Exception e2)
-            {
-                this.Log(LoggerLevel.Error, e2.ToString());
-                return false;
-            }
-        }*/
-#pragma warning restore CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
         public static async Task Broadcast(string msg)
         {
             var group = await GetGroupList();

@@ -36,4 +36,16 @@ namespace BandoriBot.Commands
 
         protected override string Permission => "management.blacklist";
     }
+
+    public class GroupBlacklistCommand : HashCommand<GroupBlacklist, string>
+    {
+        public override List<string> Alias => new()
+        {
+            "/gbl"
+        };
+
+        protected override long GetTarget(string value) => long.Parse(value);
+
+        protected override string Permission => "management.groupblacklist";
+    }
 }

@@ -15,7 +15,7 @@ namespace BandoriBot.Commands
             var group = long.Parse(splits[0]);
             var qq = long.Parse(splits[1]);
             var id = int.Parse(splits[2]);
-            if (!await args.Source.HasPermission("management.antirevoke", group)) return;
+            if (!await args.Source.HasPermission("management.antirevoke", group) && qq != args.Source.FromQQ) return;
             await args.Callback(RecordDatabaseManager.GetRecords().Where(r => r.qq == qq && r.group == group).SkipLast(id).LastOrDefault()?.message ?? "");
         }
     }

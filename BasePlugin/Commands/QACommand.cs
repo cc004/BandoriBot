@@ -42,8 +42,17 @@ namespace BandoriBot.Commands
             if (a[0].IndexOf("query") >= 0)
             {
                 var now = DateTime.Now;
-                var res = "公主连结半月刊:\n" + string.Join("\n", ISchedule.Schedules.SelectMany(sch => sch.AsEnumerable()
-                    )
+                var res = "公主连结半月刊:\n" + string.Join("\n", ISchedule.Schedules.SelectMany(sch =>
+                    {
+                        try
+                        {
+                            return sch.AsEnumerable().ToArray();
+                        }
+                        catch (Exception e)
+                        {
+                            return Array.Empty<ISchedule>();
+                        }
+                    })
                     .Where(s => DateTime.Parse(s.StartTime) > now && s.Enabled)
                     .Select(s => ((
                         $"{DateTime.Parse(s.StartTime).ToShortDateString()}-{DateTime.Parse(s.EndTime).ToShortDateString()}",

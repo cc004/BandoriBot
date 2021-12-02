@@ -125,7 +125,6 @@ namespace BandoriBot.Handler
 
         public async Task<bool> OnMessage(HandlerArgs args)
         {
-            this.Log(LoggerLevel.Info, $"msg {args.message} triggered reply handler");
             var raw = Utils.FindAtMe(args.message, out var isme).Trim();
             var isadmin = await args.Sender.HasPermission("*", -1);
 

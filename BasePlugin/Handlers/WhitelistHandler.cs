@@ -8,7 +8,7 @@ namespace BandoriBot.Handler
     {
         public bool IgnoreCommandHandled => true;
 
-        public float Priority => 1100f;
+        public float Priority => -1050f;
 
         public async Task<bool> OnMessage(HandlerArgs args)
         {
