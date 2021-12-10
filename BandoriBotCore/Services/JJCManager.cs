@@ -13,9 +13,12 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using GoWasmWrapper;
+using WebAssembly;
 
 namespace BandoriBot.Services
 {
+    using JsObject = Dictionary<string, object>;
     public sealed class JJCManager : IDisposable
     {
         public static JJCManager Instance = new JJCManager(Path.Combine("jjc"));
@@ -135,6 +138,16 @@ namespace BandoriBot.Services
             /*
             pool.GetProxysFromAPIs();
             */
+            var wrapper = new GoWrapper(Module.ReadFromBinary("pcrd.wasm"));
+
+            var @this = wrapper.Global["this"] as JsObject;
+            wrapper.Global["myhash"] = new Func<string, double>(myHash);
+            wrapper.Global["location"] = new JsObject
+            {
+                ["host"] = "pcrdfans.com",
+                ["hostname"] = "pcrdfans.com",
+
+            };
         }
         
         private Image GetTexture(Character c)
@@ -197,11 +210,26 @@ namespace BandoriBot.Services
             return (long)ts.TotalSeconds;
         }
 
-        public delegate void CallbackD(string text);
+        internal GoWrapper wrapper;
 
-        [DllImport("PCRDwasm.dll", EntryPoint = "getSign", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void GetSign(string text, string nonce, CallbackD callback);
+        private static double calcHash(string str)
+        {
+            var text = Encoding.ASCII.GetBytes(str);
+            uint _0x473e93, _0x5d587e;
+            for (_0x473e93 = 0x1bf52, _0x5d587e = (uint)text.Length; _0x5d587e != 0;)
+                _0x473e93 = 0x309 * _0x473e93 ^ text[--_0x5d587e];
+            return _0x473e93 >> 0x3;
+        }
 
+        private static double myHash(string str)
+        {
+            var text = Encoding.ASCII.GetBytes(str);
+            uint _0x473e93, _0x5d587e;
+            for (_0x473e93 = 0x202, _0x5d587e = (uint)text.Length; _0x5d587e != 0;)
+                _0x473e93 = 0x72 * _0x473e93 ^ text[--_0x5d587e];
+            return _0x473e93 >> 0x3;
+        }
+        
         public async Task<string> Callapi(string text)
         {
             string prefix = "";
@@ -213,21 +241,23 @@ namespace BandoriBot.Services
                     (indexes.Item2.Length > 0 ? $"未能识别的名字：{string.Join(',', indexes.Item2.Where(s => !string.IsNullOrWhiteSpace(s)))}\n" : "");
 
             this.Log(Models.LoggerLevel.Debug, $"chara id = {string.Join(",", indexes.Item1)}");
+            var nonce = GenNonce();
             var json = new JObject
             {
                 ["def"] = new JArray(indexes.Item1),
-                ["nonce"] = GenNonce(),
+                ["nonce"] = nonce,
                 ["page"] = 1,
                 ["region"] = 1,
                 ["sort"] = 1,
                 ["ts"] = GetTimeStamp()
             };
 
-            string sign = null;
-
-            GetSign(json.ToString(Formatting.None), json.Value<string>("nonce"),
-                s => sign = s);
-
+            var sign = wrapper.RunEvent(1, new object[]
+            {
+                json.ToString(Formatting.None),
+                nonce,
+                calcHash(nonce)
+            }) as string;
 
             json = new JObject
             {

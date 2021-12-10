@@ -60,10 +60,15 @@ namespace BandoriBot
             GC.Collect();
 
         }
-        
+
+        private static async Task Testing()
+        {
+
+        }
+
         public static void Main(string[] args)
         {
-            //await Testing();
+            Testing().Wait();
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;

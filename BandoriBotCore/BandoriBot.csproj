@@ -24,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\GoWasmWrapper\GoWasmWrapper\GoWasmWrapper.csproj" />
     <ProjectReference Include="..\Sora\Sora\Sora.csproj" />
   </ItemGroup>
 

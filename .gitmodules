@@ -7,3 +7,6 @@
 [submodule "PCRApi"]
 	path = PCRApi
 	url = git@github.com:cc004/PCRApi
+[submodule "GoWasmWrapper"]
+	path = GoWasmWrapper
+	url = git@github.com:cc004/GoWasmWrapper.git

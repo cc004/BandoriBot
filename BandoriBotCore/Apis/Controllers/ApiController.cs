@@ -72,26 +72,37 @@ namespace BandoriBot.Apis.Controllers
             return (long)ts.TotalSeconds;
         }
 
+        private static double calcHash(string str)
+        {
+            var text = Encoding.ASCII.GetBytes(str);
+            uint _0x473e93, _0x5d587e;
+            for (_0x473e93 = 0x1bf52, _0x5d587e = (uint)text.Length; _0x5d587e != 0;)
+                _0x473e93 = 0x309 * _0x473e93 ^ text[--_0x5d587e];
+            return _0x473e93 >> 0x3;
+        }
+
         [HttpPost("pcrd")]
         public async Task<string> Pcrd(Request request)
         {
             try
             {
+                var nonce = GenNonce();
                 var json = new JObject
                 {
                     ["def"] = new JArray(request.def.Distinct()),
-                    ["nonce"] = GenNonce(),
+                    ["nonce"] = nonce,
                     ["page"] = request.page,
                     ["region"] = request.region,
                     ["sort"] = request.sort,
                     ["ts"] = GetTimeStamp()
                 };
-
-                string sign = null;
-
-                JJCManager.GetSign(json.ToString(Formatting.None), json.Value<string>("nonce"),
-                    s => sign = s);
-
+                
+                var sign = JJCManager.Instance.wrapper.RunEvent(1, new object[]
+                {
+                    json.ToString(Formatting.None),
+                    nonce,
+                    calcHash(nonce)
+                }) as string;
 
                 json = new JObject
                 {

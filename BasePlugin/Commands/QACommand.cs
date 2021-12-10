@@ -48,7 +48,7 @@ namespace BandoriBot.Commands
                         {
                             return sch.AsEnumerable().ToArray();
                         }
-                        catch (Exception e)
+                        catch (Exception e) 
                         {
                             return Array.Empty<ISchedule>();
                         }

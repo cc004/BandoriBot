@@ -72,7 +72,13 @@ namespace BandoriBot.Handler
         }
 
         private static DataTypeS Verify(DataTypeS d)
-            => d.Select(pair => (pair.Key, pair.Value.Where(Verify).ToList())).ToDictionary(t => t.Key, t => t.Item2);
+        {
+            foreach (var k in d.Keys)
+                foreach (var k2 in d[k].ToArray())
+                    if (!Verify(k2))
+                        d[k].Remove(k2);
+            return d;
+        }
 
         public override void LoadFrom(BinaryReader br)
         {
@@ -85,7 +91,7 @@ namespace BandoriBot.Handler
                .ToDictionary(t => t, t => new Regex($"^{Utils.FixRegex(t)}$", RegexOptions.Multiline | RegexOptions.Compiled));
             ReloadAssembly().Wait();
         }
-
+        
         private static Regex replace = new Regex(@"\$((?!&).|&...;)", RegexOptions.Compiled);
         internal static Dictionary<string, Regex> regexCache = new();
         private static Blacklist2 cfg = Configuration.GetConfig<Blacklist2>();
