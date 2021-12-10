@@ -138,9 +138,8 @@ namespace BandoriBot.Services
             /*
             pool.GetProxysFromAPIs();
             */
-            var wrapper = new GoWrapper(Module.ReadFromBinary("pcrd.wasm"));
-
-            var @this = wrapper.Global["this"] as JsObject;
+            wrapper = new GoWrapper(Module.ReadFromBinary("pcrd.wasm"));
+            
             wrapper.Global["myhash"] = new Func<string, double>(myHash);
             wrapper.Global["location"] = new JsObject
             {
