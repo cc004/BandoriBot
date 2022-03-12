@@ -90,6 +90,7 @@ namespace BandoriBot.Apis.Controllers
                 var json = new JObject
                 {
                     ["def"] = new JArray(request.def.Distinct()),
+                    ["language"] = 0,
                     ["nonce"] = nonce,
                     ["page"] = request.page,
                     ["region"] = request.region,
@@ -108,15 +109,14 @@ namespace BandoriBot.Apis.Controllers
                 {
                     ["_sign"] = sign,
                     ["def"] = json["def"],
+                    ["language"] = json["language"],
                     ["nonce"] = json["nonce"],
                     ["page"] = json["page"],
                     ["region"] = json["region"],
                     ["sort"] = json["sort"],
                     ["ts"] = json["ts"]
                 };
-
-                JObject raw = null;
-
+                
                 return client.PostAsync($"https://api.pcrdfans.com/x/v1/search",
                     new StringContent(json.ToString(Formatting.None)
                         , Encoding.UTF8, "application/json")).Result.Content.ReadAsStringAsync().Result;
@@ -136,12 +136,14 @@ namespace BandoriBot.Apis.Controllers
         {
             var source = new Source { FromGroup = 0, FromQQ = GetUID(), Session = MessageHandler.session };
             var result = new StringBuilder();
-            await MessageHandler.OnMessage(new HandlerArgs
+            var args = new HandlerArgs
             {
                 Sender = source,
                 Callback = async s => result.AppendLine(s),
                 message = message
-            });
+            };
+            await MessageHandler.OnMessage(args);
+            await args.finishedTask;
             return result.ToString();
         }
         /*

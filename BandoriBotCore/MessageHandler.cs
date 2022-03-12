@@ -61,6 +61,7 @@ namespace BandoriBot
         private class State
         {
             public State[] next = new State[256];
+            public string trigger;
             public BlockingDelegate<CommandArgs> cmd;
         }
 
@@ -108,6 +109,7 @@ namespace BandoriBot
                     node = node.next[b];
                 }
                 node.cmd = @delegate;
+                node.trigger = alias;
             }
         }
         
@@ -190,7 +192,8 @@ namespace BandoriBot
 
             RecordDatabaseManager.AddRecord(Sender.FromQQ, Sender.FromGroup, DateTime.Now, message);
 
-            if (Configuration.GetConfig<GroupBlacklist>().InBlacklist(Sender.FromGroup))
+            if (Configuration.GetConfig<GroupBlacklist>().InBlacklist(Sender.FromGroup) ||
+                Configuration.GetConfig<GroupBlacklist>().InBlacklist(Sender.FromQQ))
             {
                 Utils.Log(LoggerLevel.Debug, $"[{Sender.FromGroup}::{Sender.FromQQ}]ignored msg: " + message);
                 return;
@@ -235,11 +238,12 @@ namespace BandoriBot
             {
                 try
                 {
-                    await node.cmd.Run(new CommandArgs
+                    await node.cmd.Run(new CommandArgs(args)
                     {
                         Arg = args.message.Substring(Encoding.UTF8.GetString(bytes.Take(i).ToArray()).Length),
                         Source = args.Sender,
-                        Callback = args.Callback
+                        Callback = args.Callback,
+                        Trigger = node.trigger
                     });
                     cmdhandle = true;
                 }

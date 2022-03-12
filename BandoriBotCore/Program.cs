@@ -74,11 +74,11 @@ namespace BandoriBot
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
             
-            PluginInitialize();
-            
             new Thread(() => Apis.Program.Main2(args)).Start();
             var tasks = new List<Task>();
-            
+
+            PluginInitialize();
+
             foreach (var line in File.ReadAllLines("cqservers.txt"))
             {
                 var s = line.Split(":");
@@ -165,7 +165,7 @@ namespace BandoriBot
         {
             lock (MessageHandler.bots)
             {
-                if (!MessageHandler.bots.ContainsKey(eventArgs.LoginUid))
+                if (MessageHandler.bots.ContainsKey(eventArgs.LoginUid))
                     MessageHandler.bots.Remove(eventArgs.LoginUid);
                 MessageHandler.bots.Add(eventArgs.LoginUid, eventArgs.SoraApi);
                 MessageHandler.selfids.Add(eventArgs.LoginUid);

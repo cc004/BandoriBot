@@ -3,14 +3,41 @@ using BandoriBot.DataStructures;
 using BandoriBot.Handler;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using BandoriBot.Models;
+using Sora.Entities;
+using Sora.Entities.Info;
+using Sora.Entities.Segment;
+using Sora.Enumeration.ApiType;
 
 namespace BandoriBot.Commands
 {
     public class ReplyCommand : ICommand
     {
+        private static readonly object @lock = new ();
+        private static DateTime last;
+        private static int seed;
+        public static int DailySeed
+        {
+            get
+            {
+                lock (@lock)
+                {
+                    if (DateTime.Now.DayOfYear != last.DayOfYear)
+                    {
+                        last = DateTime.Now;
+                        seed = Environment.TickCount;
+                    }
+                }
+
+                return seed;
+            }
+        }
         public List<string> Alias => new List<string>
         {
             "/reply"
@@ -30,8 +57,90 @@ namespace BandoriBot.Commands
             var config = Configuration.GetConfig<ReplyHandler>();
             var qq = args.Source.FromQQ;
 
+
+            Regex codeReg = new Regex(@"^(.*?)\[(.*?)=(.*?)\](.*)$", RegexOptions.Singleline | RegexOptions.Multiline | RegexOptions.Compiled);
+            var client = new HttpClient();
+
+            async Task<string> GetMessageChain(string msg)
+            {
+                Match match;
+                var result = new StringBuilder();
+
+                while ((match = codeReg.Match(msg)).Success)
+                {
+                    if (!string.IsNullOrEmpty(match.Groups[1].Value))
+                        result.Append(match.Groups[1].Value);
+                    var val = match.Groups[3].Value;
+                    switch (match.Groups[2].Value)
+                    {
+                        case "mirai:imageid":
+                        case "mirai:imagenew":
+                            try
+                            {
+                                var name = val.Decode();
+                                if (name.StartsWith("{")) name = name[1..37];
+                                else name = name[..32];
+                                name = name.Replace("-", "").ToLower() + ".image";
+                                if (!File.Exists($"replyCache/{name}"))
+                                {
+                                    var (res, _, _, uri) = await args.Source.Session.GetImage(name);
+                                    if (res.RetCode != ApiStatusType.OK) return null;
+                                    var arr = await client.GetByteArrayAsync(uri);
+                                    File.WriteAllBytes($"replyCache/{name}", arr);
+                                }
+
+                                result.Append($"[mirai:imagepath=replyCache/{name}]");
+                                break;
+                            }
+                            catch (Exception e)
+                            {
+                                Utils.Log(LoggerLevel.Warn, e.ToString());
+                                return null;
+                            }
+                        default:
+                            result.Append($"[{match.Groups[2].Value}={match.Groups[3].Value}]");
+                            break;
+                    }
+
+                    msg = match.Groups[4].Value;
+                }
+
+                if (!string.IsNullOrEmpty(msg)) result.Append(msg);
+
+                return result.ToString();
+            }
+
             switch (splits[0])
             {
+                case "cache":
+                    if (!Directory.Exists("replyCache")) Directory.CreateDirectory("replyCache");
+                    foreach (var d in new[] {config.data2, config.data3, config.data4})
+                    {
+                        foreach (var k in d.Keys.ToArray())
+                        {
+                            var l = d[k];
+                            var n = l.Count;
+                            var i = 0;
+                            while (i < n)
+                            {
+                                var res = await GetMessageChain(l[i].reply);
+                                if (res == null)
+                                {
+                                    this.Log(LoggerLevel.Warn, $"removing bad message {l[i].reply}");
+                                    l.RemoveAt(i);
+                                    --n;
+                                }
+                                else
+                                {
+                                    l[i].reply = res;
+                                    ++i;
+                                }
+                            }
+                        }
+                    }
+                    config.Save();
+                    config.Load();
+                    break;
                 case "reload":
                     if (!await args.Source.HasPermission("reply.reload", -1))
                     {

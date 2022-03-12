@@ -25,7 +25,7 @@ namespace BandoriBot.Commands
             if (args.Arg != "") return;
             var callback = args.Callback;
             var source = args.Source;
-            new System.Threading.Thread(() =>
+            args.finishedTask = Task.Run(() =>
             {
                 try
                 {
@@ -52,7 +52,7 @@ namespace BandoriBot.Commands
                     }
                 }
                 catch { }
-            }).Start();
+            });
         }
     }
 
@@ -70,7 +70,7 @@ namespace BandoriBot.Commands
     public partial class SekaiCommand : ICommand
     {
 
-        public List<string> Alias => new List<string> { "sekai" };
+        public List<string> Alias => new List<string> { "sekai" , "sekaitext"};
         private PPHManager manager;
         private static int eventId => MasterData.Instance.CurrentEvent.id;
         
@@ -174,25 +174,28 @@ namespace BandoriBot.Commands
             }
 
 
-            ThreadPool.QueueUserWorkItem(_ =>
+            args.finishedTask = Task.Run(async () =>
             {
                 try
                 {
                     var client = SekaiClient.SekaiClient.GetClient();
-                    var result = (arg > int.MaxValue ?
+                    var result = await (arg > int.MaxValue ?
                         client.CallUserApi($"/event/{eventId}/ranking?targetUserId={arg}", HttpMethod.Get, null) :
-                        client.CallUserApi($"/event/{eventId}/ranking?targetRank={arg}", HttpMethod.Get, null)).Result;
+                        client.CallUserApi($"/event/{eventId}/ranking?targetRank={arg}", HttpMethod.Get, null));
                     var rank = result["rankings"]?.SingleOrDefault();
 
                     var text = rank == null
                         ? "找不到玩家"
                         : ($"排名为{rank["rank"]}的玩家是`{rank["name"]}`(uid={rank["userId"]})，分数为{rank["score"]}" +
-                           GetPred((int)rank["rank"], client).Result);
+                           await GetPred((int)rank["rank"], client));
                     SekaiClient.SekaiClient.PutClient(client);
                     try
                     {
                         this.Log(LoggerLevel.Debug, text);
-                        args.Callback(text.ToImageText()).Wait();
+                        if (args.Trigger == "sekai")
+                            await args.Callback(text.ToImageText());
+                        else
+                            await args.Callback(text);
                         RefreshCache();
                     }
                     catch (Exception e)

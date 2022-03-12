@@ -58,17 +58,7 @@ namespace BandoriBot.Handler
 
         private static bool Verify(Reply r)
         {
-            try
-            {
-                var seg = Utils.GetMessageChain(r.reply);
-                return !seg.Any(s =>
-                    s.Data is ImageSegment se && se.ImgFile.EndsWith(".image") &&
-                    !File.Exists(Path.Join("images", se.ImgFile)));
-            }
-            catch
-            {
-                return false;
-            }
+            return true;
         }
 
         private static DataTypeS Verify(DataTypeS d)

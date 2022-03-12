@@ -96,29 +96,36 @@ namespace BandoriBot.Services
 
         public JJCManager(string root)
         {
-            textures = new Dictionary<string, Image>();
-            nicknames = new Dictionary<string, int>();
-            font = new Font(FontFamily.GenericMonospace, 15);
-
-            foreach (var file in Directory.GetFiles(root))
-                if (file.EndsWith(".png"))
-                    textures.Add(Path.GetFileNameWithoutExtension(file), Image.FromFile(file));
-
-            trie = new Trie<int>();
-
-            foreach (Match match in Regex.Matches(File.ReadAllText(Path.Combine(root, "chara_names.py")),
-                @"(\d\d\d\d): \[(.*?)\],"))
+            try
             {
-                var id = 100 * int.Parse(match.Groups[1].Value) + 1;// characters.SingleOrDefault(c => c.name.EndsWith(splits[2]));
-                foreach (var text in match.Groups[2].Value.Split(','))
+                textures = new Dictionary<string, Image>();
+                nicknames = new Dictionary<string, int>();
+                font = new Font(FontFamily.GenericMonospace, 15);
+
+                foreach (var file in Directory.GetFiles(root))
+                    if (file.EndsWith(".png"))
+                        textures.Add(Path.GetFileNameWithoutExtension(file), Image.FromFile(file));
+
+                trie = new Trie<int>();
+
+                foreach (Match match in Regex.Matches(File.ReadAllText(Path.Combine(root, "chara_names.py")),
+                             @"(\d\d\d\d): \[(.*?)\],"))
                 {
-                    var nickname = text.Trim(' ').Trim('"');
-                    if (!nicknames.ContainsKey(nickname))
+                    var id = 100 * int.Parse(match.Groups[1].Value) + 1;// characters.SingleOrDefault(c => c.name.EndsWith(splits[2]));
+                    foreach (var text in match.Groups[2].Value.Split(','))
                     {
-                        trie.AddWord(Normalize(nickname), id);
-                        nicknames.Add(nickname, id);
+                        var nickname = text.Trim(' ').Trim('"');
+                        if (!nicknames.ContainsKey(nickname))
+                        {
+                            trie.AddWord(Normalize(nickname), id);
+                            nicknames.Add(nickname, id);
+                        }
                     }
                 }
+            }
+            catch
+            {
+
             }
 
             client = new HttpClient();
@@ -138,15 +145,6 @@ namespace BandoriBot.Services
             /*
             pool.GetProxysFromAPIs();
             */
-            wrapper = new GoWrapper(Module.ReadFromBinary("pcrd.wasm"));
-            
-            wrapper.Global["myhash"] = new Func<string, double>(myHash);
-            wrapper.Global["location"] = new JsObject
-            {
-                ["host"] = "pcrdfans.com",
-                ["hostname"] = "pcrdfans.com",
-
-            };
         }
         
         private Image GetTexture(Character c)
@@ -228,7 +226,35 @@ namespace BandoriBot.Services
                 _0x473e93 = 0x72 * _0x473e93 ^ text[--_0x5d587e];
             return _0x473e93 >> 0x3;
         }
-        
+
+        private string version;
+
+        private async Task UpdateVersion()
+        {
+            var cur = JObject.Parse(await client.GetStringAsync("https://api.pcrdfans.com/x/v1/search")).Value<string>("version");
+            if (cur != version)
+            {
+                version = cur;
+
+                await File.WriteAllBytesAsync("pcrd.wasm", await client.GetByteArrayAsync("https://pcrdfans.com/pcrd.wasm"));
+
+                wrapper = new GoWrapper(Module.ReadFromBinary("pcrd.wasm"))
+                {
+                    Global =
+                    {
+                        ["myhash"] = new Func<string, double>(myHash),
+                        ["location"] = new JsObject
+                        {
+                            ["host"] = "pcrdfans.com",
+                            ["hostname"] = "pcrdfans.com",
+
+                        }
+                    }
+                };
+            }
+
+        }
+
         public async Task<string> Callapi(string text)
         {
             string prefix = "";
@@ -239,11 +265,14 @@ namespace BandoriBot.Services
                 prefix = "**角色数少于五个**\n" +
                     (indexes.Item2.Length > 0 ? $"未能识别的名字：{string.Join(',', indexes.Item2.Where(s => !string.IsNullOrWhiteSpace(s)))}\n" : "");
 
+            await UpdateVersion();
             this.Log(Models.LoggerLevel.Debug, $"chara id = {string.Join(",", indexes.Item1)}");
+
             var nonce = GenNonce();
             var json = new JObject
             {
                 ["def"] = new JArray(indexes.Item1),
+                ["language"] = 0,
                 ["nonce"] = nonce,
                 ["page"] = 1,
                 ["region"] = 1,
@@ -262,6 +291,7 @@ namespace BandoriBot.Services
             {
                 ["_sign"] = sign,
                 ["def"] = json["def"],
+                ["language"] = json["language"],
                 ["nonce"] = json["nonce"],
                 ["page"] = json["page"],
                 ["region"] = json["region"],

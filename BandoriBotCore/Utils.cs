@@ -97,7 +97,7 @@ namespace BandoriBot
                     case "mirai:at": result.Add(SoraSegment.At(long.Parse(val))); break;
                     case "mirai:imageid": result.Add(SoraSegment.Image(val.Decode().FixImage(), false)); break;
                     case "mirai:imageurl": result.Add(SoraSegment.Image(val.Decode(), false)); break;
-                    case "mirai:imagepath": result.Add(SoraSegment.Image(val.Decode(), false)); break;
+                    case "mirai:imagepath": result.Add(SoraSegment.Image(Path.GetFullPath(val.Decode()), false)); break;
                     case "mirai:imagenew": result.Add(SoraSegment.Image(val.Decode(), false)); break;
                     case "mirai:atall": result.Add(SoraSegment.AtAll()); break;
                     case "mirai:json": result.Add(SoraSegment.Json(val.Decode())); break;
