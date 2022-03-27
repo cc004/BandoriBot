@@ -29,16 +29,12 @@ namespace BandoriBot.Commands
                 var client = new AssetController.PCRClient();
                 client.urlroot = "http://l3-qa2-all-gs-gzlj.bilibiligame.net/";
                 var manifest = client.Callapi("source_ini/get_resource_info", new JObject { ["viewer_id"] = "0" });
-                var md5hash = mgr.registries.ToDictionary(p => p.Key, p => p.Value.md5);
+                await masterContextCache.instance.DisposeAsync();
                 await mgr.Initialize(a[1],
                     (string)manifest["movie_ver"],
-                    (string)manifest["sound_ver"], manifest["resource"][0].ToString(), false);
+                    (string)manifest["sound_ver"], manifest["resource"][0].ToString(), true);
                 masterContextCache.instance = new masterContext();
                 await args.Callback($"manifest updated to {a[1]}\n");
-                await args.Callback(string.Join("\n",
-                    mgr.registries.Where(r => !md5hash.TryGetValue(r.Key, out var val) || val != r.Value.md5)
-                        .Select(r => r.Key).Select((s, i) => (s, i)).GroupBy(s => s.i / 3)
-                        .Select(g => string.Join(" ", g.Select(t => t.s)))).ToImageText());
             }
             if (a[0].IndexOf("query") >= 0)
             {

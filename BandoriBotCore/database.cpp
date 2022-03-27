@@ -72,7 +72,7 @@ void OpenFile(const char *datafile, const char *indexfile)
 
 Cache* CacheIndex(int start, int end)
 {
-    int spos = indexCache[start], epos;
+    long spos = indexCache[start], epos;
     if (end >= indexCache.size()) epos = curIndex;
     else epos = indexCache[end];
     char *buf = new char[epos - spos];

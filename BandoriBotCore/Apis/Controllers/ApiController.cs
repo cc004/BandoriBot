@@ -86,6 +86,13 @@ namespace BandoriBot.Apis.Controllers
         {
             try
             {
+                if (request.def.Length == 0)
+                    return new JObject()
+                    {
+                        ["code"] = 400,
+                        ["message"] = "team has no member"
+                    }.ToString(Formatting.Indented);
+
                 var nonce = GenNonce();
                 var json = new JObject
                 {

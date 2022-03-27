@@ -259,6 +259,7 @@ namespace BandoriBot.Services
         {
             string prefix = "";
             var indexes = trie.WordSplit(Normalize(text));
+            if (indexes.Item1.Length == 0) return string.Empty;
             if (indexes.Item1.Length > 5)
                 throw new ApiException("角色数超过了五个！");
             else if (indexes.Item1.Length < 5)

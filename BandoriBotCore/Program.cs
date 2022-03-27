@@ -176,9 +176,9 @@ namespace BandoriBot
         private static void CurrentDomain_FirstChanceException(object sender, FirstChanceExceptionEventArgs e)
         {
             var ex = e.Exception;
-            while (ex is AggregateException e2) ex = e2.InnerException;
-            if (ex is ApiException) return;
-            if (ex is IOException) return;
+            //while (ex is AggregateException e2) ex = e2.InnerException;
+            //if (ex is ApiException) return;
+            //if (ex is IOException) return;
 
             Console.WriteLine(e.Exception);
         }
