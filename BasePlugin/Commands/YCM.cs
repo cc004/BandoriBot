@@ -61,7 +61,7 @@ namespace BandoriBot.Commands
                 indexes.Add(car.index);
                 result += car.ToString(now) + "\n";
             }
-            await args.Callback(string.IsNullOrEmpty(result) ? "myc" : " " + result.Substring(0, result.Length - 1));
+            await args.Callback(string.IsNullOrEmpty(result) ? "myc" : " " + result.Substring(0, result.Length - 1).ToImageText());
         }
     }
 }

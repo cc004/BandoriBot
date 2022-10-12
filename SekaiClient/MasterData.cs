@@ -60,7 +60,8 @@ namespace SekaiClient.Datas
     {
         normal = 0,
         beginner = 2,
-        ceil = 1
+        ceil = 1,
+        gift=2,
     }
 
     [JsonObject]

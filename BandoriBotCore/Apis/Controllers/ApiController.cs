@@ -10,6 +10,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using BandoriBot.Config;
+using BandoriBot.Models;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -104,7 +106,8 @@ namespace BandoriBot.Apis.Controllers
                     ["sort"] = request.sort,
                     ["ts"] = GetTimeStamp()
                 };
-                
+
+                await JJCManager.Instance.UpdateVersion();
                 var sign = JJCManager.Instance.wrapper.RunEvent(1, new object[]
                 {
                     json.ToString(Formatting.None),
@@ -124,9 +127,15 @@ namespace BandoriBot.Apis.Controllers
                     ["ts"] = json["ts"]
                 };
                 
-                return client.PostAsync($"https://api.pcrdfans.com/x/v1/search",
+                var result = client.PostAsync($"https://api.pcrdfans.com/x/v1/search",
                     new StringContent(json.ToString(Formatting.None)
                         , Encoding.UTF8, "application/json")).Result.Content.ReadAsStringAsync().Result;
+
+                if (!result.Contains("\"data\""))
+                {
+                    this.Log(LoggerLevel.Error, $"pcrd ret err: {result} while processing request: {json}");
+                }
+                return result;
             }
             catch (Exception ex)
             {
@@ -141,6 +150,7 @@ namespace BandoriBot.Apis.Controllers
         [HttpGet("execute")]
         public async Task<ActionResult<string>> Execute(string message)
         {
+            if (!await CheckPermission("execute")) return BadRequest();
             var source = new Source { FromGroup = 0, FromQQ = GetUID(), Session = MessageHandler.session };
             var result = new StringBuilder();
             var args = new HandlerArgs
@@ -171,7 +181,7 @@ namespace BandoriBot.Apis.Controllers
         public async Task<ActionResult<Record[]>> Get(string keyword = null, long qq = 0, long group = 0, long starttime = 0, long endtime = 0, int limit = 100)
         {
             if (!await CheckPermission("get")) return BadRequest();
-            var result = RecordDatabaseManager.GetRecords();
+            IQueryable<Record> result = RecordDatabaseManager.GetRecords();
             if (qq > 0) result = result.Where(r => r.qq == qq);
             if (group > 0) result = result.Where(r => r.group == group);
             if (starttime > 0) result = result.Where(r => r.timestamp >= starttime);
@@ -184,7 +194,7 @@ namespace BandoriBot.Apis.Controllers
         public async Task<ActionResult<string>> Countv2(string keyword = null, long qq = 0, long group = 0, long starttime = 0, long endtime = 0)
         {
             if (!await CheckPermission("get")) return BadRequest();
-            var result = RecordDatabaseManager.GetRecords();
+            IQueryable<Record> result = RecordDatabaseManager.GetRecords();
             if (qq > 0) result = result.Where(r => r.qq == qq);
             if (group > 0) result = result.Where(r => r.group == group);
             if (starttime > 0) result = result.Where(r => r.timestamp >= starttime);

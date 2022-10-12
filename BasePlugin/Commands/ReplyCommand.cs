@@ -236,7 +236,7 @@ namespace BandoriBot.Commands
                 case "dela3":
                 case "dela4":
                 {
-                    if (splits.Length < 3)
+                    if (splits.Length < 2)
                     {
                         await args.Callback("Invalid argument count.");
                         return;
@@ -251,7 +251,7 @@ namespace BandoriBot.Commands
 
                     foreach (var pair in data.ToArray())
                     {
-                        if (pair.Key.StartsWith(pair.Key)) data.Remove(pair.Key);
+                        if (pair.Key.StartsWith(splits[1])) data.Remove(pair.Key);
                     }
 
                     config.Save();

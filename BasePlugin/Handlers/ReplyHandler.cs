@@ -63,10 +63,12 @@ namespace BandoriBot.Handler
 
         private static DataTypeS Verify(DataTypeS d)
         {
+            Utils.Log(LoggerLevel.Info, $"reply verifying {d.SelectMany(x => x.Value).Count()} subreplies in {d.Count} replies");
             foreach (var k in d.Keys)
                 foreach (var k2 in d[k].ToArray())
                     if (!Verify(k2))
                         d[k].Remove(k2);
+            Utils.Log(LoggerLevel.Info, $"reply loaded {d.SelectMany(x => x.Value).Count()} subreplies in {d.Count} replies");
             return d;
         }
 
@@ -127,11 +129,13 @@ namespace BandoriBot.Handler
             if (!GetConfig<Whitelist>().hash.Contains(args.Sender.FromGroup) && !isadmin)
             {
                 var pending = FitRegex(data4, raw).Select(tuple => new Func<string>(() =>
-                    GetFunction(tuple.Item2.reply)(tuple.Item1, args.Sender, args.message, isadmin, s => args.Callback(s).Wait())));
+                    GetFunction(tuple.Item2.reply)(tuple.Item1, args.Sender, args.message, isadmin,
+                        s => args.Callback(s).Wait() )));
                 var pa = pending.ToArray();
 
                 if (pa.Length > 0)
                 {
+                    pa[new Random().Next(pa.Length)]();
                     await args.Callback(pa[new Random().Next(pa.Length)]());
                     return true;
                 }
@@ -156,10 +160,10 @@ namespace BandoriBot.Handler
             {
                 IEnumerable<Func<string>> pending = new List<Func<string>>();
 
-                pending = pending.Concat(FitRegex(data3, raw).Select(tuple => new Func<string>(() => FitReply(tuple, args.Sender))));
+                //pending = pending.Concat(FitRegex(data3, raw).Select(tuple => new Func<string>(() => FitReply(tuple, args.Sender))));
 
                 pending = pending.Concat(FitRegex(data4, raw).Select(tuple => new Func<string>(() =>
-                    GetFunction(tuple.Item2.reply)(tuple.Item1, args.Sender, args.message, isadmin, s => args.Callback(s).Wait()))));
+                    GetFunction(tuple.Item2.reply)(tuple.Item1, args.Sender, args.message, isadmin, s => { }/*args.Callback(s).Wait()*/))));
 
                 var pa = pending.ToArray();
 
@@ -167,6 +171,7 @@ namespace BandoriBot.Handler
                 {
                     try
                     {
+                        pa[new Random().Next(pa.Length)]();
                         await args.Callback(pa[new Random().Next(pa.Length)]());
                     }
                     catch

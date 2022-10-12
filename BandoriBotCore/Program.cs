@@ -21,6 +21,7 @@ using Sora;
 using Sora.Entities.Base;
 using Sora.Enumeration.EventParamsType;
 using Sora.Net.Config;
+using YukariToolBox.LightLog;
 
 namespace BandoriBot
 {
@@ -68,10 +69,11 @@ namespace BandoriBot
 
         public static void Main(string[] args)
         {
+            Log.SetLogLevel(LogLevel.Fatal);
             Testing().Wait();
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-            AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
+            //AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
             
             new Thread(() => Apis.Program.Main2(args)).Start();

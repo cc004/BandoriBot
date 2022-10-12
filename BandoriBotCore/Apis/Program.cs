@@ -21,7 +21,7 @@ namespace BandoriBot.Apis
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseUrls("http://*:4/", "http://*:8443/").UseStartup<Startup>();
+                    webBuilder.UseUrls("http://*:13100/").UseStartup<Startup>();
                 });
     }
 }

@@ -34,6 +34,7 @@ namespace BandoriBot.Handler
 
         public async Task<bool> OnMessage(HandlerArgs args)
         {
+            return false;
             int groupHash = args.Sender.FromGroup == 0 ? args.Sender.FromQQ.GetHashCode() : $"{args.Sender.FromGroup}".GetHashCode();
             int messageHash = args.message.GetHashCode();
 

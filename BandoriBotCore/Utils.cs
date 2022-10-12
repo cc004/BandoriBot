@@ -106,6 +106,7 @@ namespace BandoriBot
                     case "mirai:face": result.Add(SoraSegment.Face(int.Parse(val))); break;
                     case "CQ:at,qq": result.Add(SoraSegment.At(long.Parse(val))); break;
                     case "CQ:face,id": result.Add(SoraSegment.Face(int.Parse(val))); break;
+                    case "mirai:record": result.Add(SoraSegment.Record(val.Decode())); break;
                     default: result.Add(SoraSegment.Text($"[{match.Groups[2].Value}={match.Groups[3].Value}]")); break;
                 }
                 msg = match.Groups[4].Value;
@@ -187,16 +188,18 @@ public static string FixImage(string origin)
                 case AtSegment at:
                     return $"[mirai:at={at.Target}]";
                 case ImageSegment img:
-                    return $"[mirai:imagenew={img.ImgFile}]";
+                    return $"[mirai:imagenew={img.ImgFile.Encode()}]";
                 case PokeSegment poke:
                     return $"[mirai:poke={poke.Uid}]";
                 case CodeSegment code:
                     switch (msg.MessageType)
                     {
-                        case SegmentType.Json: return $"[mirai:json={code.Content}]";
-                        case SegmentType.Xml: return $"[mirai:xml={code.Content}]";
+                        case SegmentType.Json: return $"[mirai:json={code.Content.Encode()}]";
+                        case SegmentType.Xml: return $"[mirai:xml={code.Content.Encode()}]";
                         default: return "";
                     }
+                case RecordSegment record:
+                    return $"[mirai:record={record.RecordFile.Encode()}]";
                 default:
                     return "";//msg.ToString().Encode();
             }

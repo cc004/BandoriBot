@@ -229,7 +229,7 @@ namespace BandoriBot.Services
 
         private string version;
 
-        private async Task UpdateVersion()
+        public async Task UpdateVersion()
         {
             var cur = JObject.Parse(await client.GetStringAsync("https://api.pcrdfans.com/x/v1/search")).Value<string>("version");
             if (cur != version)

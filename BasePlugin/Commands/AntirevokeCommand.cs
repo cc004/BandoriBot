@@ -1,6 +1,7 @@
 using BandoriBot.Config;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using BandoriBot.Services;
 
@@ -16,7 +17,9 @@ namespace BandoriBot.Commands
             var qq = long.Parse(splits[1]);
             var id = int.Parse(splits[2]);
             if (!await args.Source.HasPermission("management.antirevoke", group) && qq != args.Source.FromQQ) return;
-            await args.Callback(RecordDatabaseManager.GetRecords().Where(r => r.qq == qq && r.group == group).SkipLast(id).LastOrDefault()?.message ?? "");
+            var cnt = RecordDatabaseManager.GetRecords().Count(r => r.qq == qq && r.@group == @group);
+            await args.Callback(RecordDatabaseManager.GetRecords().Where(r => r.qq == qq && r.group == group)
+                .Skip(cnt - id - 1).FirstOrDefault()?.message ?? "<empty>");
         }
     }
     public class AntirevokeCommand : HashCommand<Antirevoke, long>

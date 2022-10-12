@@ -24,7 +24,7 @@ namespace BandoriBot
         private static readonly State head = new ();
         public static bool booted = false;
 
-        public static SoraApi session => bots.OrderBy(p => p.GetHashCode()).First().Value;
+        public static SoraApi session => bots.OrderBy(p => p.GetHashCode()).FirstOrDefault().Value;
 
         private static unsafe long GetHashCode(string str)
         {
