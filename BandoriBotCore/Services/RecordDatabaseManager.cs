@@ -19,7 +19,14 @@ namespace BandoriBot.Services
             options.UseSqlite("Data Source=records.db");
         }
     }
-    
+    public class Record
+    {
+        public long id { get; set; }
+        public long qq { get; set; }
+        public long group { get; set; }
+        public long timestamp { get; set; }
+        public string message { get; set; }
+    }
     public static unsafe class RecordDatabaseManager
     {
         public static int Length => RecordContext.Instance.records.Count();
@@ -73,12 +80,4 @@ namespace BandoriBot.Services
         }
     }
 
-    public class Record
-    {
-        public long id { get; set; }
-        public long qq { get; set; }
-        public long group { get; set; }
-        public long timestamp { get; set; }
-        public string message { get; set; }
-    }
 }
