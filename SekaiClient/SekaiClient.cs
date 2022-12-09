@@ -78,6 +78,8 @@ namespace SekaiClient
             await PassTutorial(true);
         }
 
+        private CookieContainer cookie = new ();
+        
         public SekaiClient(EnvironmentInfo info, bool useProxy = false)
         {
             var headertype = typeof(HttpClient).Assembly.GetType("System.Net.Http.Headers.HttpHeaderType");
@@ -85,34 +87,14 @@ namespace SekaiClient
 
             if (useProxy)
             {
-                var pool = new ProxyPool();
-                pool.GetProxysFromAPIs();
-                foreach (var proxy in pool.proxys)
-                {
-                    try
-                    {
-                        client = new HttpClient(new HttpClientHandler
-                        {
-                            Proxy = new WebProxy(proxy.ToString())
-                        });
-                        client.Timeout = new TimeSpan(0, 0, 5);
-                        typeof(HttpHeaders).GetField("_allowedHeaderTypes", BindingFlags.NonPublic | BindingFlags.Instance)
-                            .SetValue(client.DefaultRequestHeaders, Enum.Parse(headertype, "All"));
-
-                        SetupHeaders();
-                        Register().Wait();
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.ToString());
-                    }
-                }
-
                 throw new Exception("No proxy");
             }
             else
             {
-                client = new HttpClient();
+                client = new HttpClient(new HttpClientHandler
+                {
+                    CookieContainer = cookie
+                });
                 client.Timeout = new TimeSpan(0, 10, 0);
                 typeof(HttpHeaders).GetField("_allowedHeaderTypes", BindingFlags.NonPublic | BindingFlags.Instance)
                     .SetValue(client.DefaultRequestHeaders, Enum.Parse(headertype, "All"));
@@ -158,6 +140,19 @@ namespace SekaiClient
                             $"api failed with header = {string.Join("\n", client.DefaultRequestHeaders.Select(pair => $"{pair.Key}={string.Join(",", pair.Value)}"))}");
                     }
 
+                    if (resp.StatusCode == HttpStatusCode.Forbidden)
+                    {
+                        DebugWrite("Cookie expired, refreshing...");
+
+                        client.DefaultRequestHeaders.Remove("Cookie");
+                        resp = await client.PostAsync(
+                            "https://issue.sekai.colorfulpalette.org/api/signature",
+                            new ByteArrayContent(PackHelper.Pack(null))
+                            );
+                        foreach (var cookie in resp.Headers.GetValues("Set-Cookie").First().Split(';'))
+                            this.cookie.SetCookies(new Uri(urlroot), cookie);
+                        return await CallApi(apiurl, method, content);
+                    }
                     throw new ApiException($"与服务器通信时发生错误, HTTP {(int) resp.StatusCode} {resp.StatusCode}");
                 }
 

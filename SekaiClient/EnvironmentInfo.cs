@@ -11,7 +11,7 @@ namespace SekaiClient
         public string Content_Type = "application/octet-stream";
         public string Accept = "application/octet-stream";
         public string Accept_Encoding = "deflate, gzip";
-        public string Host = "production-game-api.sekai.colorfulpalette.org";
+        // public string Host = "production-game-api.sekai.colorfulpalette.org";
         public string User_Agent = "UnityPlayer/2019.4.3f1 (UnityWebRequest/1.0, libcurl/7.52.0-DEV)";
         public string X_Install_Id = Guid.NewGuid().ToString();//"3ef222d3-6de3-43bf-aa19-9830b9bffc08";
         public string X_App_Version = "1.0.1";
