@@ -8,6 +8,7 @@ using Sora.OnebotModel;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -64,13 +65,13 @@ namespace BandoriBot
 
         private static async Task Testing()
         {
-
+            var client = SekaiClient.SekaiClient.GetClient();
         }
 
         public static void Main(string[] args)
         {
             Log.SetLogLevel(LogLevel.Fatal);
-            Testing().Wait();
+            //Testing().Wait();
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             //AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;

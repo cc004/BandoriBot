@@ -56,6 +56,19 @@ namespace SekaiClient
 
         public string AssetHash { get; private set; }
 
+
+        static SekaiClient()
+        {
+            try
+            {
+                foreach (var cookie in System.IO.File.ReadAllText("cookie.txt").Split(';'))
+                    SekaiClient.cookie.SetCookies(new Uri(urlroot), cookie);
+            }
+            catch
+            {
+
+            }
+        }
         private void SetupHeaders()
         {
             client.DefaultRequestHeaders.Clear();
@@ -78,7 +91,7 @@ namespace SekaiClient
             await PassTutorial(true);
         }
 
-        private CookieContainer cookie = new ();
+        private static readonly CookieContainer cookie = new ();
         
         public SekaiClient(EnvironmentInfo info, bool useProxy = false)
         {
@@ -149,8 +162,9 @@ namespace SekaiClient
                             "https://issue.sekai.colorfulpalette.org/api/signature",
                             new ByteArrayContent(PackHelper.Pack(null))
                             );
+                        System.IO.File.WriteAllText("cookie.txt", resp.Headers.GetValues("Set-Cookie").First());
                         foreach (var cookie in resp.Headers.GetValues("Set-Cookie").First().Split(';'))
-                            this.cookie.SetCookies(new Uri(urlroot), cookie);
+                            SekaiClient.cookie.SetCookies(new Uri(urlroot), cookie);
                         return await CallApi(apiurl, method, content);
                     }
                     throw new ApiException($"与服务器通信时发生错误, HTTP {(int) resp.StatusCode} {resp.StatusCode}");

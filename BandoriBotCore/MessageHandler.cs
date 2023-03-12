@@ -164,6 +164,9 @@ namespace BandoriBot
             {
                 try
                 {
+                    if (!Configuration.GetConfig<Whitelist>().t.Contains(Sender.FromGroup) &&
+                        !await Sender.HasPermission("ignore.whitelist", -1))
+                        return;
                     if (Sender.IsGuild)
                     {
                         var (guild, channel) = GetGroupCache(Sender.FromGroup);

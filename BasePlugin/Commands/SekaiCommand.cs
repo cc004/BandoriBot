@@ -37,7 +37,7 @@ namespace BandoriBot.Commands
                             DebugWrite = Console.WriteLine
                         };
                         client.InitializeAdid();
-                        client.UpgradeEnvironment().Wait();
+                        //client.UpgradeEnvironment().Wait();
                         var user = client.Register().Result;
                         client.Login(user).Wait();
                         var currency = client.PassTutorial().Result;
@@ -91,9 +91,9 @@ namespace BandoriBot.Commands
             {
                 refreshing = true;
                 var now = DateTime.Now;
-                if (now - lastref < new TimeSpan(0, 1, 0)) return;
-                scoreCache = (Utils.GetHttp("https://api.sekai.best/event/pred").Result)["data"].ToObject<Dictionary<string, long>>()
-                    .Where(pair => int.TryParse(pair.Key, out var _)).ToDictionary(pair => int.Parse(pair.Key), pair => (int)pair.Value);
+                if (now - lastref < new TimeSpan(0,  30, 0)) return;
+                scoreCache = (Utils.GetHttp("https://pjsk.oss-cn-hangzhou.aliyuncs.com/predict.json").Result)["data"].ToObject<Dictionary<string, string>>()
+                    .Where(pair => int.TryParse(pair.Key, out var _)).ToDictionary(pair => int.Parse(pair.Key), pair => int.Parse(pair.Value));
                 lastref = now;
             }
             finally

@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GoWasmWrapper\GoWasmWrapper\GoWasmWrapper.csproj" />
+    <ProjectReference Include="..\SekaiClient\SekaiClient.csproj" />
     <ProjectReference Include="..\Sora\Sora\Sora.csproj" />
   </ItemGroup>
 
